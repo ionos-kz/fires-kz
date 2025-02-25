@@ -1,5 +1,13 @@
 .ol-control {
     background-color: transparent;
+
+    button {
+        transition: opacity .2s ease-in-out;
+
+        &:hover {
+            opacity: .8;
+        }
+    }
 }
 
 .ol-geocoder.gcd-gl-container {
@@ -14,10 +22,30 @@
     justify-content: flex-end;
     gap: .5rem;
     font-size: 1rem;
-}
 
-.gcd-gl-control.ol-control {
-    background-color: transparent;
+    .gcd-gl-control.ol-control {
+        background-color: transparent;
+
+        .gcd-gl-input {    
+            font-size: 1rem;
+            width: 12rem;
+        }
+
+        .gcd-gl-btn {
+            left: .15rem;
+            transition: opacity .2s ease-in-out;
+
+            &:hover {
+                opacity: .8;
+            }
+        }
+
+        .gcd-gl-search {
+            position: absolute;
+            top: -.25rem;
+            right: 2.5rem;
+        }
+    }
 }
 
 .gcd-gl-control.ol-control.gcd-gl-expanded {

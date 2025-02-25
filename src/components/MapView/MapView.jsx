@@ -92,7 +92,7 @@ const MapView = () => {
       limit: 3,
       countrycodes: 'KZ',
       keepOpen: true,
-      preventDefault: true,
+      // preventDefault: true, // preventing zoom to the location
     });
 
     const map = new Map({
