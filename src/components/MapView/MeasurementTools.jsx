@@ -179,12 +179,19 @@ const MeasurementTools = ({ map }) => {
     helpTooltipElementRef.current.classList.remove('hidden');
   };
 
-  const removeTooltip = () => {
-    if (type && helpTooltipElementRef.current) {
-      helpTooltipElementRef.current.remove();
-      helpTooltipElementRef.current = null;
-    }
-  }
+    // Remove help tooltip whenever there is no active drawing type.
+    useEffect(() => {
+      if (!type) {
+        if (helpTooltipElementRef.current) {
+          helpTooltipElementRef.current.remove();
+          helpTooltipElementRef.current = null;
+        }
+        if (helpTooltipRef.current) {
+          map.removeOverlay(helpTooltipRef.current);
+          helpTooltipRef.current = null;
+        }
+      }
+    }, [type, map]);
 
   const handleMouseOut = () => {
     if (helpTooltipElementRef.current) {
@@ -214,7 +221,6 @@ const MeasurementTools = ({ map }) => {
     
     map.on('pointermove', handlePointerMove);
     map.getViewport().addEventListener('mouseout', handleMouseOut);
-    map.on('change', removeTooltip);
     
     return () => {
       map.removeLayer(vectorRef.current);
@@ -228,10 +234,9 @@ const MeasurementTools = ({ map }) => {
       }
       
       map.un('pointermove', handlePointerMove);
-      map.un('change', removeTooltip);
       map.getViewport().removeEventListener('mouseout', handleMouseOut);
     };
-  }, [map, removeTooltip]);
+  }, [map]);
 
   // Handle drawing interaction based on type change
   useEffect(() => {
