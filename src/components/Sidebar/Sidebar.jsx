@@ -25,21 +25,21 @@ const Sidebar = () => {
   const sizeIcon = 28;
   const iconColor = '#4999E8';
 
-  useEffect(() => {
-    let tippyInstances = [];
+  // useEffect(() => {
+  //   let tippyInstances = [];
 
-    if (!isMenuOpen) {
-      tippyInstances = Tippy('.tippySidebar', { 
-        placement: 'right', 
-        theme: 'light-border',
-        animation: 'scale'
-      });
-    }
+  //   if (!isMenuOpen) {
+  //     tippyInstances = Tippy('.tippySidebar', { 
+  //       placement: 'right', 
+  //       theme: 'light-border',
+  //       animation: 'scale'
+  //     });
+  //   }
 
-    return () => {
-      tippyInstances.forEach(instance => instance.destroy());
-    };
-  }, [isMenuOpen]);
+  //   return () => {
+  //     tippyInstances.forEach(instance => instance.destroy());
+  //   };
+  // }, [isMenuOpen]);
 
   return (
     <aside className={`${styles.sidebar__outer} ${isMenuOpen ? styles.open : ''}`}>

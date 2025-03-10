@@ -13,8 +13,8 @@ const Header = memo(() => {
   const iconColor = "#4999E8";
 
   useEffect(() => {
-    tippy(".header__tooltip", {
-      placement: "bottom",
+    tippy("[data-tippy-content]", {
+      placement: "right",
       delay: [100, 0],
       animation: "scale",
       arrow: true,
