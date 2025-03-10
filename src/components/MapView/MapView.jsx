@@ -112,6 +112,7 @@ const MapView = () => {
 
     const fullscreenCleanUp = handleFullScreenChange(mapRef)
 
+    // TODO create util for hash
     let shouldUpdate = true;
     const updatePermalink = () => {
       if (!shouldUpdate) {
