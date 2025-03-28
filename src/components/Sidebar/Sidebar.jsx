@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 // import Tippy from "tippy.js";
 import useMenuStore from "../../store/menuStore/store";
-import DropDown from "./DropDown/DropDown";
+import DropDown from "./DropDown/DropDown.jsx";
 
 import "tippy.js/animations/scale.css";
 import "tippy.js/dist/tippy.css";
