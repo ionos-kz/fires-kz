@@ -1,5 +1,5 @@
 import useMenuStore from "../../../store/menuStore/store";
-import styles from './Dropdown.module.scss';
+import styles from './DropDown.module.scss';
 
 const DDElements = [
   {
