@@ -1,3 +1,4 @@
+import React, { memo } from "react";
 import useMenuStore from "../../../store/menuStore/store";
 import styles from './DropDown.module.scss';
 
@@ -73,7 +74,7 @@ const DDElements = [
   },
 ];
 
-const DropDown = ({ openTabIndex }) => {
+const DropDown = memo(({ openTabIndex }) => {
   const { states, toggleState, setState } = useMenuStore();
 
   return (
@@ -116,6 +117,6 @@ const DropDown = ({ openTabIndex }) => {
       ))}
     </div>
   );
-};
+});
 
 export default DropDown;
