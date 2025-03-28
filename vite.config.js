@@ -6,5 +6,8 @@ export default defineConfig({
   plugins: [react()],  
   build: {
     minify: 'esbuild', // Options: 'terser', 'esbuild', false (disable)
+  },
+  resolve: {
+    extensions: ['.js', '.jsx']
   }
 })
