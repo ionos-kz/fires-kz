@@ -73,7 +73,7 @@ const DDElements = [
   },
 ];
 
-const Dropdown = ({ openTabIndex }) => {
+const DropDown = ({ openTabIndex }) => {
   const { states, toggleState, setState } = useMenuStore();
 
   return (
@@ -118,4 +118,4 @@ const Dropdown = ({ openTabIndex }) => {
   );
 };
 
-export default Dropdown;
+export default DropDown;

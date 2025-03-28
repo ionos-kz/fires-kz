@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 // import Tippy from "tippy.js";
 import useMenuStore from "../../store/menuStore/store";
-import Dropdown from "./DropDown/DropDown.jsx";
+import DropDown from "./DropDown/DropDown";
 
 import "tippy.js/animations/scale.css";
 import "tippy.js/dist/tippy.css";
@@ -99,7 +99,7 @@ const Sidebar = () => {
           </div>
         ))}
       </div>
-      {isMenuOpen && <Dropdown openTabIndex={openTabIndex} />}
+      {isMenuOpen && <DropDown openTabIndex={openTabIndex} />}
     </aside>
   );
 };
