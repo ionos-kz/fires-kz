@@ -2,15 +2,17 @@ import { memo, useEffect } from "react";
 import { Menu, CircleHelp, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import tippy from "tippy.js";
-import useMenuStore from "../../store/store";
+import useMenuStore from "../../store/menuStore/store";
 
 import "tippy.js/dist/tippy.css";
 import "tippy.js/animations/scale.css";
 import styles from "./Header.module.scss";
 
+const iconSize = 25;
+const iconColor = "#4999E8";
+
 const Header = memo(() => {
   const { isMenuOpen, toggleMenu } = useMenuStore();
-  const iconColor = "#4999E8";
 
   useEffect(() => {
     tippy("[data-tippy-content]", {
@@ -19,12 +21,10 @@ const Header = memo(() => {
       animation: "scale",
       arrow: true,
       theme: "light-border",
+      interactive: false,
     });
   }, [isMenuOpen]);
 
-  const handleMenuToggle = () => {
-    toggleMenu();
-  };
 
   return (
     <header className={styles.header}>
@@ -32,7 +32,7 @@ const Header = memo(() => {
         <div className={styles.header__left}>
           <button
             className={`${styles.header__menu} header__tooltip`}
-            onClick={handleMenuToggle}
+            onClick={toggleMenu}
             data-tippy-content={isMenuOpen ? "Collapse" : "Expand"}
             aria-label={isMenuOpen ? "Collapse menu" : "Expand menu"}
           >
@@ -42,20 +42,18 @@ const Header = memo(() => {
                   key="close"
                   initial={{ rotate: -90, opacity: 0 }}
                   animate={{ rotate: 0, opacity: 1 }}
-                  exit={{ rotate: 90, opacity: 0 }}
                   transition={{ duration: 0.3 }}
                 >
-                  <X color={iconColor} height={32} width={32} />
+                  <X color={iconColor} height={iconSize} width={iconSize} />
                 </motion.div>
               ) : (
                 <motion.div
                   key="menu"
                   initial={{ rotate: 90, opacity: 0 }}
                   animate={{ rotate: 0, opacity: 1 }}
-                  exit={{ rotate: -90, opacity: 0 }}
                   transition={{ duration: 0.3 }}
                 >
-                  <Menu color={iconColor} height={32} width={32} />
+                  <Menu color={iconColor} height={iconSize} width={iconSize} />
                 </motion.div>
               )}
             </AnimatePresence>
@@ -64,10 +62,8 @@ const Header = memo(() => {
           <div className={styles.header__logo}>
             <a href="#" aria-label="Homepage">
               <img
-                src="/logo.webp"
+                src="/logo.svg"
                 alt="Company Logo"
-                width="200"
-                height="100"
                 loading="lazy"
               />
             </a>
