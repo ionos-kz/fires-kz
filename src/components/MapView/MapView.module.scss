@@ -156,3 +156,96 @@
   }
 
 }
+
+
+.popup {
+  position: absolute;
+  background-color: white;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+  padding: 15px;
+  border-radius: 10px;
+  border: 1px solid #cccccc;
+  min-width: 280px;
+  font-size: 14px;
+  
+  &::after {
+    content: "";
+    position: absolute;
+    bottom: -10px;
+    left: 50%;
+    margin-left: -10px;
+    border-width: 10px 10px 0;
+    border-style: solid;
+    border-color: white transparent transparent;
+  }
+}
+
+.popup_close {
+  position: absolute;
+  top: 2px;
+  right: 8px;
+  text-decoration: none;
+  font-size: 18px;
+  font-weight: bold;
+  color: #999;
+  background: none;
+  border: none;
+  cursor: pointer;
+  
+  &:hover {
+    color: #333;
+  }
+}
+
+.popup_content {
+  h3 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    color: #333;
+  }
+  
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    
+    td {
+      padding: 4px 0;
+      
+      &:first-child {
+        font-weight: bold;
+        width: 40%;
+      }
+    }
+  }
+}
+
+.fireButton {
+  background: white;
+  border: none;
+  border-radius: 4px;
+  padding: 4px;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  &.active {
+    background: #ffeeee;
+  }
+  
+  &:hover {
+    background: #f5f5f5;
+    
+    &.active {
+      background: #ffd9d9;
+    }
+  }
+}
+
+.fireControl {
+  position: absolute;
+  top: 360px;
+  right: 10px;
+  z-index: 5;
+}

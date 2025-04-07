@@ -179,19 +179,19 @@ const MeasurementTools = ({ map }) => {
     helpTooltipElementRef.current.classList.remove('hidden');
   };
 
-    // Remove help tooltip whenever there is no active drawing type.
-    useEffect(() => {
-      if (!type) {
-        if (helpTooltipElementRef.current) {
-          helpTooltipElementRef.current.remove();
-          helpTooltipElementRef.current = null;
-        }
-        if (helpTooltipRef.current) {
-          map.removeOverlay(helpTooltipRef.current);
-          helpTooltipRef.current = null;
-        }
+  // Remove help tooltip whenever there is no active drawing type.
+  useEffect(() => {
+    if (!type) {
+      if (helpTooltipElementRef.current) {
+        helpTooltipElementRef.current.remove();
+        helpTooltipElementRef.current = null;
       }
-    }, [type, map]);
+      if (helpTooltipRef.current) {
+        map.removeOverlay(helpTooltipRef.current);
+        helpTooltipRef.current = null;
+      }
+    }
+  }, [type, map]);
 
   const handleMouseOut = () => {
     if (helpTooltipElementRef.current) {

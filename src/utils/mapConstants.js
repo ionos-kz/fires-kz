@@ -7,3 +7,4 @@ export const DEFAULT_POSITION = {
     zoom: 5.2,
     rotation: 0,
 };
+ 
