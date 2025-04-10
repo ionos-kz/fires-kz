@@ -1,0 +1,53 @@
+@use "/src/shared/styles/variables" as *;
+
+.sidebar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  z-index: 20;
+
+  height: calc(100vh - 8vh);
+  background-color: $bg-color;
+
+  display: flex;
+  align-items: flex-start;
+
+  .menu {
+    height: 100%;
+
+    display: flex;
+    flex-direction: column;
+    gap: .5rem;
+
+    &.open {
+      border-right: 1px solid #9e9e9e;
+    }
+
+    .tab {
+      width: 100%;
+      padding: .25rem;
+      cursor: pointer;
+
+      &.active {
+        background-color: $active-bg-color;
+      }
+
+      .tab-inner {
+        padding: .5rem;
+        border-radius: .5rem;
+
+        svg {
+          color: $icon-main-color;
+          width: $icon-main-size;
+          height: $icon-main-size;
+        }
+      }
+  
+      button {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+    }
+  }
+}
