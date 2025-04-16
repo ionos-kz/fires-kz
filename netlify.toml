@@ -13,3 +13,8 @@
 [context.dev]  # Для develop
   command = "yarn build"
   environment = { VITE_API_URL = "https://api.dev.com" }
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

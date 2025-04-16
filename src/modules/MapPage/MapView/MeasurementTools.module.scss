@@ -1,0 +1,297 @@
+@use "src/shared/styles/variables" as *;
+
+/* Measurement Tools */
+.measureTools {
+  position: absolute;
+  top: 18.5rem;
+  right: .5rem;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.measureButton {
+  width: 2rem;
+  height: 2rem;
+  border-radius: .4rem;
+  border: none;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.2);
+  transition: all 0.2s ease-in-out;
+  
+  &:hover {
+    opacity: .8;
+    transform: scale(1.05);
+  }
+  
+  &.active {
+    background: #4999E8;
+    color: white;
+  }
+
+  svg {
+    color: $icon-main-color-map;
+    width: $icon-main-size-map;
+    height: $icon-main-size-map;
+  }
+}
+
+.measurePanel {
+  position: absolute;
+  right: 3rem;
+  top: 0;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 0.5rem;
+  width: 240px;
+  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.15);
+  border: 1px solid #eaeaea;
+  transform: translateX(10px);
+  transition: all 0.3s ease-in-out;
+  overflow: hidden;
+}
+
+.measurePanelHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #eaeaea;
+  background: #f8f8f8;
+  
+  h3 {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: #333;
+  }
+}
+
+.measurePanelClose {
+  background: transparent;
+  border: none;
+  color: #666;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s ease;
+  
+  &:hover {
+    color: #ff4d4f;
+  }
+}
+
+.measureButtonGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 1rem;
+  border-bottom: 1px solid #eaeaea;
+}
+
+.measuringOptionButton {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 1rem;
+  background: #fff;
+  border: 1px solid #d9d9d9;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  
+  span {
+    font-size: 13px;
+    font-weight: 500;
+  }
+  
+  &:hover {
+    background: #f0f8ff;
+    border-color: #91caff;
+  }
+  
+  &.active {
+    background: #e6f4ff;
+    border-color: #4999E8;
+    color: #1677ff;
+  }
+}
+
+.measureInstructions {
+  background: #fffbe6;
+  border-top: 1px solid #ffe58f;
+  border-bottom: 1px solid #ffe58f;
+  padding: 0.75rem 1rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  
+  span {
+    font-size: 12px;
+    color: #5c5c5c;
+    line-height: 1.4;
+  }
+}
+
+.measurementResults {
+  padding: 0.75rem 1rem;
+  max-height: 150px;
+  overflow-y: auto;
+  
+  h4 {
+    margin: 0 0 0.5rem;
+    font-size: 13px;
+    font-weight: 600;
+    color: #333;
+  }
+  
+  ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+}
+
+.measurementResult {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.4rem 0;
+  border-bottom: 1px dashed #eaeaea;
+  
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.measurementLabel {
+  font-size: 12px;
+  color: #5c5c5c;
+}
+
+.measurementValue {
+  font-size: 12px;
+  font-weight: 500;
+  color: #333;
+}
+
+.measureActions {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding: 0.75rem 1rem;
+  border-top: 1px solid #eaeaea;
+  background: #f8f8f8;
+}
+
+.measureActionButton {
+  background: #fff;
+  border: 1px solid #d9d9d9;
+  border-radius: 0.25rem;
+  padding: 0.4rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  
+  &:hover:not(:disabled) {
+    background: #f0f8ff;
+    border-color: #91caff;
+    color: #1677ff;
+  }
+  
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.tooltipMeasure {
+  position: relative;
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 0.35rem 0.75rem;
+  border-radius: 0.25rem;
+  font-size: 12px;
+  white-space: nowrap;
+  pointer-events: none;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  
+  &.tooltipStatic {
+    background-color: #4999E8;
+    color: white;
+    border: 1px solid white;
+    font-weight: 500;
+  }
+}
+
+.tooltipHelp {
+  position: relative;
+  background: rgba(255, 255, 255, 0.9);
+  color: #333;
+  padding: 0.35rem 0.75rem;
+  border-radius: 0.25rem;
+  font-size: 12px;
+  white-space: nowrap;
+  pointer-events: none;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+
+.popup {
+  position: absolute;
+  background-color: white;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+  padding: 15px;
+  border-radius: 10px;
+  border: 1px solid #cccccc;
+  bottom: 12px;
+  left: -50px;
+  min-width: 180px;
+  z-index: 1000;
+}
+
+.popup:after, .popup:before {
+  top: 100%;
+  border: solid transparent;
+  content: " ";
+  height: 0;
+  width: 0;
+  position: absolute;
+  pointer-events: none;
+}
+
+.popup:after {
+  border-top-color: white;
+  border-width: 10px;
+  left: 48px;
+  margin-left: -10px;
+}
+
+.popup:before {
+  border-top-color: #cccccc;
+  border-width: 11px;
+  left: 48px;
+  margin-left: -11px;
+}
+
+.popupCloser {
+  text-decoration: none;
+  position: absolute;
+  top: 2px;
+  right: 8px;
+  font-size: 16px;
+  color: #666;
+}
+
+.popupContent {
+  font-size: 14px;
+  min-width: 150px;
+  max-width: 250px;
+}

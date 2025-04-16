@@ -1,0 +1,28 @@
+// Colors
+$main-color: #4999E8; // Primary theme color
+$secondary-color: #212529; // Secondary color
+$accent-color: #F4D58D; // Accent color
+$font-color: #001427; // Text color
+$bg-color: #ffffff; // Background color
+$danger-color: #8D0801; // Error/Danger color
+
+// Spacing
+$spacing-small: 8px;
+$spacing-medium: 16px;
+$spacing-large: 32px;
+
+// Font Size
+$main-size: clamp(1rem, 1.5vw, 1.05rem);
+$subheading-size: clamp(1.5rem, 2vw, 2rem);
+$heading-size: clamp(2rem, 3vw, 2.5rem);
+$caption-size: clamp(.7rem, 1vw, .9rem);
+
+// Icons
+$icon-main-color: #4999E8;
+$icon-main-size: 25px;
+$icon-main-color-map: #4999E8;
+$icon-main-size-map: 21px;
+
+// Bg
+$active-bg-color: #2F7D4F;
+$active-bg-color-map: yellow;
