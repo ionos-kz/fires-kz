@@ -1,7 +1,7 @@
 export const createMenuSlice = (set, get) => ({
   // default values
   isMenuOpen: false,
-  openTabIndex: 0,
+  openTabIndex: null,
 
   setTabIndex: (tabIndex) => {
     set(() => ({
