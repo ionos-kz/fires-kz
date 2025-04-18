@@ -4,9 +4,9 @@ import VectorLayer from "ol/layer/Vector";
 import VectorSource from "ol/source/Vector";
 import GeoJSON from "ol/format/GeoJSON";
 import Style from "ol/style/Style";
-import CircleStyle from "ol/style/Circle";
-import Fill from "ol/style/Fill";
-import Stroke from "ol/style/Stroke";
+// import CircleStyle from "ol/style/Circle";
+// import Fill from "ol/style/Fill";
+// import Stroke from "ol/style/Stroke";
 import { toast } from "react-toastify";
 
 // format date as yyyy-mm-dd

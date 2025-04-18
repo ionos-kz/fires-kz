@@ -32,7 +32,7 @@ const MapView = () => {
   const mapRef = useRef(null);
   const mapInstance = useRef(null);
   const [basemap, setBasemap] = useState(osmLayer);
-  const [isMapInitialized, setIsMapInitialized] = useState(false); // Track map initialization
+  const [isMapInitialized, setIsMapInitialized] = useState(false);
   const [isLoadingFires, setIsLoadingFires] = useState(false);
   const { fireLayerVisible } = useFireStore();
 

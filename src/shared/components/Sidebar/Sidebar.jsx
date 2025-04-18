@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 // import Tippy from "tippy.js";
 import useMenuStore from "src/app/store/store";
+import useFireStore from "src/app/store/fireStore";
 import DropDown from "./DropDown/DropDown.jsx";
 
 import "tippy.js/animations/scale.css";
@@ -28,6 +29,7 @@ const sidebarElements = [
 
 const Sidebar = () => {
   const { isMenuOpen, openTabIndex, toggleMenu, setTabIndex } = useMenuStore();
+  const { fireLayerVisible } = useFireStore();
   const sidebarRef = useRef(null);
 
   const handleDDMenu = (e) => {
@@ -46,21 +48,21 @@ const Sidebar = () => {
     setTabIndex(clickedId);
   };
 
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (sidebarRef.current && !sidebarRef.current.contains(event.target)) {
-        toggleMenu();
-      }
-    };
+  // useEffect(() => {
+  //   const handleClickOutside = (event) => {
+  //     if (sidebarRef.current && !sidebarRef.current.contains(event.target)) {
+  //       toggleMenu();
+  //     }
+  //   };
 
-    if (isMenuOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
-    } else {
-      document.removeEventListener("mousedown", handleClickOutside);
-    }
+  //   if (isMenuOpen) {
+  //     document.addEventListener("mousedown", handleClickOutside);
+  //   } else {
+  //     document.removeEventListener("mousedown", handleClickOutside);
+  //   }
 
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [isMenuOpen]);
+  //   return () => document.removeEventListener("mousedown", handleClickOutside);
+  // }, [isMenuOpen, toggleMenu]);
 
   // useEffect(() => {
   //   let tippyInstances = [];
@@ -103,7 +105,12 @@ const Sidebar = () => {
         })}
 
       </div>
-      {isMenuOpen && <DropDown openTabIndex={openTabIndex} />}
+      {isMenuOpen && (
+        <DropDown 
+          fireLayerVisible={fireLayerVisible} 
+          openTabIndex={openTabIndex}
+        />
+      )}
     </aside>
   );
 };
