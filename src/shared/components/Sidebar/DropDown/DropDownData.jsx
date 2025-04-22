@@ -69,6 +69,28 @@ export const newDD = [
             url: null, 
           }
         ]
+      },
+      {
+        id: 'copernicusImages',
+        label_ru: 'Космоснимки',
+        isExpanded: false,
+        options: [
+          {
+            id: 'copernicus_image',
+            layer: 'satellite-image',
+            type: 'raster',
+            labelDate: 'Даты',
+            startDate: 0,
+            endDate: 0,
+            labelBands: 'Каналы',
+            bands: [],
+            isOn: false,
+            value: 100,
+            url: null,
+            labelSatellite: 'Спутник',
+            satellite: 'SENTINEL1_GRD'
+          },
+        ]
       }
     ]
   },

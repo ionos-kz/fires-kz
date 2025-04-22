@@ -1,7 +1,7 @@
 @use './variables' as *;
 
 h1 {
-    font-family: "Cinzel", serif;
+    font-family: "Lato", serif;
     font-size: $heading-size;
     font-weight: bold;
     color: $main-color;
@@ -9,7 +9,7 @@ h1 {
 }
 
 h2, h3, h4, h5, h6 {
-    font-family: "Cormorant Garamond", serif;
+    font-family: "Montserrat", serif;
     font-size: $subheading-size;
     font-weight: 600;
     color: $main-color;
