@@ -16,6 +16,7 @@ import useFireStore from "src/app/store/fireStore";
 
 import styles from "./DropDown.module.scss";
 
+let exampleGeometry = {"type":"Polygon","coordinates":[[[7.637799974419459,52.01332193589061],[7.62398169352488,52.00969307661495],[7.619823829597119,52.00158245346181],[7.590738404820496,52.00730662092496],[7.563811834154673,52.001308616165645],[7.573636346303766,51.992180777860874],[7.569855884060181,51.98545643508868],[7.543540879611669,51.96991821995572],[7.577623151858387,51.93997003636344],[7.559435909709811,51.931123434089656],[7.556625867211423,51.92504156203243],[7.564681636267283,51.9188162156423],[7.577387619476905,51.9233317429785],[7.588347839936553,51.918646814268996],[7.595284932021921,51.92479589461621],[7.621031519108772,51.917243800385535],[7.656038175955233,51.91943727698611],[7.67194795756578,51.92238830466648],[7.686556925502693,51.9290516727655],[7.690291911499357,51.93671875429201],[7.699225443980613,51.936707107569255],[7.687961904959071,51.94731673700126],[7.675211564663383,51.94964649247447],[7.678202838213879,51.976670456099136],[7.667564910410129,51.97853371878003],[7.660981470643656,51.98621447362924],[7.660952980726099,52.00839143191412],[7.652037968822863,52.01317315906101],[7.637799974419459,52.01332193589061]]]};
 const iconSize = 16;
 
 const DropDown = memo(({ openTabIndex }) => {
@@ -34,11 +35,11 @@ const DropDown = memo(({ openTabIndex }) => {
     collection: "COPERNICUS/S2_SR",
     startDate: "2019-06-23",
     endDate: "2019-06-30",
-    bands: "B2,B3,B4",
-    west: "71.3000",
-    south: "51.0000",
-    east: "71.6500",
-    north: "51.2500",
+    bands: "B4,B3,B2",
+    west: "71.21797",
+    south: "50.85761",
+    east: "71.78519",
+    north: "51.35111",
   });
 
   const [isLoading, setIsLoading] = useState(false);
@@ -105,26 +106,6 @@ const DropDown = memo(({ openTabIndex }) => {
         bands
       );
 
-      // Apply processing based on collection type
-      if (
-        params.collection === "COPERNICUS/S2_SR" &&
-        bands.includes("B2") &&
-        bands.includes("B3") &&
-        bands.includes("B4")
-      ) {
-        datacube = builder
-          .filter_bands(datacube, ["B4", "B3", "B2"])
-          .description("RGB composite using B4 (Red), B3 (Green), B2 (Blue)");
-      } else if (
-        params.collection.includes("SENTINEL1") &&
-        bands.length >= 3
-      ) {
-        // You can adapt this for RGB from Sentinel-1 polarizations (e.g., VV, VH, etc.)
-        datacube = builder
-          .filter_bands(datacube, [bands[0], bands[1], bands[2]])
-          .description(`Pseudo-RGB composite using ${bands[0]}, ${bands[1]}, ${bands[2]}`);
-      }
-
       // Reduce time dimension if multiple dates are present
       const reducer = function (data) {
         return this.max(data);
@@ -133,7 +114,7 @@ const DropDown = memo(({ openTabIndex }) => {
 
       // Scale values for visualization
       const scale = function (x) {
-        return this.linear_scale_range(x, -1, 1, 0, 255);
+        return this.linear_scale_range(x, 0, 3000, 0, 255);
       };
       datacube = builder.apply(datacube, scale);
 
