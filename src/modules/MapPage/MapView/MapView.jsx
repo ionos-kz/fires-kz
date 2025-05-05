@@ -1,13 +1,12 @@
 import { useEffect, useRef, useMemo, useState } from "react";
 import Map from "ol/Map";
-import TileLayer from 'ol/Tile';
+import TileLayer from 'ol/layer/Tile';
 import TileWMS from 'ol/source/TileWMS';
 import View from "ol/View";
 import FullScreen from "ol/control/FullScreen";
 import { defaults as defaultControls } from "ol/control/defaults";
 import { ToastContainer } from 'react-toastify';
 import { Home } from 'lucide-react';
-
 
 import BasemapSwitcher from "./BasemapSwitcher.jsx";
 import MeasurementTools from "./MeasurementTools.jsx";
@@ -45,10 +44,18 @@ const MapView = () => {
     
     setIsLoadingFires(true);
     try {
+      const layers = fireLayer.getLayers();
+      layers.forEach(layer => {
+        if (!mapInstance.current.getLayers().getArray().includes(layer)) {
+          mapInstance.current.addLayer(layer);
+        }
+      });
+      
+      fireLayer.attachToMap(mapInstance.current);
+      
       await fireLayer.loadFireData(startDate, endDate);
-      if (!mapInstance.current.getLayers().getArray().includes(fireLayer)) {
-        mapInstance.current.addLayer(fireLayer);
-      }
+      
+      fireLayer.setVisible(fireLayerVisible);
     } finally {
       setIsLoadingFires(false);
     }
@@ -68,20 +75,6 @@ const MapView = () => {
     });
 
     const geocoder = createGeocoder();
-
-    // const sentinelLayer = new TileLayer({
-    //   source: new TileWMS({
-    //     url: 'https://services.sentinel-hub.com/ogc/wms/YOUR_INSTANCE_ID', // замените на свой instance ID
-    //     params: {
-    //       LAYERS: 'TRUE_COLOR',
-    //       FORMAT: 'image/png',
-    //       TRANSPARENT: true,
-    //       TIME: '2024-08-01', // или диапазон: '2024-07-01/2024-08-01'
-    //     },
-    //     tileSize: 512,
-    //     attributions: '© Sentinel-2 data from Copernicus',
-    //   }),
-    // });
 
     // Map initialization and settings
     const map = new Map({
@@ -131,11 +124,9 @@ const MapView = () => {
 
     setIsMapInitialized(true);
 
+    // If fire layer should be visible, load it immediately
     if (fireLayerVisible) {
-      console.log(fireLayerVisible)
-      loadFireData()
-    } else {
-      console.log(fireLayerVisible)
+      loadFireData();
     }
 
     return () => {
@@ -145,7 +136,21 @@ const MapView = () => {
       map.un('moveend', updatePermalink);
       setIsMapInitialized(false); // Reset initialization state
     };
-  }, [basemap, blanket, fireLayerVisible]);
+  }, [basemap, blanket]);
+
+  useEffect(() => {
+    if (!isMapInitialized || !mapInstance.current || !fireLayer) return;
+    
+    if (fireLayerVisible) {
+      if (fireLayer.getLayers().every(layer => !mapInstance.current.getLayers().getArray().includes(layer))) {
+        loadFireData();
+      } else {
+        fireLayer.setVisible(true);
+      }
+    } else if (fireLayer.getVisible) {
+      fireLayer.setVisible(false);
+    }
+  }, [fireLayerVisible, isMapInitialized]);
 
   return (
     <div id="fullscreen" className={styles.fullscreen}>
@@ -175,7 +180,6 @@ const MapView = () => {
           <MeasurementTools map={mapInstance.current} />
         )}
       </div>
-
     </div>
   );
 };

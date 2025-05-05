@@ -1,4 +1,4 @@
-import styles from './DropDown.module.scss';
+import styles from './ToggleSwitch.module.scss';
 
 const ToggleSwitch = ({ isChecked, onChange }) => {
   return (
