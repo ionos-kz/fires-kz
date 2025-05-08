@@ -1,0 +1,191 @@
+.ol-popup {
+    position: absolute;
+    background-color: white;
+    box-shadow: 0 3px 14px rgba(0, 0, 0, 0.4);
+    padding: 0;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    bottom: 12px;
+    left: -50px;
+    min-width: 220px;
+    max-width: 300px;
+    font-family: "Roboto", "Helvetica Neue", Arial, sans-serif;
+    overflow: hidden;
+    transform: translateZ(0);
+}
+  
+.ol-popup:after, .ol-popup:before {
+    top: 100%;
+    border: solid transparent;
+    content: " ";
+    height: 0;
+    width: 0;
+    position: absolute;
+    pointer-events: none;
+}
+  
+.ol-popup:after {
+    border-top-color: white;
+    border-width: 10px;
+    left: 50%;
+    margin-left: -10px;
+}
+  
+.ol-popup:before {
+    border-top-color: #cccccc;
+    border-width: 11px;
+    left: 50%;
+    margin-left: -11px;
+}
+  
+.ol-popup-closer {
+    text-decoration: none;
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    color: #777;
+    font-size: 16px;
+    width: 18px;
+    height: 18px;
+    text-align: center;
+    line-height: 16px;
+    z-index: 1;
+    background: rgba(255, 255, 255, 0.7);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+  
+.ol-popup-closer:after {
+    content: "×";
+}
+  
+.ol-popup-closer:hover {
+    color: #333;
+    background: rgba(255, 255, 255, 0.9);
+}
+  
+.fire-popup {
+    padding: 0;
+    width: 18rem;  
+}
+  
+.fire-popup-header {
+    background: linear-gradient(135deg, #ff4e00, #ff9500);
+    color: white;
+    padding: 12px 15px;
+    border-top-left-radius: .5rem;
+    border-top-right-radius: .5rem;
+    font-weight: bold;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+}
+  
+@keyframes fire-icon-floating {
+      0% {
+          transform: translateY(0);
+      }
+      50% {
+          transform: translateY(-2px);
+      }
+      100% {
+          transform: translateY(0);
+      }
+}
+  
+.fire-popup-header .fire-icon {
+    font-size: 1rem;
+    margin-right: 5px;
+    animation: fire-icon-floating 1.8s linear infinite;
+}
+  
+.fire-popup-content {
+    padding: 1rem;
+    max-height: 250px;
+    overflow-y: auto;
+}
+  
+.fire-popup-row {
+    display: flex;
+    margin-bottom: 8px;
+    align-items: flex-start;
+}
+  
+.fire-popup-label {
+    width: 100px;
+    color: #666;
+    font-size: 13px;
+    margin-right: 8px;
+}
+  
+.fire-popup-value {
+    flex: 1;
+    font-weight: 500;
+    color: #333;
+    font-size: 14px;
+}
+  
+.fire-popup-footer {
+    background-color: #f5f5f5;
+    padding: 8px 15px;
+    border-top: 1px solid #eee;
+    font-size: 12px;
+    color: #999;
+    text-align: center;
+}
+  
+/* For cluster popups */
+.fire-cluster .fire-popup-header {
+    background: linear-gradient(135deg, #ff2d00, #ff6600);
+}
+  
+.cluster-count {
+    background-color: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 8px;
+    font-size: 14px;
+}
+  
+/* Badge for confidence levels */
+.confidence-badge {
+    display: inline-block;
+    padding: 2px 6px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: bold;
+    margin-left: 5px;
+    text-transform: uppercase;
+}
+  
+.confidence-high {
+    background-color: #4caf50;
+    color: white;
+}
+
+.confidence-medium {
+    background-color: #ff9800;
+    color: white;
+}
+  
+.confidence-low {
+    background-color: #f44336;
+    color: white;
+}
+  
+/* Animation for popup appearance */
+@keyframes popup-fade-in {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+  
+.ol-popup {
+    animation: popup-fade-in 0.3s ease;
+}

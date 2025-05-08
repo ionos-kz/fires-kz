@@ -1,7 +1,5 @@
 import { useEffect, useRef, useMemo, useState } from "react";
 import Map from "ol/Map";
-import TileLayer from 'ol/layer/Tile';
-import TileWMS from 'ol/source/TileWMS';
 import View from "ol/View";
 import FullScreen from "ol/control/FullScreen";
 import { defaults as defaultControls } from "ol/control/defaults";
@@ -10,6 +8,8 @@ import { Home } from 'lucide-react';
 
 import BasemapSwitcher from "./BasemapSwitcher.jsx";
 import MeasurementTools from "./MeasurementTools.jsx";
+import FirePopup from './FirePopup.jsx';
+import usePopupManager from './PopupManager.jsx';
 import { getMapStateFromHash, updateMapStateInHash } from "../utils/mapState.js";
 import { DEFAULT_POSITION, KAZAKHSTAN_EXTENT } from "../utils/mapConstants.js";
 import { createBlanketLayer } from "../utils/layers.js";
@@ -25,7 +25,7 @@ import "ol/ol.css";
 import 'ol-geocoder/dist/ol-geocoder.min.css';
 import 'react-toastify/dist/ReactToastify.css';
 import styles from "./MapView.module.scss";
-import './mapStyles.scss'
+import './mapStyles.scss';
 
 const MapView = () => {
   const mapRef = useRef(null);
@@ -33,10 +33,18 @@ const MapView = () => {
   const [basemap, setBasemap] = useState(osmLayer);
   const [isMapInitialized, setIsMapInitialized] = useState(false);
   const [isLoadingFires, setIsLoadingFires] = useState(false);
-  const { fireLayerVisible } = useFireStore();
-
+  const { fireLayerVisible } = useFireStore();  // controls fire point visibility via zustand
+  
   const blanket = useMemo(() => createBlanketLayer(), []);
   const fireLayer = useMemo(() => createFireLayer(), []);
+  
+  const {
+    popupRef,
+    popupContent,
+    closePopup,
+    showPopup,
+    setupPopupInteractions
+  } = usePopupManager(mapInstance.current, fireLayer);
 
   // Function to load fire data with date range
   const loadFireData = async (startDate, endDate) => {
@@ -88,6 +96,10 @@ const MapView = () => {
       controls: defaultControls().extend([new FullScreen(), geocoder]),
     });
     mapInstance.current = map;
+    setIsMapInitialized(true);
+
+    map.showPopup = showPopup;
+    map.closePopup = closePopup;
 
     const contextMenu = createContextMenu(map, view, DEFAULT_POSITION, styles);
     map.addControl(contextMenu);
@@ -103,14 +115,7 @@ const MapView = () => {
       updateMapStateInHash(view);
     };
 
-    map.on("moveend", () => {
-      updateMapStateInHash(view);
-    });
-
-    map.on('singleclick', function (evt) {
-      const coordinate = evt.coordinate;
-      console.log(coordinate)
-    });
+    map.on("moveend", updatePermalink);
 
     const handlePopState = (event) => {
       if (event.state === null) return;
@@ -122,21 +127,31 @@ const MapView = () => {
     
     window.addEventListener("popstate", handlePopState);
 
-    setIsMapInitialized(true);
-
     // If fire layer should be visible, load it immediately
     if (fireLayerVisible) {
       loadFireData();
     }
+    
+    map.on('singleclick', function (evt) {
+      const coordinate = evt.coordinate;
+      console.log('Clicked at coordinates:', coordinate);
+    });
 
     return () => {
       map.setTarget(null);
       fullscreenCleanUp();
       window.removeEventListener("popstate", handlePopState);
       map.un('moveend', updatePermalink);
-      setIsMapInitialized(false); // Reset initialization state
+      setIsMapInitialized(false);
     };
   }, [basemap, blanket]);
+
+  // Set up popup interactions after map initialized
+  useEffect(() => {
+    if (!isMapInitialized || !mapInstance.current) return;
+    const cleanup = setupPopupInteractions();
+    return cleanup;
+  }, [isMapInitialized, setupPopupInteractions]);
 
   useEffect(() => {
     if (!isMapInitialized || !mapInstance.current || !fireLayer) return;
@@ -180,6 +195,13 @@ const MapView = () => {
           <MeasurementTools map={mapInstance.current} />
         )}
       </div>
+
+      {/* Popup Overlay */}
+      <FirePopup 
+        popupRef={popupRef} 
+        content={popupContent} 
+        onClose={closePopup} 
+      />
     </div>
   );
 };
