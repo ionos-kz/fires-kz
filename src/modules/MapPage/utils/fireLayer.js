@@ -90,6 +90,11 @@ export const createFireLayer = () => {
     properties: { id: "fireLayer" },
     visible: false
   });
+
+  // Add identifier to each layer to help with identification in click handlers
+  // heatmapLayer.set('layerType', 'fire-heatmap');
+  // clusterLayer.set('layerType', 'fire-cluster');
+  // pointLayer.set('layerType', 'fire-point');
   
   // Create a layer group object to manage the three layers
   const fireLayerGroup = {
@@ -109,6 +114,13 @@ export const createFireLayer = () => {
         const format = new GeoJSON();
         const features = format.readFeatures(response.data, {
           featureProjection: "EPSG:3857",
+        });
+        
+        // Ensure each feature has a name property if missing
+        features.forEach((feature, index) => {
+          if (!feature.get('name')) {
+            feature.set('name', `Fire Point ${index + 1}`);
+          }
         });
         
         source.addFeatures(features);
@@ -185,6 +197,13 @@ export const createFireLayer = () => {
     
     getLayers: function() {
       return [heatmapLayer, clusterLayer, pointLayer];
+    },
+    
+    // Check if a layer belongs to this fire layer group
+    containsLayer: function(layer) {
+      return layer === heatmapLayer || 
+             layer === clusterLayer || 
+             layer === pointLayer;
     },
     
     _visible: false,
