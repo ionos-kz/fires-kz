@@ -6,7 +6,7 @@
   border-radius: 0.5rem;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   max-height: 92vh;
-  overflow: scroll;
+  overflow-y: scroll;
 
   &__empty {
     padding: 2rem;
@@ -307,6 +307,29 @@
 
 .spinner {
   animation: spin 1s linear infinite;
+}
+
+.opacity-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  margin-top: 12px;
+}
+
+.opacity-container {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+
+  gap: 16px;
+}
+
+.methane-legend {
+  position: fixed;
+  z-index: 1000;
+  right: 24px;
+  bottom: 24px;
 }
 
 @keyframes spin {

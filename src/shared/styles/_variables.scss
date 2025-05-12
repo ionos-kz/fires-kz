@@ -1,10 +1,9 @@
-// Colors
-$main-color: #4999E8; // Primary theme color
-$secondary-color: #212529; // Secondary color
-$accent-color: #F4D58D; // Accent color
-$font-color: #001427; // Text color
-$bg-color: #ffffff; // Background color
-$danger-color: #8D0801; // Error/Danger color
+$main-color: #4999E8;
+$secondary-color: #212529;
+$accent-color: #F4D58D;
+$font-color: #001427;
+$bg-color: #f9f9f9;
+$danger-color: #8D0801;
 
 // Spacing
 $spacing-small: 8px;
@@ -18,11 +17,15 @@ $heading-size: clamp(2rem, 3vw, 2.5rem);
 $caption-size: clamp(.7rem, 1vw, .85rem);
 
 // Icons
-$icon-main-color: #4999E8;
+// $icon-main-color: #4999E8;
+$icon-main-color: #4b5563;
+$icon-main-color--active: #f9f9f9;
 $icon-main-size: 25px;
-$icon-main-color-map: #4999E8;
+$icon-main-color-map: #4b5563;
+// $icon-main-color-map: #4999E8;
 $icon-main-size-map: 21px;
 
 // Bg
-$active-bg-color: #2F7D4F;
+// $active-bg-color: #2F7D4F;
+$active-bg-color: #1e90ff;
 $active-bg-color-map: yellow;

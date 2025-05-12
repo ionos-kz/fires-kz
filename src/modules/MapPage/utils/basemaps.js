@@ -7,6 +7,7 @@ export const osmLayer = new TileLayer({
   source: new OSM({attributions: [], crossOrigin: 'anonymous'}),
   preload: Infinity,
   useInterimTilesOnError: false, 
+  tileSize: 512
 });
 
 export const esriLayer = new TileLayer({
@@ -17,13 +18,13 @@ export const esriLayer = new TileLayer({
   }),
 });
 
-export const bingLayer = new TileLayer({
-  source: new XYZ({
-    url: "https://ecn.t3.tiles.virtualearth.net/tiles/a{q}.jpeg?g=1",
-    attributions: "Tiles © Microsoft Bing",
-    crossOrigin: "anonymous",
-  }),
-});
+// export const bingLayer = new TileLayer({
+//   source: new XYZ({
+//     url: "https://ecn.t3.tiles.virtualearth.net/tiles/a{q}.jpeg?g=1",
+//     attributions: "Tiles © Microsoft Bing",
+//     crossOrigin: "anonymous",
+//   }),
+// });
 
 export const cartoLayer = new TileLayer({
   source: new XYZ({
@@ -36,6 +37,6 @@ export const cartoLayer = new TileLayer({
 export const basemapOptions = {
   osm: osmLayer,
   esri: esriLayer,
-  bing: bingLayer,
+  // bing: bingLayer,
   carto: cartoLayer,
 };
