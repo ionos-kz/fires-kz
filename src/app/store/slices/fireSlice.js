@@ -1,5 +1,11 @@
 export const createFireSlice = (set, get) => ({
   fireLayerVisible: false,
+  fireDate: null,
+
+  setFireDate: (date) => 
+    set(() => ({
+      fireDate: date,
+    })),
 
   setFireLayerVisible: () =>
     set((state) => ({

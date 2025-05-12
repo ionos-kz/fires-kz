@@ -1,72 +1,50 @@
 export const newDD = [
   {
     id: 0,
-    key: 'layers',
-    header_ru: 'Слои',
+    key: 'methane',
     items: [
       {
-        id: 'fires',
-        label_ru: 'Пожары',
-        isExpanded: true,
+        id: 'copy_coords',
+        label_ru: 'Метановые выбросы',
         options: [
           {
-            id: 'firms1',
-            label: 'FIRMS',
-            layer: 'FIRMS',
-            type: 'raster',
-            isOn: true,
-            value: 100,
-            url: 'https://api.igmass.kz/fire/firebetweendate?',
-          },
-        ]
-      },
-      {
-        id: 'weather',
-        label_ru: 'Погода',
-        isExpanded: false,
-        options: [
-          {
-            id: 'temperature',
-            label: 'Температура',
-            layer: 'temperature',
-            type: 'raster',
-            isOn: false,
-            value: 100,
-            url: null, 
+            id: 'sp',
+            label: 'Super Emitters 2019',
           },
           {
-            id: 'humidity',
-            label: 'Влажность',
-            layer: 'humidity',
-            type: 'raster',
-            isOn: false,
-            value: 100,
-            url: null, 
+            id: 'sp_flumes',
           }
         ]
-      },
+      }
+    ]
+  },
+  {
+    id: 1,
+    key: 'tools',
+    items: [
       {
-        id: 'admBoundaries',
-        label_ru: 'Админ границы',
-        isExpanded: false,
+        id: 'admin_boundaries',
+        label_ru: 'Админстративные границы',
         options: [
           {
-            id: 'region_border',
-            label: 'Границы областей',
-            layer: 'region_border',
-            type: 'vector',
-            isOn: false,
-            value: 100,
-            url: null, 
+            id: 'country_boundaries',
+            label: 'Границы Казахстана',
           },
           {
-            id: 'region_district',
+            id: 'region_boundaries',
+            label: 'Границы областей',
+          },
+          {
+            id: 'district_boundaries',
             label: 'Границы районов',
-            layer: 'region_district',
-            type: 'vector',
-            isOn: false,
-            value: 100,
-            url: null, 
+          },
+          {
+            id: 'settlement_boundaries',
+            label: 'Границы поселков',
+          },
+          {
+            id: 'settlements_pinpoints',
+            label: 'Местоположения населенных пунктов',
           }
         ]
       },
@@ -95,121 +73,21 @@ export const newDD = [
     ]
   },
   {
-    id: 1,
-    key: 'tools',
-    header_ru: 'Инструменты',
-    items: [
-      {
-        id: 'copy_coords',
-        label_ru: 'Копировать координаты',
-        isExpanded: false,
-        options: [
-          {
-            id: 'copy_latlon',
-            label: 'Координаты (Lat, Lon)',
-            action: 'copyCoordinates',
-            icon: 'copy',
-            isActive: false,
-            url: null, 
-          }
-        ]
-      }
-    ]
-  },
-  {
     id: 2,
-    key: 'filter',
-    header_ru: 'Фильтр',
+    key: 'fire',
     items: [
       {
-        id: 'time_filter',
-        label_ru: 'По времени',
-        isExpanded: false,
+        id: 'fire',
+        label_ru: 'Мониторинг пожаров',
+        isExpanded: true,
         options: [
           {
-            id: 'date_range',
-            label: 'Диапазон дат',
-            type: 'date-range',
-            action: 'filterByDate',
-            icon: 'calendar',
-            isActive: false,
-            url: null,
-          }
-        ]
-      },
-      {
-        id: 'region_filter',
-        label_ru: 'По региону',
-        isExpanded: false,
-        options: [
-          {
-            id: 'select_region',
-            label: 'Выбрать регион',
-            type: 'dropdown',
-            action: 'filterByRegion',
-            icon: 'map-pin',
-            isActive: false,
-            url: null,
-          }
-        ]
-      },
-    ]
-  },
-  {
-    id: 3,
-    key: 'analysis',
-    header_ru: 'Анализ',
-    items: [
-      {
-        id: 'fire_analysis',
-        label_ru: 'Пожары',
-        isExpanded: false,
-        options: [
-          {
-            id: 'fire_cluster',
-            label: 'Кластеризация пожаров',
-            action: 'runFireCluster',
-            icon: 'flame',
-            isActive: false,
-            url: null,
-          }
-        ]
-      },
-      {
-        id: 'uhi',
-        label_ru: 'Городское тепло',
-        isExpanded: false,
-        options: [
-          {
-            id: 'uhi_map',
-            label: 'UHI карта',
-            action: 'runUHI',
-            icon: 'thermometer-sun',
-            isActive: false,
-            url: null,
-          }
-        ]
-      }
-    ]
-  },
-  {
-    id: 4,
-    key: 'statistics',
-    header_ru: 'Статистика',
-    items: [
-      {
-        id: 'fires_by_region',
-        label_ru: 'Пожары по регионам',
-        isExpanded: false,
-        options: [
-          {
-            id: 'stat_fires',
-            label: 'График по регионам',
-            action: 'showFireStats',
-            icon: 'bar-chart-2',
-            isActive: false,
-            url: null,
-          }
+            id: 'fire_pinpoints',
+            label: 'Горячие точки',
+          },
+          // {
+          //   id: "firm-date"
+          // }
         ]
       }
     ]
@@ -282,7 +160,7 @@ export const newDD = [
             action: 'showVideoGuide',
             icon: 'video',
             isActive: false,
-            url: null, 
+            url: null,
           }
         ]
       }
