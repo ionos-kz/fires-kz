@@ -15,7 +15,7 @@ export const newDD = [
       },
       {
         id: 'methane_instances',
-        label_ru: 'Paint source imagers',
+        label_ru: 'Point source imagers',
         options: [
           {
             id: 'sp_sn2',

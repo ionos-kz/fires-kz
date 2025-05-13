@@ -332,6 +332,13 @@
   bottom: 24px;
 }
 
+.methane-legend-2 {
+  position: fixed;
+  z-index: 1000;
+  left: 1000px;
+  bottom: 24px;
+}
+
 @keyframes spin {
   from {
     transform: rotate(0deg);

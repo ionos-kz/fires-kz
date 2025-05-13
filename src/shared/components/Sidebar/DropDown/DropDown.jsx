@@ -251,6 +251,16 @@ const DropDown = memo(({ openTabIndex }) => {
 
   return (
     <div className={styles.dropdown}>
+      {(emitSn2LayerVisible || emmitLayerVisible) && (
+        <div className={styles["methane-legend-2"]}>
+          <img src="/map_attributes/methane_legend_1.png" width={250} />
+        </div>
+      )}
+      {methaneLayerVisible && (
+        <div className={styles["methane-legend"]}>
+          <img src="/map_attributes/methane_legend_2.png" width={250} />
+        </div>
+      )}
       {currentSection.items.map((item) => (
         <div key={item.id} className={styles.dropdown__item}>
           <div
@@ -470,11 +480,6 @@ const DropDown = memo(({ openTabIndex }) => {
                         opacityValue={methaneOpacity}
                         setOpacityValue={setMethaneOpacity}
                       />
-                      {methaneLayerVisible && (
-                        <div className={styles["methane-legend"]}>
-                          <img src="/map_attributes/methane_legend_2.png" width={250} />
-                        </div>
-                      )}
                       <hr color="gray" />
                     </>
                   )
