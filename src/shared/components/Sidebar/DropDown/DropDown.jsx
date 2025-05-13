@@ -66,7 +66,11 @@ const DropDown = memo(({ openTabIndex }) => {
     emitSn2LayerVisible,
     emitSn2Opacity,
     setEmitSn2LayerVisible,
-    setEmitSn2Opacity
+    setEmitSn2Opacity,
+    sandGeoVectorVisible,
+    sandGeoTiffVisible,
+    setSandGeoVectorVisible,
+    setSandGeoTiffVisible
   } = useMethaneStore();
 
   const handleMethaneDateChange = (date, dateString) => {
@@ -81,8 +85,8 @@ const DropDown = memo(({ openTabIndex }) => {
   };
 
   useEffect(() => {
-    if (!beginDateEmmit || !endDateEmmit) return; 
-    
+    if (!beginDateEmmit || !endDateEmmit) return;
+
     const matchingIds = tileList
       .filter(item => {
         const itemDate = dayjs(item.date);
@@ -484,7 +488,7 @@ const DropDown = memo(({ openTabIndex }) => {
                     </>
                   )
                     : option.id === 'sp_sn2' ? (
-                      <div style={{borderBottom: '1px solid rgba(0, 0, 0, 0.2)', paddingBottom: 32}}>
+                      <div style={{ borderBottom: '1px solid rgba(0, 0, 0, 0.2)', paddingBottom: 32 }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                           <div><i>Sentinel - 2</i></div>
                           <ToggleSwitch
@@ -517,14 +521,14 @@ const DropDown = memo(({ openTabIndex }) => {
                             onChange={handleEmitDateChange}
                           />
                           {emmitLayerVisible && (
-                            <List style={{height: 300, overflowY: 'scroll'}}>
+                            <List style={{ height: 300, overflowY: 'scroll' }}>
                               {emmitLayerIds.map((emmit) => {
                                 return (
-                                    <Card 
-                                      hoverable 
-                                      key={emmit}
-                                      style={{marginBottom: '1px #011'}}
-                                    >
+                                  <Card
+                                    hoverable
+                                    key={emmit}
+                                    style={{ marginBottom: '1px #011' }}
+                                  >
                                     <p>{emmit}</p>
                                   </Card>
                                 );
@@ -533,16 +537,16 @@ const DropDown = memo(({ openTabIndex }) => {
                           )}
                         </>
                       )
-                        : (
-                          <Options
-                            key={option.id}
-                            option={option}
-                            getToggleState={getToggleState}
-                            handleToggleChange={handleToggleChange}
-                            getOpacityValue={getOpacityValue}
-                            setOpacityValue={setOpacityValue}
-                          />
-                        )
+                          : (
+                            <Options
+                              key={option.id}
+                              option={option}
+                              getToggleState={getToggleState}
+                              handleToggleChange={handleToggleChange}
+                              getOpacityValue={getOpacityValue}
+                              setOpacityValue={setOpacityValue}
+                            />
+                          )
 
               )}
             </div>

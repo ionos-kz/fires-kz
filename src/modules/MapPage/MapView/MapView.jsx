@@ -6,8 +6,11 @@ import { defaults as defaultControls } from "ol/control/defaults";
 import { ToastContainer } from 'react-toastify';
 import { Home, LucideAArrowDown } from 'lucide-react';
 
-import TileLayer from 'ol/layer/Tile';
-import XYZ from 'ol/source/XYZ';
+import TileLayer from 'ol/layer/Tile.js';
+import XYZ from 'ol/source/XYZ.js';
+import GeoTIFF from 'ol/source/GeoTIFF';
+
+import Select from 'ol/interaction/Select';
 
 import { Popover, List } from 'antd';
 
@@ -66,7 +69,9 @@ const MapView = () => {
     emmitLayerVisible,
     emmitLayerIds,
     emitSn2LayerVisible,
-    emitSn2Opacity
+    emitSn2Opacity,
+    sandGeoVectorVisible,
+    sandGeoTiffVisible
   } = useMethaneStore();
 
   // const plumeLayer = useMemo(() => {
@@ -91,6 +96,24 @@ const MapView = () => {
   //   });
   // }, [methaneFlumesVisible]);
 
+  const sandGeoTiffLayer = new TileLayer({
+    source: new GeoTIFF({
+      sources: [
+        {
+          url: 'https://catalog.carbonmapper.org/l3a-vis-ch4-mfa-v002/2025/02/20/tan20250220t061843c00s4001-B/tan20250220t061843c00s4001-B_l3a-vis-ch4-mfa-v002_plume.tif?c=1114f5e56156b712772168b8b626b51c60ad59a99f1f&Expires=1747102441&Signature=kX0S9lRMFSqjOqpxVDhnQGVFK8TYzyQS4RKY6r5z3iepbShN-OqpPStaXq-gb5DnS46zuietqNZuvbqtgRWP0bmIgD~XA3JWiF8JC73FNSVT4P~Wd~ml6PIJDxEvMibYmgriROnzXs3g4ji1xo7FNqNpk-lgDto4fWY0hf5eub2~8h82TUP-zjZTwkSG8T3zjTbAvKZQBmDdBoCvS2x1fay2IVC~1VpOy93eCXD5mJFTs~~AChlL9hDQrIAKnRIBXzmXN4XpaY~p7SN9qoEXFdxXx4nYEvyG-d6jmJkpcpEr~eXmvUIrn9x9ic1229woYdx1d964p6UtasxtJoUA-A__&Key-Pair-Id=K1ZO5DZQBTMNGZ',
+        },
+      ],
+    }),
+  });
+
+  const sandGeoVectorLayer = new VectorLayer({
+    source: new VectorSource({
+      url: 'https://fires.kz/data/carbon_mapper_.geojson',
+      format: new GeoJSON(),
+    }),
+    visible: sandGeoVectorVisible,
+  })
+
   const tiffLayer = useMemo(() => {
     return new TileLayer({
       source: new XYZ({
@@ -112,10 +135,10 @@ const MapView = () => {
   }, [methaneYear, methaneLayerVisible]);
 
   const sn2Layer = useMemo(() => {
-    return new ImageLayer({
-      source: new ImageStatic({
-        url: '/mbmp_final_4.png',
-        imageExtent: [5081569.97, 4850488.62, 9818615.83, 7548158.23],
+    return new TileLayer({
+      source: new XYZ({
+        url: 'https://fires.kz/data/mbmp_final/{z}/{x}/{-y}.png',
+        projection: 'EPSG:3857',
         tileSize: [256, 256],
         maxZoom: 14,
         onError: function (error) {
@@ -129,7 +152,7 @@ const MapView = () => {
       opacity: emitSn2Opacity * 0.01,
       visible: emitSn2LayerVisible
     });
-  }, [ emitSn2LayerVisible ]);
+  }, [emitSn2LayerVisible]);
 
   const emitLayer = useMemo(() => {
     if (emmitLayerIds.length === 0) return [];
@@ -250,6 +273,33 @@ const MapView = () => {
 
     const contextMenu = createContextMenu(map, view, DEFAULT_POSITION, styles);
     map.addControl(contextMenu);
+
+    // sandbox
+    const select = new Select({
+      layers: [sandGeoVectorLayer]
+    })
+
+    map.addInteraction(select);
+
+    select.on('select', function (e) {
+      const selected = e.selected[0];
+
+      if (selected) {
+        const plumeUrl = selected.get('plume_tif');
+        if (plumeUrl) {
+          console.log('Загружаем новый GeoTIFF:', plumeUrl);
+
+          const newSource = new GeoTIFF({
+            sources: [
+              {
+                url: plumeUrl,
+              },
+            ],
+          });
+          sandGeoTiffLayer.setSource(newSource);
+        }
+      }
+    });
 
     const fullscreenCleanUp = handleFullScreenChange(mapRef);
 
