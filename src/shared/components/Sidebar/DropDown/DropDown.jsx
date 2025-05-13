@@ -1,4 +1,4 @@
-import { memo, useState } from "react";
+import { memo, useState, useEffect } from "react";
 import {
   Satellite,
   Calendar,
@@ -9,10 +9,10 @@ import {
   Loader,
 } from "lucide-react";
 
-import GeoTIFF from "geotiff";
+import tileList from './emit_list.json';
 
 import { OpenEO, Formula } from "@openeo/js-client";
-import { DatePicker } from "antd";
+import { Card, DatePicker, List } from "antd";
 
 const { RangePicker } = DatePicker;
 
@@ -49,13 +49,51 @@ const DropDown = memo(({ openTabIndex }) => {
     methaneYear,
     methaneLayerVisible,
     methaneOpacity,
-    methaneFlumesVisible
+    methaneFlumesVisible,
+    emmitLayerVisible,
+    emmitLayerIds,
+    emmitLayerOpacity,
+    clickedEmmitId,
+    beginDateEmmit,
+    endDateEmmit,
+    setEmmitLayerIds,
+    toggleEmmitLayerId,
+    setEmmitLayerVisible,
+    setEmmitLayerOpacity,
+    setClickedEmmitId,
+    setBeginDateEmmit,
+    setEndDateEmmit,
+    emitSn2LayerVisible,
+    emitSn2Opacity,
+    setEmitSn2LayerVisible,
+    setEmitSn2Opacity
   } = useMethaneStore();
 
-  const handleDateChange = (date, dateString) => {
+  const handleMethaneDateChange = (date, dateString) => {
     console.log(dateString)
     setMethaneYear(dateString);
   };
+
+  const handleEmitDateChange = (dates, dateStrings) => {
+    const [beginStr, endStr] = dateStrings;
+    setBeginDateEmmit(dayjs(beginStr));
+    setEndDateEmmit(dayjs(endStr));
+  };
+
+  useEffect(() => {
+    if (!beginDateEmmit || !endDateEmmit) return; 
+    
+    const matchingIds = tileList
+      .filter(item => {
+        const itemDate = dayjs(item.date);
+        return itemDate.isAfter(dayjs(beginDateEmmit).subtract(1, 'day')) &&
+          itemDate.isBefore(dayjs(endDateEmmit).add(1, 'day'));
+      })
+      .map(item => item.full_string);
+
+    setEmmitLayerIds(matchingIds);
+  }, [beginDateEmmit, endDateEmmit, tileList]);
+
 
   // State for satellite inputs
   const [satelliteInputs, setSatelliteInputs] = useState({
@@ -195,6 +233,11 @@ const DropDown = memo(({ openTabIndex }) => {
 
   const getOpacityValue = (optionId) => opacityValues[optionId] || 100;
   const getToggleState = (optionId) => toggleStates[optionId] || false;
+
+  const handleEmitFlyToPoint = () => {
+    view.setCenter([7593493.19, 6273692.57]);
+    view.setZoom(5);
+  }
 
   const handleToggleChange = (optionId) => {
     if (optionId === "fire_pinpoints") setFireLayerVisible();
@@ -410,7 +453,7 @@ const DropDown = memo(({ openTabIndex }) => {
                   : option.id === "sp" ? (
                     <>
                       <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                        <div>Растеровый слой выбросов </div>
+                        <div><i>Sentinel - 5P</i></div>
                         <ToggleSwitch
                           isChecked={methaneLayerVisible}
                           onChange={setMethaneLayerVisible}
@@ -420,7 +463,7 @@ const DropDown = memo(({ openTabIndex }) => {
                         value={dayjs(methaneYear)}
                         picker="year"
                         disabledDate={disabledDateSP}
-                        onChange={handleDateChange}
+                        onChange={handleMethaneDateChange}
                       />
                       <OpacityController
                         id="sp"
@@ -432,31 +475,70 @@ const DropDown = memo(({ openTabIndex }) => {
                           <img src="/map_attributes/methane_legend_2.png" width={250} />
                         </div>
                       )}
-                      <hr color="gray"/>
+                      <hr color="gray" />
                     </>
                   )
-
-                    : option.id === 'sp_flumes' ? (
-                      <>
+                    : option.id === 'sp_sn2' ? (
+                      <div style={{borderBottom: '1px solid rgba(0, 0, 0, 0.2)', paddingBottom: 32}}>
                         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                          <div> Шлейфы метановых выбросов </div>
+                          <div><i>Sentinel - 2</i></div>
                           <ToggleSwitch
-                            isChecked={methaneFlumesVisible}
-                            onChange={setMethaneFlumesVisible}
+                            isChecked={emitSn2LayerVisible}
+                            onChange={setEmitSn2LayerVisible}
                           />
                         </div>
-                      </>
-                    )
-                      : (
-                        <Options
-                          key={option.id}
-                          option={option}
-                          getToggleState={getToggleState}
-                          handleToggleChange={handleToggleChange}
-                          getOpacityValue={getOpacityValue}
-                          setOpacityValue={setOpacityValue}
+                        <OpacityController
+                          id="sp_sn2"
+                          opacityValue={emitSn2Opacity}
+                          setOpacityValue={setEmitSn2Opacity}
                         />
+                      </div>
+                    )
+                      : option.id === "sp_instances" ? (
+                        <>
+                          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <div><i>EMIT</i></div>
+                            <ToggleSwitch
+                              isChecked={emmitLayerVisible}
+                              onChange={setEmmitLayerVisible}
+                            />
+                          </div>
+                          <RangePicker
+                            value={[
+                              dayjs(beginDateEmmit, 'YYYY-MM-DD'),
+                              dayjs(endDateEmmit, 'YYYY-MM-DD')
+                            ]}
+                            format="YYYY-MM-DD"
+                            onChange={handleEmitDateChange}
+                          />
+                          {emmitLayerVisible && (
+                            <List style={{height: 300, overflowY: 'scroll'}}>
+                              {emmitLayerIds.map((emmit) => {
+                                return (
+                                    <Card 
+                                      hoverable 
+                                      key={emmit}
+                                      style={{marginBottom: '1px #011'}}
+                                    >
+                                    <p>{emmit}</p>
+                                  </Card>
+                                );
+                              })}
+                            </List>
+                          )}
+                        </>
                       )
+                        : (
+                          <Options
+                            key={option.id}
+                            option={option}
+                            getToggleState={getToggleState}
+                            handleToggleChange={handleToggleChange}
+                            getOpacityValue={getOpacityValue}
+                            setOpacityValue={setOpacityValue}
+                          />
+                        )
+
               )}
             </div>
           )}
