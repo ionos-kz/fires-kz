@@ -9,6 +9,8 @@ import { Home, LucideAArrowDown } from 'lucide-react';
 import TileLayer from 'ol/layer/Tile';
 import XYZ from 'ol/source/XYZ';
 
+import { Popover, List } from 'antd';
+
 import BasemapSwitcher from "./BasemapSwitcher.jsx";
 import MeasurementTools from "./MeasurementTools.jsx";
 import { getMapStateFromHash, updateMapStateInHash } from "../utils/mapState.js";
@@ -30,6 +32,9 @@ import Stroke from 'ol/style/Stroke';
 import CircleStyle from 'ol/style/Circle';
 import Fill from "ol/style/Fill";
 
+import ImageLayer from 'ol/layer/Image';
+import ImageStatic from 'ol/source/ImageStatic';
+
 import "ol/ol.css";
 import 'ol-geocoder/dist/ol-geocoder.min.css';
 import 'react-toastify/dist/ReactToastify.css';
@@ -37,6 +42,7 @@ import './mapStyles.scss'
 import styles from "./MapView.module.scss";
 
 import useMethaneStore from "src/app/store/methaneStore";
+import { projection } from "@turf/turf";
 
 const MapView = () => {
   const mapRef = useRef(null);
@@ -49,34 +55,41 @@ const MapView = () => {
   const blanket = useMemo(() => createBlanketLayer(), []);
   const fireLayer = useMemo(() => createFireLayer(), []);
 
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [selectedFeature, setSelectedFeature] = useState(null);
+
   const {
     methaneYear,
     methaneLayerVisible,
     methaneOpacity,
-    methaneFlumesVisible
+    methaneFlumesVisible,
+    emmitLayerVisible,
+    emmitLayerIds,
+    emitSn2LayerVisible,
+    emitSn2Opacity
   } = useMethaneStore();
 
-  const plumeLayer = useMemo(() => {
-    const source = new VectorSource({
-      url: '/layers/unep_methanedata_detected_plumes.geojson',
-      projection: 'EPSG:3857',
-      format: new GeoJSON(),
-    });
+  // const plumeLayer = useMemo(() => {
+  //   const source = new VectorSource({
+  //     url: '/layers/unep_methanedata_detected_plumes.geojson',
+  //     projection: 'EPSG:3857',
+  //     format: new GeoJSON(),
+  //   });
 
-    return new VectorLayer({
-      source,
-       style: new Style({
-        stroke: new Stroke({
-          color: '#333',
-          width: 1,
-        }),
-        fill: new Fill({
-          color: "#999",
-        })
-      }),
-      visible: methaneFlumesVisible
-    });
-  }, [methaneFlumesVisible]);
+  //   return new VectorLayer({
+  //     source,
+  //     style: new Style({
+  //       stroke: new Stroke({
+  //         color: '#333',
+  //         width: 1,
+  //       }),
+  //       fill: new Fill({
+  //         color: "#999",
+  //       })
+  //     }),
+  //     visible: methaneFlumesVisible
+  //   });
+  // }, [methaneFlumesVisible]);
 
   const tiffLayer = useMemo(() => {
     return new TileLayer({
@@ -87,9 +100,9 @@ const MapView = () => {
         maxZoom: 10,
         onError: function (error) {
           if (error.status !== 404) {
-            console.error('Error loading XYZ tile:', error);
+            console.error('Error loading Tiff XYZ tile:', error);
           } else {
-            console.log(`Tile not found: ${error.url}`);
+            console.log(`Tile Tiff not found: ${error.url}`);
           }
         },
       }),
@@ -98,24 +111,78 @@ const MapView = () => {
     });
   }, [methaneYear, methaneLayerVisible]);
 
+  const sn2Layer = useMemo(() => {
+    return new ImageLayer({
+      source: new ImageStatic({
+        url: '/mbmp_final_4.png',
+        imageExtent: [5081569.97, 4850488.62, 9818615.83, 7548158.23],
+        tileSize: [256, 256],
+        maxZoom: 14,
+        onError: function (error) {
+          if (error.status !== 404) {
+            console.error('Error loading Tiff XYZ tile:', error);
+          } else {
+            console.log(`Tile Tiff not found: ${error.url}`);
+          }
+        },
+      }),
+      opacity: emitSn2Opacity * 0.01,
+      visible: emitSn2LayerVisible
+    });
+  }, [ emitSn2LayerVisible ]);
+
+  const emitLayer = useMemo(() => {
+    if (emmitLayerIds.length === 0) return [];
+
+    return emmitLayerIds.map((emit) => {
+      return new TileLayer({
+        source: new XYZ({
+          url: `https://fires.kz/data/emit_tiles/${emit}/{z}/{x}/{-y}.png`,
+          projection: 'EPSG:3857',
+          tileSize: [256, 256],
+          maxZoom: 14,
+          onError: function (error) {
+            if (error.status !== 404) {
+              console.error('Error loading Emit XYZ tile:', error);
+            } else {
+              console.log(`Tile Emit not found: ${error.url}`);
+            }
+          },
+        }),
+        visible: emmitLayerVisible,
+      });
+    });
+  }, [emmitLayerVisible, emmitLayerIds]);
+
+  const emitJsonLayer = useMemo(() => {
+    const source = new VectorSource({
+      url: `/emit_json/emit_all.geojson`,
+      projection: 'EPSG:3857',
+      format: new GeoJSON(),
+    });
+
+    return new VectorLayer({
+      source,
+      style: new Style({
+        stroke: new Stroke({
+          color: 'red',
+          width: 5,
+        }),
+        fill: new Fill({
+          color: "#fff",
+        })
+      }),
+      visible: emmitLayerVisible
+    });
+  }, [emmitLayerVisible, emmitLayerIds])
+
   useEffect(() => {
     tiffLayer.setOpacity(methaneOpacity * 0.01);
   }, [methaneOpacity]);
 
-  // const tiffLayer = useMemo(() => {
-  //   return new TileLayer({
-  //     source: new GeoTIFF({
-  //       sources: [{
-  //         url: `/rasters/sp/tiff/Kazakhstan_Super_Emitters_CH4_${methaneYear}.tif`,
-  //       }],
-  //       bandCount: 1,
-  //       normalize: true,
-  //       convertToRGB: true, // ensures renderable data
-  //     }),
-  //     opacity: 0.5,
-  //     visible: methaneLayerVisible,
-  //   });
-  // }, [methaneYear, methaneLayerVisible]);
+  useEffect(() => {
+    sn2Layer.setOpacity(emitSn2Opacity * 0.01);
+  }, [emitSn2Opacity])
 
   const kazakhstanBorderLayer = useMemo(() => {
     return new VectorLayer({
@@ -163,23 +230,22 @@ const MapView = () => {
       center,
       zoom,
       rotation,
-      // extent: KAZAKHSTAN_EXTENT,
       showFullExtent: true,
     });
 
     const geocoder = createGeocoder();
 
-    // map initialization and settings
     const map = new Map({
       pixelRatio: window.devicePixelRatio || 1,
       loadTilesWhileInteracting: true,
       loadTilesWhileAnimating: true,
       moveTolerance: 5,
       target: mapRef.current,
-      layers: [basemap, tiffLayer, plumeLayer],
+      layers: [basemap, tiffLayer, emitJsonLayer, ...emitLayer, sn2Layer],
       view,
       controls: defaultControls().extend([new FullScreen(), geocoder]),
     });
+
     mapInstance.current = map;
 
     const contextMenu = createContextMenu(map, view, DEFAULT_POSITION, styles);
@@ -196,14 +262,20 @@ const MapView = () => {
       updateMapStateInHash(view);
     };
 
-    map.on("moveend", () => {
-      updateMapStateInHash(view);
-    });
+    map.on("moveend", updatePermalink);
 
-    map.on('singleclick', function (evt) {
-      const coordinate = evt.coordinate;
-      console.log(coordinate)
-    });
+    // handle plume feature click
+    const handleClick = (event) => {
+      map.forEachFeatureAtPixel(event.pixel, (feature, layer) => {
+        if (layer === emitJsonLayer) {
+          setSelectedFeature(feature.getProperties());
+          setIsModalVisible(true);
+          return true;
+        }
+      });
+    };
+
+    map.on('click', handleClick);
 
     const handlePopState = (event) => {
       if (event.state === null) return;
@@ -226,9 +298,11 @@ const MapView = () => {
       fullscreenCleanUp();
       window.removeEventListener("popstate", handlePopState);
       map.un('moveend', updatePermalink);
+      map.un('click', handleClick);
       setIsMapInitialized(false);
     };
-  }, [basemap, blanket, tiffLayer, plumeLayer]);
+  }, [basemap, blanket, tiffLayer, emitJsonLayer, sn2Layer]);
+
 
   useEffect(() => {
     if (!isMapInitialized || !mapInstance.current || !fireLayer) return;
@@ -271,6 +345,52 @@ const MapView = () => {
         {/* Measurement Tools */}
         {isMapInitialized && (
           <MeasurementTools map={mapInstance.current} />
+        )}
+
+        {isModalVisible && selectedFeature && (
+          <Popover
+            open={true}
+            onOpenChange={(visible) => setIsModalVisible(visible)}
+            content={
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <strong>Информация</strong>
+                  <button
+                    onClick={() => setIsModalVisible(false)}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      fontSize: '16px',
+                      cursor: 'pointer',
+                      lineHeight: '1',
+                      fontWeight: 700,
+                    }}
+                  >
+                    ✕
+                  </button>
+                </div>
+                <hr style={{ margin: '8px 0' }} />
+                {Object.entries(selectedFeature).filter(([key]) => !['layer', 'path', 'DAAC Scene Names'].includes(key)).map(([key, value]) =>
+                  key !== 'geometry' ? (
+                    <p key={key}>
+                      <strong>{key}:</strong> {String(value)}
+                    </p>
+                  ) : null
+                )}
+              </div>
+            }
+            placement="top"
+            arrow={false}
+          >
+            <div
+              style={{
+                position: 'absolute',
+                right: 250,
+                bottom: 25,
+                cursor: 'pointer',
+              }}
+            />
+          </Popover>
         )}
       </div>
     </div>

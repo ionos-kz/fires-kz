@@ -4,16 +4,27 @@ export const newDD = [
     key: 'methane',
     items: [
       {
-        id: 'copy_coords',
-        label_ru: 'Метановые выбросы',
+        id: 'methane_main',
+        label_ru: 'Area Flux Mappers',
         options: [
           {
             id: 'sp',
             label: 'Super Emitters 2019',
           },
+        ]
+      },
+      {
+        id: 'methane_instances',
+        label_ru: 'Paint source imagers',
+        options: [
           {
-            id: 'sp_flumes',
-          }
+            id: 'sp_sn2',
+            label: 'Super Emitters 2019',
+          },
+          {
+            id: 'sp_instances',
+            label: 'Super Emitters 2019',
+          },
         ]
       }
     ]
@@ -48,28 +59,28 @@ export const newDD = [
           }
         ]
       },
-      {
-        id: 'copernicusImages',
-        label_ru: 'Космоснимки',
-        isExpanded: false,
-        options: [
-          {
-            id: 'copernicus_image',
-            layer: 'satellite-image',
-            type: 'raster',
-            labelDate: 'Даты',
-            startDate: 0,
-            endDate: 0,
-            labelBands: 'Каналы',
-            bands: [],
-            isOn: false,
-            value: 100,
-            url: null,
-            labelSatellite: 'Спутник',
-            satellite: 'SENTINEL1_GRD'
-          },
-        ]
-      }
+      // {
+      //   id: 'copernicusImages',
+      //   label_ru: 'Космоснимки',
+      //   isExpanded: false,
+      //   options: [
+      //     {
+      //       id: 'copernicus_image',
+      //       layer: 'satellite-image',
+      //       type: 'raster',
+      //       labelDate: 'Даты',
+      //       startDate: 0,
+      //       endDate: 0,
+      //       labelBands: 'Каналы',
+      //       bands: [],
+      //       isOn: false,
+      //       value: 100,
+      //       url: null,
+      //       labelSatellite: 'Спутник',
+      //       satellite: 'SENTINEL1_GRD'
+      //     },
+      //   ]
+      // }
     ]
   },
   {
