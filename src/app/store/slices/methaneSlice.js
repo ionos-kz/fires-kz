@@ -15,6 +15,9 @@ export const createMethaneSlice = (set, get) => ({
   emitSn2LayerVisible: false,
   emitSn2Opacity: 100,
 
+  sandGeoVectorVisible: false,
+  sandGeoTiffVisible: false,
+
   setMethaneYear: (year) => {
     console.log('Setting methaneYear to:', year);
     set(() => ({
@@ -28,6 +31,26 @@ export const createMethaneSlice = (set, get) => ({
       console.log('Toggling methaneLayerVisible to:', newVisibility);
       return {
         methaneLayerVisible: newVisibility
+      };
+    });
+  },
+
+  setSandGeoVectorVisible: () => {
+    set((state) => {
+      const newVisibility = !state.sandGeoVectorVisible;
+      console.log('Toggling sandGeoVectorVisible to:', newVisibility);
+      return {
+        sandGeoVectorVisible: newVisibility
+      };
+    });
+  },
+
+  setSandGeoTiffVisible: () => {
+    set((state) => {
+      const newVisibility = !state.sandGeoTiffVisible;
+      console.log('Toggling sandGeoTiffVisible to:', newVisibility);
+      return {
+        sandGeoTiffVisible: newVisibility
       };
     });
   },
