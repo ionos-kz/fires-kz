@@ -16,6 +16,8 @@ import { Popover, List } from 'antd';
 
 import BasemapSwitcher from "./BasemapSwitcher.jsx";
 import MeasurementTools from "./MeasurementTools.jsx";
+import FirePopup from './FirePopup.jsx';
+import usePopupManager from './PopupManager.jsx';
 import { getMapStateFromHash, updateMapStateInHash } from "../utils/mapState.js";
 import { DEFAULT_POSITION, KAZAKHSTAN_EXTENT } from "../utils/mapConstants.js";
 import { createBlanketLayer } from "../utils/layers.js";
@@ -41,11 +43,9 @@ import ImageStatic from 'ol/source/ImageStatic';
 import "ol/ol.css";
 import 'ol-geocoder/dist/ol-geocoder.min.css';
 import 'react-toastify/dist/ReactToastify.css';
-import './mapStyles.scss'
 import styles from "./MapView.module.scss";
-
+import './mapStyles.scss';
 import useMethaneStore from "src/app/store/methaneStore";
-import { projection } from "@turf/turf";
 
 const MapView = () => {
   const mapRef = useRef(null);
@@ -53,10 +53,18 @@ const MapView = () => {
   const [basemap, setBasemap] = useState(osmLayer);
   const [isMapInitialized, setIsMapInitialized] = useState(false);
   const [isLoadingFires, setIsLoadingFires] = useState(false);
-  const { fireLayerVisible } = useFireStore();
-
+  const { fireLayerVisible } = useFireStore();  // controls fire point visibility via zustand
+  
   const blanket = useMemo(() => createBlanketLayer(), []);
   const fireLayer = useMemo(() => createFireLayer(), []);
+  
+  const {
+    popupRef,
+    popupContent,
+    closePopup,
+    showPopup,
+    setupPopupInteractions
+  } = usePopupManager(mapInstance.current, fireLayer);
 
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [selectedFeature, setSelectedFeature] = useState(null);
@@ -270,6 +278,10 @@ const MapView = () => {
     });
 
     mapInstance.current = map;
+    setIsMapInitialized(true);
+
+    map.showPopup = showPopup;
+    map.closePopup = closePopup;
 
     const contextMenu = createContextMenu(map, view, DEFAULT_POSITION, styles);
     map.addControl(contextMenu);
@@ -313,7 +325,6 @@ const MapView = () => {
     };
 
     map.on("moveend", updatePermalink);
-
     // handle plume feature click
     const handleClick = (event) => {
       map.forEachFeatureAtPixel(event.pixel, (feature, layer) => {
@@ -337,11 +348,16 @@ const MapView = () => {
 
     window.addEventListener("popstate", handlePopState);
 
+    // If fire layer should be visible, load it immediately
     setIsMapInitialized(true);
-
     if (fireLayerVisible) {
       loadFireData();
     }
+    
+    map.on('singleclick', function (evt) {
+      const coordinate = evt.coordinate;
+      console.log('Clicked at coordinates:', coordinate);
+    });
 
     return () => {
       map.setTarget(null);
@@ -353,6 +369,13 @@ const MapView = () => {
     };
   }, [basemap, blanket, tiffLayer, emitJsonLayer, sn2Layer]);
 
+
+  // Set up popup interactions after map initialized
+  useEffect(() => {
+    if (!isMapInitialized || !mapInstance.current) return;
+    const cleanup = setupPopupInteractions();
+    return cleanup;
+  }, [isMapInitialized, setupPopupInteractions]);
 
   useEffect(() => {
     if (!isMapInitialized || !mapInstance.current || !fireLayer) return;
@@ -443,6 +466,13 @@ const MapView = () => {
           </Popover>
         )}
       </div>
+
+      {/* Popup Overlay */}
+      <FirePopup 
+        popupRef={popupRef} 
+        content={popupContent} 
+        onClose={closePopup} 
+      />
     </div>
   );
 };
