@@ -33,13 +33,17 @@
             align-items: center;
 
             .header-menu-btn {
-                margin-right: 1rem;
                 width: 2rem;
                 height: 2rem;
                 cursor: pointer;
+                
+                svg {
+                    margin-left: .2rem;
+                }
             }
 
             .header-logo {
+                margin-left: 1rem;
                 width: 220px;
                 height: 100%;
                 

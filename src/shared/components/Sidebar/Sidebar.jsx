@@ -7,6 +7,9 @@ import {
   MapPinned,
   MessageSquareText,
   GraduationCap,
+  Flame,
+  Waves
+  
 } from "lucide-react";
 // import Tippy from "tippy.js";
 import useMenuStore from "src/app/store/store";
@@ -18,13 +21,13 @@ import "tippy.js/dist/tippy.css";
 import styles from "./Sidebar.module.scss";
 
 const sidebarElements = [
-  { id: 0, icon: Layers, tooltip: "Layers", content: "Слои" },
-  { id: 1, icon: PencilRuler, tooltip: "Drawing Tools", content: "Инструменты" },
-  { id: 2, icon: Filter, tooltip: "Filters", content: "Фильтр" },
-  { id: 3, icon: ChartSpline, tooltip: "Charts", content: "Статистика" },
-  { id: 4, icon: MapPinned, tooltip: "Analysis", content: "Анализ" },
-  { id: 5, icon: MessageSquareText, tooltip: "Feedback", content: "Обратная связь" },
-  { id: 6, icon: GraduationCap, tooltip: "Education", content: "Обучение" },
+  { id: 0, icon: Waves, tooltip: "Слой по выбросам метана"},
+  { id: 1, icon: PencilRuler, tooltip: "Инструменты"},
+  { id: 2, icon: Flame, tooltip: "Мониторинг пожаров"},
+  // { id: 3, icon: Filter, tooltip: "Filters"},
+  // { id: 4, icon: MapPinned, tooltip: "Analysis", content: "Анализ" },
+  // { id: 5, icon: MessageSquareText, tooltip: "Feedback", content: "Обратная связь" },
+  // { id: 6, icon: GraduationCap, tooltip: "Education", content: "Обучение" },
 ];
 
 const Sidebar = () => {
