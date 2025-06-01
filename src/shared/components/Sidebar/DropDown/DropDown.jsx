@@ -1,36 +1,30 @@
-import { memo, useState, useEffect } from "react";
+import { memo, useEffect, useCallback } from "react";
 import {
-  Satellite,
-  Calendar,
-  Grid3x3,
-  Search,
-  Download,
   ChevronDown,
-  Loader,
 } from "lucide-react";
 
 import tileList from './emit_list.json';
 
-import { OpenEO, Formula } from "@openeo/js-client";
-import { Card, DatePicker, List } from "antd";
-
-const { RangePicker } = DatePicker;
-
 import Options from "../Options/Options";
 import { newDD } from "./DropDownData";
 import useFireStore from "src/app/store/fireStore";
+import SatelliteInputForm from "./SatelliteInputForm";
+import Sentinel2Controls from "./Sentinel2Controls";
+import MethaneControls from "./MethaneControls";
+import MethaneLegend from "./MethaneLegend";
+import EmitControls from "./EmitControls";
 
 import styles from "./DropDown.module.scss";
 import dayjs from "dayjs";
-import ToggleSwitch from "../ToggleSwitch/ToggleSwitch";
 
+import useAdminBoundaryStore from "src/app/store/adminBoundaryStore";
 import useMethaneStore from "src/app/store/methaneStore";
-import OpacityController from "./OpacityController";
+import { useSatelliteData } from "./useSatelliteData";
 
 let exampleGeometry = { "type": "Polygon", "coordinates": [[[7.637799974419459, 52.01332193589061], [7.62398169352488, 52.00969307661495], [7.619823829597119, 52.00158245346181], [7.590738404820496, 52.00730662092496], [7.563811834154673, 52.001308616165645], [7.573636346303766, 51.992180777860874], [7.569855884060181, 51.98545643508868], [7.543540879611669, 51.96991821995572], [7.577623151858387, 51.93997003636344], [7.559435909709811, 51.931123434089656], [7.556625867211423, 51.92504156203243], [7.564681636267283, 51.9188162156423], [7.577387619476905, 51.9233317429785], [7.588347839936553, 51.918646814268996], [7.595284932021921, 51.92479589461621], [7.621031519108772, 51.917243800385535], [7.656038175955233, 51.91943727698611], [7.67194795756578, 51.92238830466648], [7.686556925502693, 51.9290516727655], [7.690291911499357, 51.93671875429201], [7.699225443980613, 51.936707107569255], [7.687961904959071, 51.94731673700126], [7.675211564663383, 51.94964649247447], [7.678202838213879, 51.976670456099136], [7.667564910410129, 51.97853371878003], [7.660981470643656, 51.98621447362924], [7.660952980726099, 52.00839143191412], [7.652037968822863, 52.01317315906101], [7.637799974419459, 52.01332193589061]]] };
-const iconSize = 16;
 
 const DropDown = memo(({ openTabIndex }) => {
+  // Store hooks
   const {
     opacityValues,
     setOpacityValue,
@@ -45,44 +39,26 @@ const DropDown = memo(({ openTabIndex }) => {
     setMethaneYear,
     setMethaneLayerVisible,
     setMethaneOpacity,
-    setMethaneFlumesVisible,
     methaneYear,
     methaneLayerVisible,
     methaneOpacity,
-    methaneFlumesVisible,
     emmitLayerVisible,
     emmitLayerIds,
-    emmitLayerOpacity,
-    clickedEmmitId,
     beginDateEmmit,
     endDateEmmit,
     setEmmitLayerIds,
-    toggleEmmitLayerId,
     setEmmitLayerVisible,
-    setEmmitLayerOpacity,
-    setClickedEmmitId,
     setBeginDateEmmit,
     setEndDateEmmit,
     emitSn2LayerVisible,
     emitSn2Opacity,
     setEmitSn2LayerVisible,
     setEmitSn2Opacity,
-    sandGeoVectorVisible,
-    sandGeoTiffVisible,
-    setSandGeoVectorVisible,
-    setSandGeoTiffVisible
   } = useMethaneStore();
 
-  const handleMethaneDateChange = (date, dateString) => {
-    console.log(dateString)
-    setMethaneYear(dateString);
-  };
+  const {} = useAdminBoundaryStore();
 
-  const handleEmitDateChange = (dates, dateStrings) => {
-    const [beginStr, endStr] = dateStrings;
-    setBeginDateEmmit(dayjs(beginStr));
-    setEndDateEmmit(dayjs(endStr));
-  };
+  const satelliteHookData = useSatelliteData();
 
   useEffect(() => {
     if (!beginDateEmmit || !endDateEmmit) return;
@@ -91,163 +67,102 @@ const DropDown = memo(({ openTabIndex }) => {
       .filter(item => {
         const itemDate = dayjs(item.date);
         return itemDate.isAfter(dayjs(beginDateEmmit).subtract(1, 'day')) &&
-          itemDate.isBefore(dayjs(endDateEmmit).add(1, 'day'));
+               itemDate.isBefore(dayjs(endDateEmmit).add(1, 'day'));
       })
       .map(item => item.full_string);
 
     setEmmitLayerIds(matchingIds);
-  }, [beginDateEmmit, endDateEmmit, tileList]);
+  }, [beginDateEmmit, endDateEmmit, setEmmitLayerIds]);
 
+  const getOpacityValue = useCallback((optionId) => opacityValues[optionId] || 100, [opacityValues]);
+  const getToggleState = useCallback((optionId) => toggleStates[optionId] || false, [toggleStates]);
 
-  // State for satellite inputs
-  const [satelliteInputs, setSatelliteInputs] = useState({
-    collection: "COPERNICUS/S2_SR",
-    startDate: "2019-06-23",
-    endDate: "2019-06-30",
-    bands: "B4,B3,B2",
-    west: "71.21797",
-    south: "50.85761",
-    east: "71.78519",
-    north: "51.35111",
-  });
+  const handleToggleChange = useCallback((optionId) => {
+    if (optionId === "fire_pinpoints") setFireLayerVisible();
+    toggleOption(optionId);
+  }, [setFireLayerVisible, toggleOption]);
 
-  const [isLoading, setIsLoading] = useState(false);
-  const [searchResult, setSearchResult] = useState(null);
-
-  const [error, setError] = useState(null);
-
-  const handleInputChange = (field, value) => {
-    setSatelliteInputs((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
-  };
-
-  const handleSearch = async () => {
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const result = await fetchSatelliteData(satelliteInputs);
-      setSearchResult(result);
-    } catch (err) {
-      console.error("Error searching satellite data:", err);
-      setError(err.message || "Failed to search satellite data");
-    } finally {
-      setIsLoading(false);
+  const renderOption = useCallback((option) => {
+    switch (option.id) {
+      case "copernicus_image":
+        return <SatelliteInputForm key={option.id} {...satelliteHookData} />;
+      
+      case "sp":
+        return (
+          <MethaneControls
+            key={option.id}
+            methaneLayerVisible={methaneLayerVisible}
+            setMethaneLayerVisible={setMethaneLayerVisible}
+            methaneYear={methaneYear}
+            setMethaneYear={setMethaneYear}
+            methaneOpacity={methaneOpacity}
+            setMethaneOpacity={setMethaneOpacity}
+          />
+        );
+      
+      case "sp_sn2":
+        return (
+          <Sentinel2Controls
+            key={option.id}
+            emitSn2LayerVisible={emitSn2LayerVisible}
+            setEmitSn2LayerVisible={setEmitSn2LayerVisible}
+            emitSn2Opacity={emitSn2Opacity}
+            setEmitSn2Opacity={setEmitSn2Opacity}
+          />
+        );
+      
+      case "sp_instances":
+        return (
+          <EmitControls
+            key={option.id}
+            emmitLayerVisible={emmitLayerVisible}
+            setEmmitLayerVisible={setEmmitLayerVisible}
+            beginDateEmmit={beginDateEmmit}
+            endDateEmmit={endDateEmmit}
+            setBeginDateEmmit={setBeginDateEmmit}
+            setEndDateEmmit={setEndDateEmmit}
+            emmitLayerIds={emmitLayerIds}
+          />
+        );
+      
+      default:
+        return (
+          <Options
+            key={option.id}
+            option={option}
+            getToggleState={getToggleState}
+            handleToggleChange={handleToggleChange}
+            getOpacityValue={getOpacityValue}
+            setOpacityValue={setOpacityValue}
+          />
+        );
     }
-  };
-
-  const disabledDateSP = (current) => {
-    return current.year() < 2019 || current.year() > 2024;
-  };
-
-  const fetchSatelliteData = async (params) => {
-    try {
-      const con = await OpenEO.connect("https://earthengine.openeo.org");
-
-      await con.authenticateBasic("group1", "test123");
-
-      const bbox = {
-        west: parseFloat(params.west),
-        south: parseFloat(params.south),
-        east: parseFloat(params.east),
-        north: parseFloat(params.north),
-      };
-
-      const geometry = {
-        type: "Polygon",
-        coordinates: [
-          [
-            [bbox.west, bbox.north],
-            [bbox.east, bbox.north],
-            [bbox.east, bbox.south],
-            [bbox.west, bbox.south],
-            [bbox.west, bbox.north],
-          ],
-        ],
-      };
-
-      // Parse bands from input
-      const bands = params.bands.split(",").map((band) => band.trim());
-      const builder = await con.buildProcess();
-
-      // Load collection
-      let datacube = builder.load_collection(
-        params.collection,
-        geometry,
-        [params.startDate, params.endDate],
-        bands
-      );
-
-      // Reduce time dimension if multiple dates are present
-      const reducer = function (data) {
-        return this.max(data);
-      };
-      datacube = builder.reduce_dimension(datacube, reducer, "t");
-
-      // Scale values for visualization
-      const scale = function (x) {
-        return this.linear_scale_range(x, 0, 3000, 0, 255);
-      };
-      datacube = builder.apply(datacube, scale);
-
-      datacube = builder.save_result(datacube, "PNG");
-
-      const capabilities = con.capabilities();
-      const syncSupport = capabilities.hasFeature("computeResult");
-
-      if (syncSupport) {
-        const preview = await con.computeResult(datacube);
-
-        // blob url from binary data
-        const imagePath = URL.createObjectURL(preview.data);
-
-        return {
-          imagePath,
-          metadata: {
-            collection: params.collection,
-            dateRange: `${params.startDate} to ${params.endDate}`,
-            bands: params.bands,
-          },
-        };
-      } else {
-        throw new Error("Synchronous preview not supported by this backend");
-      }
-    } catch (error) {
-      console.error("OpenEO processing error:", error);
-      throw new Error("Failed to process satellite data: " + error.message);
-    }
-  };
-
-  // temporary url to download
-  const handleDownload = () => {
-    if (searchResult && searchResult.imagePath) {
-      const a = document.createElement("a");
-      a.href = searchResult.imagePath;
-      a.download = `satellite_${satelliteInputs.collection.replace("/", "_")}_${satelliteInputs.startDate
-        }.png`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-    }
-  };
+  }, [
+    satelliteHookData,
+    methaneLayerVisible,
+    setMethaneLayerVisible,
+    methaneYear,
+    setMethaneYear,
+    methaneOpacity,
+    setMethaneOpacity,
+    emitSn2LayerVisible,
+    setEmitSn2LayerVisible,
+    emitSn2Opacity,
+    setEmitSn2Opacity,
+    emmitLayerVisible,
+    setEmmitLayerVisible,
+    beginDateEmmit,
+    endDateEmmit,
+    setBeginDateEmmit,
+    setEndDateEmmit,
+    emmitLayerIds,
+    getToggleState,
+    handleToggleChange,
+    getOpacityValue,
+    setOpacityValue,
+  ]);
 
   const currentSection = newDD.find((section) => section.id === openTabIndex);
-
-  const getOpacityValue = (optionId) => opacityValues[optionId] || 100;
-  const getToggleState = (optionId) => toggleStates[optionId] || false;
-
-  const handleEmitFlyToPoint = () => {
-    view.setCenter([7593493.19, 6273692.57]);
-    view.setZoom(5);
-  }
-
-  const handleToggleChange = (optionId) => {
-    if (optionId === "fire_pinpoints") setFireLayerVisible();
-    // if (optionId === "sp")
-    toggleOption(optionId);
-  };
 
   if (!currentSection) {
     return <div className={styles.dropdown__empty}>No data available</div>;
@@ -255,16 +170,12 @@ const DropDown = memo(({ openTabIndex }) => {
 
   return (
     <div className={styles.dropdown}>
-      {(emitSn2LayerVisible || emmitLayerVisible) && (
-        <div className={styles["methane-legend-2"]}>
-          <img src="/map_attributes/methane_legend_1.png" width={250} />
-        </div>
-      )}
-      {methaneLayerVisible && (
-        <div className={styles["methane-legend"]}>
-          <img src="/map_attributes/methane_legend_2.png" width={250} />
-        </div>
-      )}
+      <MethaneLegend
+        methaneLayerVisible={methaneLayerVisible}
+        emitSn2LayerVisible={emitSn2LayerVisible}
+        emmitLayerVisible={emmitLayerVisible}
+      />
+      
       {currentSection.items.map((item) => (
         <div key={item.id} className={styles.dropdown__item}>
           <div
@@ -275,280 +186,15 @@ const DropDown = memo(({ openTabIndex }) => {
             <h3>{item.label_ru}</h3>
             <ChevronDown
               size={18}
-              className={`${styles.dropdown__icon} ${expandedItems[item.id] ? styles["dropdown__icon--rotated"] : ""
-                }`}
+              className={`${styles.dropdown__icon} ${
+                expandedItems[item.id] ? styles["dropdown__icon--rotated"] : ""
+              }`}
             />
           </div>
 
           {expandedItems[item.id] && (
             <div className={styles.dropdown__options}>
-              {item.options.map((option) =>
-                option.id === "copernicus_image" ? (
-                  <div key={option.id} className={styles.satellite__container}>
-                    <div className={styles.dropdown__input}>
-                      <div className={styles.input__group}>
-                        <Satellite size={iconSize} />
-                        <label htmlFor="satellite-collection">
-                          Collection:
-                        </label>
-                        <select
-                          id="satellite-collection"
-                          value={satelliteInputs.collection}
-                          onChange={(e) =>
-                            handleInputChange("collection", e.target.value)
-                          }
-                        >
-                          <option value="COPERNICUS/S2_SR">
-                            Sentinel-2 Surface Reflectance
-                          </option>
-                          <option value="SENTINEL1_GRD">Sentinel-1 GRD</option>
-                          <option value="SENTINEL2_L2A">Sentinel-2 L2A</option>
-                          <option value="SENTINEL3_OLCI">
-                            Sentinel-3 OLCI
-                          </option>
-                        </select>
-                      </div>
-                      <div className={styles.input__row}>
-                        <div className={styles.input__group}>
-                          <Calendar size={iconSize} />
-                          <label htmlFor="start-date">Start:</label>
-                          <input
-                            id="start-date"
-                            type="date"
-                            value={satelliteInputs.startDate}
-                            onChange={(e) =>
-                              handleInputChange("startDate", e.target.value)
-                            }
-                          />
-                        </div>
-                        <div className={styles.input__group}>
-                          <Calendar size={iconSize} />
-                          <label htmlFor="end-date">End:</label>
-                          <input
-                            id="end-date"
-                            type="date"
-                            value={satelliteInputs.endDate}
-                            onChange={(e) =>
-                              handleInputChange("endDate", e.target.value)
-                            }
-                          />
-                        </div>
-                      </div>
-                      <div className={styles.input__group}>
-                        <Grid3x3 size={iconSize} />
-                        <label htmlFor="bands-input">Bands:</label>
-                        <input
-                          id="bands-input"
-                          value={satelliteInputs.bands}
-                          onChange={(e) =>
-                            handleInputChange("bands", e.target.value)
-                          }
-                          placeholder="B2,B4,B8"
-                        />
-                      </div>
-                      <div className={styles.input__row}>
-                        <div className={styles.input__group}>
-                          <label htmlFor="west-input">West:</label>
-                          <input
-                            id="west-input"
-                            type="number"
-                            step="0.01"
-                            value={satelliteInputs.west}
-                            onChange={(e) =>
-                              handleInputChange("west", e.target.value)
-                            }
-                          />
-                        </div>
-                        <div className={styles.input__group}>
-                          <label htmlFor="east-input">East:</label>
-                          <input
-                            id="east-input"
-                            type="number"
-                            step="0.01"
-                            value={satelliteInputs.east}
-                            onChange={(e) =>
-                              handleInputChange("east", e.target.value)
-                            }
-                          />
-                        </div>
-                      </div>
-                      <div className={styles.input__row}>
-                        <div className={styles.input__group}>
-                          <label htmlFor="north-input">North:</label>
-                          <input
-                            id="north-input"
-                            type="number"
-                            step="0.01"
-                            value={satelliteInputs.north}
-                            onChange={(e) =>
-                              handleInputChange("north", e.target.value)
-                            }
-                          />
-                        </div>
-                        <div className={styles.input__group}>
-                          <label htmlFor="south-input">South:</label>
-                          <input
-                            id="south-input"
-                            type="number"
-                            step="0.01"
-                            value={satelliteInputs.south}
-                            onChange={(e) =>
-                              handleInputChange("south", e.target.value)
-                            }
-                          />
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className={styles.dropdown__buttons}>
-                      <button
-                        className={styles.button__search}
-                        onClick={handleSearch}
-                        disabled={isLoading}
-                        title="Search for imagery"
-                      >
-                        {isLoading ? (
-                          <Loader size={iconSize} className={styles.spinner} />
-                        ) : (
-                          <Search size={iconSize} />
-                        )}
-                        <span>{isLoading ? "Processing..." : "Search"}</span>
-                      </button>
-                      <button
-                        className={`${styles.button__download} ${!searchResult && styles.button__disabled
-                          }`}
-                        onClick={handleDownload}
-                        disabled={!searchResult}
-                        title="Download imagery"
-                      >
-                        <Download size={iconSize} />
-                        <span>Download</span>
-                      </button>
-                    </div>
-
-                    {error && (
-                      <div className={styles.error__message}>{error}</div>
-                    )}
-
-                    {searchResult && (
-                      <div className={styles.result__container}>
-                        <h4>Result Preview</h4>
-                        <img
-                          src={searchResult.imagePath}
-                          alt="Satellite imagery result"
-                          className={styles.result__image}
-                        />
-                        <div className={styles.result__metadata}>
-                          <p>
-                            <strong>Collection:</strong>{" "}
-                            {searchResult.metadata.collection}
-                          </p>
-                          <p>
-                            <strong>Date Range:</strong>{" "}
-                            {searchResult.metadata.dateRange}
-                          </p>
-                          <p>
-                            <strong>Bands:</strong>{" "}
-                            {searchResult.metadata.bands}
-                          </p>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )
-                  // : option.id === "firm-date" ? (
-                  //   <DatePicker 
-                  //     value={fireDate}
-                  //     onChange={(date) => setFireDate(date)}
-                  //     format="YYYY-MM-DD"
-                  //     disabledDate={(current) => current && current.isAfter(dayjs(), 'day')}
-                  //   />
-                  // ) 
-                  : option.id === "sp" ? (
-                    <>
-                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                        <div><i>Sentinel - 5P</i></div>
-                        <ToggleSwitch
-                          isChecked={methaneLayerVisible}
-                          onChange={setMethaneLayerVisible}
-                        />
-                      </div>
-                      <DatePicker
-                        value={dayjs(methaneYear)}
-                        picker="year"
-                        disabledDate={disabledDateSP}
-                        onChange={handleMethaneDateChange}
-                      />
-                      <OpacityController
-                        id="sp"
-                        opacityValue={methaneOpacity}
-                        setOpacityValue={setMethaneOpacity}
-                      />
-                      <hr color="gray" />
-                    </>
-                  )
-                    : option.id === 'sp_sn2' ? (
-                      <div style={{ borderBottom: '1px solid rgba(0, 0, 0, 0.2)', paddingBottom: 32 }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                          <div><i>Sentinel - 2</i></div>
-                          <ToggleSwitch
-                            isChecked={emitSn2LayerVisible}
-                            onChange={setEmitSn2LayerVisible}
-                          />
-                        </div>
-                        <OpacityController
-                          id="sp_sn2"
-                          opacityValue={emitSn2Opacity}
-                          setOpacityValue={setEmitSn2Opacity}
-                        />
-                      </div>
-                    )
-                      : option.id === "sp_instances" ? (
-                        <>
-                          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                            <div><i>EMIT</i></div>
-                            <ToggleSwitch
-                              isChecked={emmitLayerVisible}
-                              onChange={setEmmitLayerVisible}
-                            />
-                          </div>
-                          <RangePicker
-                            value={[
-                              dayjs(beginDateEmmit, 'YYYY-MM-DD'),
-                              dayjs(endDateEmmit, 'YYYY-MM-DD')
-                            ]}
-                            format="YYYY-MM-DD"
-                            onChange={handleEmitDateChange}
-                          />
-                          {emmitLayerVisible && (
-                            <List style={{ height: 300, overflowY: 'scroll' }}>
-                              {emmitLayerIds.map((emmit) => {
-                                return (
-                                  <Card
-                                    hoverable
-                                    key={emmit}
-                                    style={{ marginBottom: '1px #011' }}
-                                  >
-                                    <p>{emmit}</p>
-                                  </Card>
-                                );
-                              })}
-                            </List>
-                          )}
-                        </>
-                      )
-                          : (
-                            <Options
-                              key={option.id}
-                              option={option}
-                              getToggleState={getToggleState}
-                              handleToggleChange={handleToggleChange}
-                              getOpacityValue={getOpacityValue}
-                              setOpacityValue={setOpacityValue}
-                            />
-                          )
-
-              )}
+              {item.options.map(renderOption)}
             </div>
           )}
         </div>
@@ -556,6 +202,7 @@ const DropDown = memo(({ openTabIndex }) => {
     </div>
   );
 });
+
 
 DropDown.displayName = "DropDown";
 

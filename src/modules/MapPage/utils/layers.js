@@ -22,3 +22,20 @@ export const createBlanketLayer = () => {
     }),
   });
 };
+
+
+export const createAdminBoundary0 = () => {
+  return new VectorLayer({
+    declutter: true,
+    source: new VectorSource({
+      url: "/layers/KAZ_OSM_BORDER_LVL1.geojson",
+      format: new GeoJSON()
+    }),
+    overlaps: false,
+    renderMode: 'vector',
+    style: new Style ({
+      stroke: new Stroke({ color: "#4999E8", width: 1 }),
+      fill: new Fill({ color: "rgba(0, 0, 0, 0)" })
+    })
+  })
+}

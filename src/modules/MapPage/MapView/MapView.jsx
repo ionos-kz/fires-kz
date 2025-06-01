@@ -20,7 +20,7 @@ import FirePopup from './FirePopup.jsx';
 import usePopupManager from './PopupManager.jsx';
 import { getMapStateFromHash, updateMapStateInHash } from "../utils/mapState.js";
 import { DEFAULT_POSITION, KAZAKHSTAN_EXTENT } from "../utils/mapConstants.js";
-import { createBlanketLayer } from "../utils/layers.js";
+import { createAdminBoundary0, createBlanketLayer } from "../utils/layers.js";
 import { createFireLayer } from "../utils/fireLayer.js";
 import { createContextMenu } from "../utils/contextMenu.js";
 import { handleFullScreenChange } from "../utils/fullScreen.js";
@@ -56,6 +56,7 @@ const MapView = () => {
   const { fireLayerVisible } = useFireStore();  // controls fire point visibility via zustand
   
   const blanket = useMemo(() => createBlanketLayer(), []);
+  const kazBoundary0 = useMemo(() => createAdminBoundary0(), []);
   const fireLayer = useMemo(() => createFireLayer(), []);
   
   const {
