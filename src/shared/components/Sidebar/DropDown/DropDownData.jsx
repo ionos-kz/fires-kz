@@ -43,20 +43,28 @@ export const newDD = [
           },
           {
             id: 'region_boundaries',
-            label: 'Границы областей',
+            label: 'Области Казахстана'
           },
           {
             id: 'district_boundaries',
-            label: 'Границы районов',
-          },
-          {
-            id: 'settlement_boundaries',
-            label: 'Границы поселков',
-          },
-          {
-            id: 'settlements_pinpoints',
-            label: 'Местоположения населенных пунктов',
+            label: 'Районы Казахстана'
           }
+          // {
+          //   id: 'region_boundaries',
+          //   label: 'Границы областей',
+          // },
+          // {
+          //   id: 'district_boundaries',
+          //   label: 'Границы районов',
+          // },
+          // {
+          //   id: 'settlement_boundaries',
+          //   label: 'Границы поселков',
+          // },
+          // {
+          //   id: 'settlements_pinpoints',
+          //   label: 'Местоположения населенных пунктов',
+          // }
         ]
       },
       // {

@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react";
 
-import { OpenEO, Formula } from "@openeo/js-client";
+import { OpenEO } from "@openeo/js-client";
 
 import { DEFAULT_SATELLITE_INPUTS } from "./DropDownConstants";
 

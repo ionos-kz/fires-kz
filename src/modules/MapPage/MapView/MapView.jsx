@@ -1,4 +1,4 @@
-import { useEffect, useRef, useMemo, useState } from "react";
+import { useEffect, useRef, useMemo, useState, useCallback } from "react";
 import Map from "ol/Map";
 import View from "ol/View";
 import FullScreen from "ol/control/FullScreen";
@@ -19,8 +19,8 @@ import MeasurementTools from "./MeasurementTools.jsx";
 import FirePopup from './FirePopup.jsx';
 import usePopupManager from './PopupManager.jsx';
 import { getMapStateFromHash, updateMapStateInHash } from "../utils/mapState.js";
-import { DEFAULT_POSITION, KAZAKHSTAN_EXTENT } from "../utils/mapConstants.js";
-import { createAdminBoundary0, createBlanketLayer } from "../utils/layers.js";
+import { DEFAULT_POSITION } from "../utils/mapConstants.js";
+import { createAdminBoundary, createBlanketLayer } from "../utils/layers.js";
 import { createFireLayer } from "../utils/fireLayer.js";
 import { createContextMenu } from "../utils/contextMenu.js";
 import { handleFullScreenChange } from "../utils/fullScreen.js";
@@ -28,6 +28,7 @@ import { osmLayer } from "../utils/basemaps.js";
 import { createGeocoder } from "../utils/geocoder.js";
 import { flyHome } from "../utils/flyHome.js";
 import useFireStore from "src/app/store/fireStore";
+import useAdminBoundaryStore from "src/app/store/adminBoundaryStore.js";
 
 import VectorLayer from 'ol/layer/Vector';
 import VectorSource from 'ol/source/Vector';
@@ -54,9 +55,9 @@ const MapView = () => {
   const [isMapInitialized, setIsMapInitialized] = useState(false);
   const [isLoadingFires, setIsLoadingFires] = useState(false);
   const { fireLayerVisible } = useFireStore();  // controls fire point visibility via zustand
-  
+  const { layerVisibility } = useAdminBoundaryStore();
+
   const blanket = useMemo(() => createBlanketLayer(), []);
-  const kazBoundary0 = useMemo(() => createAdminBoundary0(), []);
   const fireLayer = useMemo(() => createFireLayer(), []);
   
   const {
@@ -105,15 +106,15 @@ const MapView = () => {
   //   });
   // }, [methaneFlumesVisible]);
 
-  const sandGeoTiffLayer = new TileLayer({
-    source: new GeoTIFF({
-      sources: [
-        {
-          url: 'https://catalog.carbonmapper.org/l3a-vis-ch4-mfa-v002/2025/02/20/tan20250220t061843c00s4001-B/tan20250220t061843c00s4001-B_l3a-vis-ch4-mfa-v002_plume.tif?c=1114f5e56156b712772168b8b626b51c60ad59a99f1f&Expires=1747102441&Signature=kX0S9lRMFSqjOqpxVDhnQGVFK8TYzyQS4RKY6r5z3iepbShN-OqpPStaXq-gb5DnS46zuietqNZuvbqtgRWP0bmIgD~XA3JWiF8JC73FNSVT4P~Wd~ml6PIJDxEvMibYmgriROnzXs3g4ji1xo7FNqNpk-lgDto4fWY0hf5eub2~8h82TUP-zjZTwkSG8T3zjTbAvKZQBmDdBoCvS2x1fay2IVC~1VpOy93eCXD5mJFTs~~AChlL9hDQrIAKnRIBXzmXN4XpaY~p7SN9qoEXFdxXx4nYEvyG-d6jmJkpcpEr~eXmvUIrn9x9ic1229woYdx1d964p6UtasxtJoUA-A__&Key-Pair-Id=K1ZO5DZQBTMNGZ',
-        },
-      ],
-    }),
-  });
+  // const sandGeoTiffLayer = new TileLayer({
+  //   source: new GeoTIFF({
+  //     sources: [
+  //       {
+  //         url: 'https://catalog.carbonmapper.org/l3a-vis-ch4-mfa-v002/2025/02/20/tan20250220t061843c00s4001-B/tan20250220t061843c00s4001-B_l3a-vis-ch4-mfa-v002_plume.tif?c=1114f5e56156b712772168b8b626b51c60ad59a99f1f&Expires=1747102441&Signature=kX0S9lRMFSqjOqpxVDhnQGVFK8TYzyQS4RKY6r5z3iepbShN-OqpPStaXq-gb5DnS46zuietqNZuvbqtgRWP0bmIgD~XA3JWiF8JC73FNSVT4P~Wd~ml6PIJDxEvMibYmgriROnzXs3g4ji1xo7FNqNpk-lgDto4fWY0hf5eub2~8h82TUP-zjZTwkSG8T3zjTbAvKZQBmDdBoCvS2x1fay2IVC~1VpOy93eCXD5mJFTs~~AChlL9hDQrIAKnRIBXzmXN4XpaY~p7SN9qoEXFdxXx4nYEvyG-d6jmJkpcpEr~eXmvUIrn9x9ic1229woYdx1d964p6UtasxtJoUA-A__&Key-Pair-Id=K1ZO5DZQBTMNGZ',
+  //       },
+  //     ],
+  //   }),
+  // });
 
   const sandGeoVectorLayer = new VectorLayer({
     source: new VectorSource({
@@ -216,22 +217,7 @@ const MapView = () => {
     sn2Layer.setOpacity(emitSn2Opacity * 0.01);
   }, [emitSn2Opacity])
 
-  const kazakhstanBorderLayer = useMemo(() => {
-    return new VectorLayer({
-      source: new VectorSource({
-        url: '/layers/kz_1.json',
-        format: new GeoJSON(),
-      }),
-      style: new Style({
-        stroke: new Stroke({
-          color: '#333',
-          width: 1,
-        }),
-      }),
-    });
-  }, []);
-
-  const loadFireData = async (startDate, endDate) => {
+  const loadFireData = useCallback(async (startDate, endDate) => {
     if (!fireLayer || !mapInstance.current) return;
 
     setIsLoadingFires(true);
@@ -251,7 +237,24 @@ const MapView = () => {
     } finally {
       setIsLoadingFires(false);
     }
-  };
+  }, [fireLayer, fireLayerVisible]);
+
+  
+  const kazBoundary0 = useMemo(() => createAdminBoundary('1', layerVisibility.adminBoundary1), []);
+  useEffect(() => {
+    kazBoundary0.setVisible(layerVisibility.adminBoundary1)
+  }, [layerVisibility.adminBoundary1])
+
+  const kazBoundary1 = useMemo(() => createAdminBoundary('2', layerVisibility.adminBoundary2), []);
+  useEffect(() => {
+    kazBoundary1.setVisible(layerVisibility.adminBoundary2)
+  }, [layerVisibility.adminBoundary2])
+
+  const kazBoundary2 = useMemo(() => createAdminBoundary('3', layerVisibility.adminBoundary3), []);
+  useEffect(() => {
+    kazBoundary2.setVisible(layerVisibility.adminBoundary3)
+  }, [layerVisibility.adminBoundary3])
+  
 
   useEffect(() => {
     if (!mapRef.current) return;
@@ -273,7 +276,7 @@ const MapView = () => {
       loadTilesWhileAnimating: true,
       moveTolerance: 5,
       target: mapRef.current,
-      layers: [basemap, tiffLayer, emitJsonLayer, ...emitLayer, sn2Layer],
+      layers: [basemap, kazBoundary0, kazBoundary1, kazBoundary2, tiffLayer, emitJsonLayer, ...emitLayer, sn2Layer],
       view,
       controls: defaultControls().extend([new FullScreen(), geocoder]),
     });
@@ -351,9 +354,9 @@ const MapView = () => {
 
     // If fire layer should be visible, load it immediately
     setIsMapInitialized(true);
-    if (fireLayerVisible) {
-      loadFireData();
-    }
+    // if (fireLayerVisible) {
+    //   loadFireData();
+    // }
     
     map.on('singleclick', function (evt) {
       const coordinate = evt.coordinate;
@@ -391,7 +394,7 @@ const MapView = () => {
       fireLayer.setVisible(false);
     }
 
-  }, [fireLayerVisible, isMapInitialized]);
+  }, [fireLayerVisible, isMapInitialized, fireLayer, loadFireData]);
 
   return (
     <div id="fullscreen" className={styles.fullscreen}>

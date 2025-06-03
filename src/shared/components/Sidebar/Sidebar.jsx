@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, memo } from "react";
 import {
   Layers,
   PencilRuler,
@@ -30,7 +30,7 @@ const sidebarElements = [
   // { id: 6, icon: GraduationCap, tooltip: "Education", content: "Обучение" },
 ];
 
-const Sidebar = () => {
+const Sidebar = memo(() => {
   const { isMenuOpen, openTabIndex, toggleMenu, setTabIndex } = useMenuStore();
   const { fireLayerVisible } = useFireStore();
   const sidebarRef = useRef(null);
@@ -116,6 +116,8 @@ const Sidebar = () => {
       )}
     </aside>
   );
-};
+});
+
+Sidebar.displayName = "Sidebar";
 
 export default Sidebar;
