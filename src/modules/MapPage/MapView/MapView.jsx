@@ -29,6 +29,8 @@ import { createGeocoder } from "../utils/geocoder.js";
 import { flyHome } from "../utils/flyHome.js";
 import useFireStore from "src/app/store/fireStore";
 import useAdminBoundaryStore from "src/app/store/adminBoundaryStore.js";
+import useSentinelStore from "../../../app/store/sentinelStore.js";
+import { createSentinelLayer } from "src/utils/sentinelUtils.js";
 
 import VectorLayer from 'ol/layer/Vector';
 import VectorSource from 'ol/source/Vector';
@@ -37,6 +39,7 @@ import Style from 'ol/style/Style';
 import Stroke from 'ol/style/Stroke';
 import CircleStyle from 'ol/style/Circle';
 import Fill from "ol/style/Fill";
+import TileWMS from 'ol/source/TileWMS.js';
 
 import ImageLayer from 'ol/layer/Image';
 import ImageStatic from 'ol/source/ImageStatic';
@@ -83,6 +86,17 @@ const MapView = () => {
     sandGeoVectorVisible,
     sandGeoTiffVisible
   } = useMethaneStore();
+
+  const {
+    sentinelVisible,
+    sentinelOpacity,
+    activeLayers,
+    addActiveLayer,
+    removeActiveLayer,
+    setActiveLayers
+  } = useSentinelStore();
+
+  const [sentinelLayers, setSentinelLayers] = useState([]);
 
   // const plumeLayer = useMemo(() => {
   //   const source = new VectorSource({
@@ -217,6 +231,50 @@ const MapView = () => {
     sn2Layer.setOpacity(emitSn2Opacity * 0.01);
   }, [emitSn2Opacity])
 
+  useEffect(() => {
+    console.log('Active layers changed:', activeLayers);
+    console.log('Current sentinel layers:', sentinelLayers.length);
+    
+    const currentLayerIds = sentinelLayers.map(layer => layer.get('id'));
+    const newLayers = activeLayers.filter(layerConfig => 
+      !currentLayerIds.includes(layerConfig.id)
+    );
+    
+    console.log('New layers to add:', newLayers);
+    
+    newLayers.forEach(layerConfig => {
+      if (!mapInstance.current) return;
+
+      console.log('Creating layer for:', layerConfig);
+      
+      const layer = createSentinelLayer(
+        layerConfig.id,
+        layerConfig.bands,
+        layerConfig.startDate,
+        layerConfig.endDate,
+        layerConfig.opacity
+      );
+
+      mapInstance.current.addLayer(layer);
+
+      setSentinelLayers(prev => [...prev, layer]);
+      console.log(sentinelLayers)
+      
+      console.log('Added Sentinel layer to map:', layerConfig);
+    });
+  }, [activeLayers]);
+
+  useEffect(() => {
+    if (activeLayers.length === 0 && sentinelLayers.length > 0) {
+      // Clear all sentinel layers
+      sentinelLayers.forEach(layer => {
+        mapInstance.current.removeLayer(layer);
+      });
+      setSentinelLayers([]);
+      console.log('Cleared all Sentinel layers');
+    }
+  }, [activeLayers.length, sentinelLayers])
+
   const loadFireData = useCallback(async (startDate, endDate) => {
     if (!fireLayer || !mapInstance.current) return;
 
@@ -254,6 +312,18 @@ const MapView = () => {
   useEffect(() => {
     kazBoundary2.setVisible(layerVisibility.adminBoundary3)
   }, [layerVisibility.adminBoundary3])
+
+  useEffect(() => {
+    sentinelLayers.forEach(layer => {
+      layer.setVisible(sentinelVisible);
+    });
+  }, [sentinelVisible, sentinelLayers]);
+
+  useEffect(() => {
+    sentinelLayers.forEach(layer => {
+      layer.setOpacity(sentinelOpacity / 100);
+    });
+  }, [sentinelOpacity, sentinelLayers]);
   
 
   useEffect(() => {
@@ -269,6 +339,22 @@ const MapView = () => {
     });
 
     const geocoder = createGeocoder();
+    // Sentinel Hub WMS layer
+    // const sentinelLayer3 = new TileLayer({
+    //   source: new TileWMS({
+    //     url: "https://sh.dataspace.copernicus.eu/ogc/wms/4c423dbd-36df-4327-a20b-19a08f888c59",
+    //     params: {
+    //       'LAYERS': 'TEST',
+    //       'TIME': '2023-06-01/2023-08-31',
+    //       'FORMAT': 'image/png',
+    //       'TRANSPARENT': true
+    //     },
+    //     attributions: '&copy; <a href="https://dataspace.copernicus.eu/" target="_blank">Copernicus Data Space Ecosystem</a>',
+    //     crossOrigin: 'anonymous',
+    //     tileSize: 512
+    //   }),
+    //   opacity: 0.7,
+    // });
 
     const map = new Map({
       pixelRatio: window.devicePixelRatio || 1,
@@ -276,7 +362,7 @@ const MapView = () => {
       loadTilesWhileAnimating: true,
       moveTolerance: 5,
       target: mapRef.current,
-      layers: [basemap, kazBoundary0, kazBoundary1, kazBoundary2, tiffLayer, emitJsonLayer, ...emitLayer, sn2Layer],
+      layers: [basemap, kazBoundary0, kazBoundary1, kazBoundary2, tiffLayer, emitJsonLayer, ...emitLayer, sn2Layer, ...sentinelLayers, blanket],
       view,
       controls: defaultControls().extend([new FullScreen(), geocoder]),
     });

@@ -112,6 +112,26 @@ export const newDD = [
     ]
   },
   {
+    id: 3,
+    key: 'satellites',
+    items: [
+      {
+        id: 'satellite',
+        label_ru: 'Copernicus images',
+        isExpanded: true,
+        options: [
+          {
+            id: 'sentinel2',
+            label: 'Sentinel-2',
+          },
+          // {
+          //   id: "firm-date"
+          // }
+        ]
+      }
+    ]
+  },
+  {
     id: 5,
     key: 'feedback',
     header_ru: 'Обратная связь',

@@ -8,7 +8,8 @@ import {
   MessageSquareText,
   GraduationCap,
   Flame,
-  Waves
+  Waves,
+  Satellite
   
 } from "lucide-react";
 // import Tippy from "tippy.js";
@@ -24,6 +25,7 @@ const sidebarElements = [
   { id: 0, icon: Waves, tooltip: "Слой по выбросам метана"},
   { id: 1, icon: PencilRuler, tooltip: "Инструменты"},
   { id: 2, icon: Flame, tooltip: "Мониторинг пожаров"},
+  { id: 3, icon: Satellite, tooltip: "Космические снимки"},
   // { id: 3, icon: Filter, tooltip: "Filters"},
   // { id: 4, icon: MapPinned, tooltip: "Analysis", content: "Анализ" },
   // { id: 5, icon: MessageSquareText, tooltip: "Feedback", content: "Обратная связь" },
