@@ -1,4 +1,3 @@
-// src/shared/components/Sidebar/DropDown/SentinelControls.jsx
 import { useState } from 'react';
 import { 
   Calendar, Eye, EyeOff, Layers, Search, MapPin, Info, Download, 
