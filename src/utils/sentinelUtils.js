@@ -2,6 +2,7 @@ import TileLayer from 'ol/layer/Tile';
 import TileWMS from 'ol/source/TileWMS';
 
 const BASE_URL = "https://sh.dataspace.copernicus.eu/ogc/wms/4c423dbd-36df-4327-a20b-19a08f888c59";
+const SEARCH_API_BASE = "https://catalogue.dataspace.copernicus.eu/resto/api/collections/Sentinel2/search.json";
 
 const BAND_LAYERS = {
   'true-color': {
@@ -21,66 +22,146 @@ const BAND_LAYERS = {
   }
 };
 
-export const createSentinelLayer = (layerId, bands, startDate, endDate, opacity = 0.8) => {
+const createFootprint = (bounds = null) => {
+  if (bounds) {
+    const [minLon, minLat, maxLon, maxLat] = bounds;
+    return `POLYGON((${minLon} ${minLat},${maxLon} ${minLat},${maxLon} ${maxLat},${minLon} ${maxLat},${minLon} ${minLat}))`;
+  }
+  
+  return "POLYGON((14.0 46.0,16.0 46.0,16.0 47.0,14.0 47.0,14.0 46.0))";
+};
+
+export const searchSentinelData = async (startDate, endDate, bbox = null, maxRecords = 5) => {
+  try {
+    const footprint = createFootprint(bbox);
+    
+    const start = startDate;
+    const end = endDate;
+    
+    const searchUrl = `${SEARCH_API_BASE}?startDate=${start}&completionDate=${end}&geometry=${encodeURIComponent(footprint)}&maxRecords=${maxRecords}`;
+    
+    console.log('Searching Sentinel data with URL:', searchUrl);
+    
+    const response = await fetch(searchUrl);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    
+    const transformedResults = data.features?.map(feature => ({
+      Id: feature.id,
+      Name: feature.properties.title,
+      ContentDate: { 
+        beginPosition: feature.properties.startDate 
+      },
+      CloudCoverPercentage: feature.properties.cloudCover,
+      Platform: feature.properties.platform,
+      Instrument: feature.properties.instrument,
+      ProductType: feature.properties.productType,
+      ProcessingLevel: feature.properties.processingLevel,
+      Footprint: feature.geometry,
+      ThumbnailUrl: feature.properties.thumbnail,
+      OrbitNumber: feature.properties.orbitNumber,
+      RelativeOrbitNumber: feature.properties.relativeOrbitNumber,
+      TileId: feature.properties.tileId,
+      IngestionDate: feature.properties.published,
+      ModificationDate: feature.properties.updated,
+      Size: feature.properties.size
+    })) || [];
+    
+    console.log('Found', transformedResults.length, 'Sentinel-2 products');
+    
+    return { 
+      value: transformedResults,
+      totalResults: data.properties?.totalResults || 0,
+      startIndex: data.properties?.startIndex || 0
+    };
+    
+  } catch (error) {
+    console.error('Error searching Sentinel data:', error);
+    throw error;
+  }
+};
+
+export const createSentinelLayer = (layerId, bands, startDate, endDate, opacity = 0.8, productId = null) => {
   const timeRange = `${startDate}/${endDate}`;
   const config = BAND_LAYERS[bands];
   
   console.log('Creating WMS layer with params:', {
-    url: BASE_URL + BAND_LAYERS[bands][1],
-    layers: BAND_LAYERS[bands][0] || 'TRUE_COLOR',
+    url: BASE_URL,
+    layers: config.layerName,
     time: timeRange,
-    layerId
+    layerId,
+    productId
   });
+  
+  const wmsParams = {
+    'LAYERS': config.layerName,
+    'TIME': timeRange,
+    'MAXCC': 20,
+    'FORMAT': 'image/png',
+    'TRANSPARENT': true,
+    'TILED': true,
+    'VERSION': '1.3.0',
+    'CRS': 'EPSG:3857'
+  };
+  
+  if (productId) {
+    wmsParams['PRODUCT_ID'] = productId;
+  }
   
   const layer = new TileLayer({
     source: new TileWMS({
       url: BASE_URL,
-      params: {
-        'LAYERS': config.layerName,
-        'TIME': timeRange,
-        'MAXCC': 20,
-        'FORMAT': 'image/png',
-        'TRANSPARENT': true,
-        'TILED': true,
-        'VERSION': '1.3.0',
-        // 'CRS': 'EPSG:3857'
-      },
-    //   serverType: 'geoserver',
-    //   transition: 0,
+      params: wmsParams,
+      serverType: 'geoserver', // Adjust if needed
+      crossOrigin: 'anonymous'
     }),
     opacity: opacity,
-    // visible: true,
-    title: `Sentinel - ${bands}`
+    visible: true,
+    title: `Sentinel-2 ${bands} (${startDate} to ${endDate})`
   });
   
-  // Set custom property to identify the layer
-//   layer.set('id', layerId);
-//   layer.set('type', 'sentinel');
+  // Set custom properties to identify and manage the layer
+  layer.set('id', layerId);
+  layer.set('type', 'sentinel');
+  layer.set('bands', bands);
+  layer.set('timeRange', timeRange);
+  layer.set('productId', productId);
   
   return layer;
 };
 
-export const searchSentinelData = async (startDate, endDate, bbox = null) => {
+// Helper function to get detailed product information
+export const getProductDetails = async (productId) => {
   try {
-    // unique ids
-    const mockResults = [
-      {
-        Id: `sentinel-${startDate}-${Date.now()}-1`,
-        ContentDate: { beginPosition: `${startDate}T10:00:00.000Z` },
-        CloudCoverPercentage: Math.floor(Math.random() * 30),
-        Name: `S2A_MSIL2A_${startDate.replace(/-/g, '')}T100000_N0500_R001_T42TTP_20231201T120000`
-      },
-      {
-        Id: `sentinel-${endDate}-${Date.now()}-2`,
-        ContentDate: { beginPosition: `${endDate}T10:00:00.000Z` },
-        CloudCoverPercentage: Math.floor(Math.random() * 30),
-        Name: `S2B_MSIL2A_${endDate.replace(/-/g, '')}T100000_N0500_R001_T42TTP_20231201T120000`
-      }
-    ];
+    const detailUrl = `https://catalogue.dataspace.copernicus.eu/resto/api/collections/Sentinel2/${productId}.json`;
     
-    return { value: mockResults };
+    const response = await fetch(detailUrl);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    return data;
+    
   } catch (error) {
-    console.error('Error searching Sentinel data:', error);
-    return { value: [] };
+    console.error('Error fetching product details:', error);
+    throw error;
   }
+};
+
+// Helper function to format date
+export const formatDate = (dateString) => {
+  if (!dateString) return 'N/A';
+  return new Date(dateString).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
 };
