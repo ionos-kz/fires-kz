@@ -1,6 +1,13 @@
 export const createFireSlice = (set, get) => ({
   fireLayerVisible: false,
-  fireDate: null,
+  fireDate: null, 
+  fireOpacity: 100,
+  fireIntensityFilter: 'all',
+  fireStartDate: '',
+  fireEndDate: '',
+  fireHeatmapMode: false,
+  autoRefresh: false,
+  
 
   setFireDate: (date) => 
     set(() => ({
@@ -29,4 +36,16 @@ export const createFireSlice = (set, get) => ({
     set((state) => ({
       expandedItems: { ...state.expandedItems, [id]: !state.expandedItems[id] },
     })),
+  
+  setFireOpacity: (opacity) => set({ fireOpacity: opacity }),
+  
+  setFireIntensityFilter: (filter) => set({ fireIntensityFilter: filter }),
+  
+  setFireStartDate: (date) => set({ fireStartDate: date }),
+  
+  setFireEndDate: (date) => set({ fireEndDate: date }),
+  
+  setFireHeatmapMode: (mode) => set({ fireHeatmapMode: mode }),
+  
+  setAutoRefresh: (refresh) => set({ autoRefresh: refresh }),
 });
