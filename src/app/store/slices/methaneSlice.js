@@ -19,7 +19,7 @@ export const createMethaneSlice = (set, get) => ({
   sandGeoTiffVisible: false,
 
   setMethaneYear: (year) => {
-    console.log('Setting methaneYear to:', year);
+    // console.log('Setting methaneYear to:', year);
     set(() => ({
       methaneYear: year
     }));
@@ -99,7 +99,7 @@ export const createMethaneSlice = (set, get) => ({
   },
 
   setEmmitLayerIds: (ids) => {
-    console.log('Setting multiple EMIT layer IDs:', ids);
+    // console.log('Setting multiple EMIT layer IDs:', ids);
     set(() => ({
       emmitLayerIds: ids
     }));

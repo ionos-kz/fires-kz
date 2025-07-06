@@ -57,11 +57,17 @@ const MapView = () => {
   const [basemap, setBasemap] = useState(osmLayer);
   const [isMapInitialized, setIsMapInitialized] = useState(false);
   const [isLoadingFires, setIsLoadingFires] = useState(false);
-  const { fireLayerVisible } = useFireStore();  // controls fire point visibility via zustand
+  const { 
+    fireLayerVisible, 
+    setFireLength,
+    fireStartDate,
+    fireEndDate,
+    dateHasChanged,
+   } = useFireStore();  // controls fire point visibility via zustand
   const { layerVisibility } = useAdminBoundaryStore();
 
   const blanket = useMemo(() => createBlanketLayer(), []);
-  const fireLayer = useMemo(() => createFireLayer(), []);
+  const fireLayer = useMemo(() => createFireLayer(setFireLength, fireStartDate, fireEndDate), [setFireLength]);
   
   const {
     popupRef,
@@ -275,7 +281,7 @@ const MapView = () => {
     }
   }, [activeLayers.length, sentinelLayers])
 
-  const loadFireData = useCallback(async (startDate, endDate) => {
+  const loadFireData = useCallback(async (fireStartDate, fireEndDate) => {
     if (!fireLayer || !mapInstance.current) return;
 
     setIsLoadingFires(true);
@@ -288,8 +294,9 @@ const MapView = () => {
       });
 
       fireLayer.attachToMap(mapInstance.current);
+      console.log(fireStartDate, fireEndDate)
 
-      await fireLayer.loadFireData(startDate, endDate);
+      await fireLayer.loadFireData(fireStartDate, fireEndDate);
 
       fireLayer.setVisible(fireLayerVisible);
     } finally {
@@ -472,7 +479,7 @@ const MapView = () => {
 
     if (fireLayerVisible) {
       if (fireLayer.getLayers().every(layer => !mapInstance.current.getLayers().getArray().includes(layer))) {
-        loadFireData();
+        loadFireData(fireStartDate, fireEndDate);
       } else {
         fireLayer.setVisible(true);
       }
@@ -480,7 +487,14 @@ const MapView = () => {
       fireLayer.setVisible(false);
     }
 
-  }, [fireLayerVisible, isMapInitialized, fireLayer, loadFireData]);
+  }, [fireLayerVisible, isMapInitialized, fireLayer, loadFireData, fireStartDate, fireEndDate]);
+
+
+  useEffect(() => {
+    if (fireLayerVisible && fireLayer && mapInstance.current) {
+      loadFireData(fireStartDate, fireEndDate);
+    }
+  }, [dateHasChanged])
 
   return (
     <div id="fullscreen" className={styles.fullscreen}>
