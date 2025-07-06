@@ -305,6 +305,50 @@
   }
 }
 
+.fireControls__updateBtn {
+  margin-top: 8px;
+  padding: 6px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background: #f5f5f5;
+  color: #666;
+  font-size: 12px;
+  cursor: not-allowed;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.2s ease;
+
+  &:disabled {
+    opacity: 0.6;
+  }
+
+  &_active {
+    background: #007bff;
+    color: white;
+    border-color: #007bff;
+    cursor: pointer;
+
+    &:hover {
+      background: #0056b3;
+      border-color: #0056b3;
+    }
+  }
+}
+
+.fireControls__spinning {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 @keyframes flicker {
   0%, 100% {
     opacity: 1;

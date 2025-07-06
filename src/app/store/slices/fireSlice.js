@@ -1,13 +1,28 @@
+// Helper functions for default dates
+const formatDate = (date) => date.toISOString().split('T')[0];
+
+const today = new Date();
+const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+const defaultDateStart = formatDate(sevenDaysAgo);
+const defaultDateEnd = formatDate(today);
+
 export const createFireSlice = (set, get) => ({
   fireLayerVisible: false,
   fireDate: null, 
   fireOpacity: 100,
   fireIntensityFilter: 'all',
-  fireStartDate: '',
-  fireEndDate: '',
+  fireStartDate: defaultDateStart,
+  fireEndDate: defaultDateEnd,
   fireHeatmapMode: false,
   autoRefresh: false,
+  fireLength: 0,
+  dateHasChanged: false,
   
+
+  setDateHasChanged: () => 
+    set((state) => ({
+      dateHasChanged: !state.dateHasChanged
+    })),
 
   setFireDate: (date) => 
     set(() => ({
@@ -48,4 +63,6 @@ export const createFireSlice = (set, get) => ({
   setFireHeatmapMode: (mode) => set({ fireHeatmapMode: mode }),
   
   setAutoRefresh: (refresh) => set({ autoRefresh: refresh }),
+
+  setFireLength: (length) => set({ fireLength: length }),
 });

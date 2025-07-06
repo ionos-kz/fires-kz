@@ -8,16 +8,8 @@ import { Heatmap as HeatmapLayer } from 'ol/layer';
 import Cluster from 'ol/source/Cluster';
 import { toast } from "react-toastify";
 
-// format date as yyyy-mm-dd
-const formatDate = (date) => date.toISOString().split('T')[0];
-
-// Get today's date and 7 days ago
-const today = new Date();
-const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-const defaultDateStart = formatDate(sevenDaysAgo);
-const defaultDateEnd = formatDate(today);
-
-export const createFireLayer = () => {
+export const createFireLayer = (setFireLength, fireStartDate, fireEndDate) => {
+  console.log(fireStartDate, fireEndDate)
   // Main vector source to hold all fire point features
   const source = new VectorSource();
   
@@ -42,7 +34,7 @@ export const createFireLayer = () => {
     source: source,
     blur: 10,
     radius: 5,
-    weight: function(feature) {
+    weight: function() {
       return 3;
     },
     gradient: ['rgba(0, 0, 255, 0.6)', 'rgba(0, 255, 255, 0.6)', 'rgba(0, 255, 0, 0.6)', 
@@ -103,7 +95,7 @@ export const createFireLayer = () => {
     pointLayer,
     
     // Function to load fire data with date range
-    loadFireData: async (date1 = defaultDateStart, date2 = defaultDateEnd) => {
+    loadFireData: async (date1, date2) => {
       try {
         source.clear();
         toast.info("🔥 Loading fire points...");
@@ -124,6 +116,10 @@ export const createFireLayer = () => {
         });
         
         source.addFeatures(features);
+
+        if (setFireLength) {
+          setFireLength(features.length);
+        }
         
         // Set initial visibility based on zoom level
         if (fireLayerGroup._map) {

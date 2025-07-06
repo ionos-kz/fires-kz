@@ -48,7 +48,9 @@ const DropDown = memo(({ openTabIndex }) => {
     fireHeatmapMode, 
     setFireHeatmapMode,    
     autoRefresh,     
-    setAutoRefresh,  
+    setAutoRefresh,
+    fireLength,
+    setDateHasChanged,
   } = useFireStore();
 
   const {
@@ -179,6 +181,8 @@ const DropDown = memo(({ openTabIndex }) => {
             setFireHeatmapMode={setFireHeatmapMode}
             autoRefresh={autoRefresh}
             setAutoRefresh={setAutoRefresh}
+            fireLength={fireLength}
+            setDateHasChanged={setDateHasChanged}
           />
         )
       
