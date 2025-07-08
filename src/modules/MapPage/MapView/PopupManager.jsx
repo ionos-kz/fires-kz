@@ -100,7 +100,7 @@ const usePopupManager = (map, fireLayer) => {
       map.getTargetElement().style.cursor = hit ? 'pointer' : '';
     });
 
-    const handleClick = (evt) => {
+    const handleFirePopupClick = (evt) => {
       closePopup();
       
       // if clicked on fire feature
@@ -230,10 +230,10 @@ const usePopupManager = (map, fireLayer) => {
       });
     };
 
-    map.on('click', handleClick);
+    map.on('click', handleFirePopupClick);
     
     return () => {
-      map.un('click', handleClick);
+      map.un('click', handleFirePopupClick);
     };
   };
 
