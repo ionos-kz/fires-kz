@@ -76,8 +76,10 @@
   min-width: 220px;
   max-width: 300px;
   font-family: "Roboto", "Helvetica Neue", Arial, sans-serif;
+  z-index: 10000;
   overflow: hidden;
   transform: translateZ(0);
+  animation: popup-fade-in 0.3s ease;
 }
 
 .ol-popup:after, .ol-popup:before {
@@ -250,8 +252,4 @@
 @keyframes popup-fade-in {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
-}
-
-.ol-popup {
-  animation: popup-fade-in 0.3s ease;
 }

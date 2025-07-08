@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, useCallback } from "react";
 import Overlay from 'ol/Overlay';
 
 const formatDate = (dateStr) => {
@@ -42,9 +42,20 @@ const usePopupManager = (map, fireLayer) => {
   const popupRef = useRef();
   const [popupContent, setPopupContent] = useState('');
   const overlayRef = useRef(null);
+  const [isOverlayReady, setIsOverlayReady] = useState(false);
 
   useEffect(() => {
-    if (!map || !popupRef.current) return;
+    console.log('usePopupManager useEffect - map:', !!map, 'popupRef.current:', !!popupRef.current);
+    
+    if (!map || !popupRef.current) {
+      console.log('Missing map or popupRef, skipping overlay creation');
+      return;
+    }
+
+    if (overlayRef.current) {
+      console.log('Overlay already exists, skipping creation');
+      return;
+    }
 
     const overlay = new Overlay({
       element: popupRef.current,
@@ -56,15 +67,38 @@ const usePopupManager = (map, fireLayer) => {
     
     overlayRef.current = overlay;
     map.addOverlay(overlay);
+    setIsOverlayReady(true);
+    console.log('Overlay created and added to map: ', overlay);
 
     return () => {
+      console.log('Cleaning up overlay');
       if (map && overlay) {
         map.removeOverlay(overlay);
       }
+      overlayRef.current = null;
+      setIsOverlayReady(false);
     };
   }, [map]);
 
-  const closePopup = (e) => {
+  // Check if popup element is ready and create overlay if needed
+  useEffect(() => {
+    if (map && popupRef.current && !overlayRef.current) {
+      const overlay = new Overlay({
+        element: popupRef.current,
+        autoPan: true,
+        autoPanAnimation: {
+          duration: 250,
+        },
+      });
+      
+      overlayRef.current = overlay;
+      map.addOverlay(overlay);
+      setIsOverlayReady(true);
+      console.log('Overlay created after popup element ready');
+    }
+  }, [map, popupRef.current]);
+
+  const closePopup = useCallback((e) => {
     if (e) {
       e.preventDefault();
     }
@@ -72,47 +106,57 @@ const usePopupManager = (map, fireLayer) => {
       overlayRef.current.setPosition(undefined);
     }
     return false;
-  };
+  }, []);
   
-  const showPopup = (coordinate, content) => {
-    if (overlayRef.current) {
+  const showPopup = useCallback((coordinate, content) => {
+    console.log('showPopup called with:', { coordinate, content, overlay: !!overlayRef.current });
+    if (overlayRef.current && coordinate) {
       setPopupContent(content);
       overlayRef.current.setPosition(coordinate);
+      console.log('Popup position set to:', coordinate);
+    } else {
+      console.warn('Cannot show popup - overlay not ready or invalid coordinate');
     }
-  };
+  }, []);
 
-  const setupPopupInteractions = () => {
-    if (!map) return () => {};
+  const setupPopupInteractions = useCallback(() => {
+    if (!map || !fireLayer) {
+      console.log('Missing map or fireLayer for popup interactions');
+      return () => {};
+    }
 
-    map.on('pointermove', function(evt) {
+    console.log('Setting up popup interactions for fireLayer:', fireLayer);
+
+    const handlePointerMove = (evt) => {
       if (evt.dragging) return;
       
       const pixel = map.getEventPixel(evt.originalEvent);
       const hit = map.hasFeatureAtPixel(pixel, {
         layerFilter: layer => {
-          // if this layer belongs to the fire layer group
+          // Check if this layer belongs to the fire layer group
           return fireLayer.containsLayer ? 
-          fireLayer.containsLayer(layer) : 
-          fireLayer.getLayers().includes(layer);
+            fireLayer.containsLayer(layer) : 
+            fireLayer.getLayers().includes(layer);
         }
       });
       
       map.getTargetElement().style.cursor = hit ? 'pointer' : '';
-    });
+    };
 
     const handleFirePopupClick = (evt) => {
       closePopup();
       
-      // if clicked on fire feature
+      // Check if clicked on fire feature
       let foundFeature = false;
       
       map.forEachFeatureAtPixel(evt.pixel, (feature, layer) => {
-        // if layer belongs to fireLayer group
         const isFireLayer = fireLayer.containsLayer ? 
                           fireLayer.containsLayer(layer) : 
                           fireLayer.getLayers().includes(layer);
         
         if (!foundFeature && isFireLayer) {
+          console.log('Found fire feature:', feature, 'on layer:', layer);
+          
           if (layer === fireLayer.clusterLayer) {
             const features = feature.get('features');
             if (features && features.length > 0) {
@@ -147,7 +191,6 @@ const usePopupManager = (map, fireLayer) => {
                 foundFeature = true;
                 return true;
               }
-              // If one feature, show that feature
               feature = features[0];
             }
           }
@@ -163,7 +206,6 @@ const usePopupManager = (map, fireLayer) => {
           const confidenceBadge = confidenceInfo ? 
             `<span class="confidence-badge confidence-${confidenceInfo[0]}">${confidenceInfo[1]}</span>` : '';
           
-          // popup content
           let content = `
             <div class="fire-popup">
               <div class="fire-popup-header">
@@ -222,27 +264,43 @@ const usePopupManager = (map, fireLayer) => {
             </div>
           `;
           
+          console.log('Showing popup with content:', content);
           showPopup(coordinate, content);
           foundFeature = true;
           return true;
         }
         return false;
       });
+      
+      if (!foundFeature) {
+        console.log('No fire feature found at click location');
+      }
     };
 
+    if (!isOverlayReady) {
+      console.log('Overlay not ready, deferring popup interactions');
+      return () => {};
+    }
+
+    map.on('pointermove', handlePointerMove);
     map.on('click', handleFirePopupClick);
     
+    console.log('Popup interactions attached to map');
+    
     return () => {
+      console.log('Cleaning up popup interactions');
+      map.un('pointermove', handlePointerMove);
       map.un('click', handleFirePopupClick);
     };
-  };
+  }, [map, fireLayer, closePopup, showPopup, isOverlayReady]);
 
   return {
     popupRef,
     popupContent,
     closePopup,
     showPopup,
-    setupPopupInteractions
+    setupPopupInteractions,
+    isOverlayReady
   };
 };
 

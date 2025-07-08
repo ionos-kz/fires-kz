@@ -74,7 +74,8 @@ const MapView = () => {
     popupContent,
     closePopup,
     showPopup,
-    setupPopupInteractions
+    setupPopupInteractions,
+    isOverlayReady
   } = usePopupManager(mapInstance.current, fireLayer);
 
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -469,10 +470,21 @@ const MapView = () => {
 
   // Set up popup interactions after map initialized
   useEffect(() => {
-    if (!isMapInitialized || !mapInstance.current) return;
+    if (!isMapInitialized || !mapInstance.current || !fireLayer || !isOverlayReady) {
+      console.log('Prerequisites not met for popup setup:', {
+        isMapInitialized,
+        hasMap: !!mapInstance.current,
+        hasFireLayer: !!fireLayer,
+        isOverlayReady
+      });
+      return;
+    }
+    
+    console.log('Setting up popup interactions');
     const cleanup = setupPopupInteractions();
+    
     return cleanup;
-  }, [isMapInitialized, setupPopupInteractions]);
+  }, [isMapInitialized, setupPopupInteractions, fireLayer?.getVisible(), isOverlayReady]);
 
   useEffect(() => {
     if (!isMapInitialized || !mapInstance.current || !fireLayer) return;
@@ -569,14 +581,15 @@ const MapView = () => {
             />
           </Popover>
         )}
+        
+        {/* Popup Overlay */}
+        <FirePopup 
+          popupRef={popupRef} 
+          content={popupContent} 
+          onClose={closePopup} 
+        />
       </div>
 
-      {/* Popup Overlay */}
-      <FirePopup 
-        popupRef={popupRef} 
-        content={popupContent} 
-        onClose={closePopup} 
-      />
     </div>
   );
 };
