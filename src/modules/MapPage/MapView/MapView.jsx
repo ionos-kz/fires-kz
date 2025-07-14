@@ -63,11 +63,12 @@ const MapView = () => {
     fireStartDate,
     fireEndDate,
     dateHasChanged,
+    updateFireStatistics,
    } = useFireStore();  // controls fire point visibility via zustand
   const { layerVisibility } = useAdminBoundaryStore();
 
   const blanket = useMemo(() => createBlanketLayer(), []);
-  const fireLayer = useMemo(() => createFireLayer(setFireLength, fireStartDate, fireEndDate), [setFireLength]);
+  const fireLayer = useMemo(() => createFireLayer(setFireLength, fireStartDate, fireEndDate, updateFireStatistics), [setFireLength]);
   
   const {
     popupRef,
@@ -239,20 +240,20 @@ const MapView = () => {
   }, [emitSn2Opacity])
 
   useEffect(() => {
-    console.log('Active layers changed:', activeLayers);
-    console.log('Current sentinel layers:', sentinelLayers.length);
+    // console.log('Active layers changed:', activeLayers);
+    // console.log('Current sentinel layers:', sentinelLayers.length);
     
     const currentLayerIds = sentinelLayers.map(layer => layer.get('id'));
     const newLayers = activeLayers.filter(layerConfig => 
       !currentLayerIds.includes(layerConfig.id)
     );
     
-    console.log('New layers to add:', newLayers);
+    // console.log('New layers to add:', newLayers);
     
     newLayers.forEach(layerConfig => {
       if (!mapInstance.current) return;
 
-      console.log('Creating layer for:', layerConfig);
+      // console.log('Creating layer for:', layerConfig);
       
       const layer = createSentinelLayer(
         layerConfig.id,
@@ -265,9 +266,9 @@ const MapView = () => {
       mapInstance.current.addLayer(layer);
 
       setSentinelLayers(prev => [...prev, layer]);
-      console.log(sentinelLayers)
+      // console.log(sentinelLayers)
       
-      console.log('Added Sentinel layer to map:', layerConfig);
+      // console.log('Added Sentinel layer to map:', layerConfig);
     });
   }, [activeLayers]);
 
@@ -295,7 +296,7 @@ const MapView = () => {
       });
 
       fireLayer.attachToMap(mapInstance.current);
-      console.log(fireStartDate, fireEndDate)
+      // console.log(fireStartDate, fireEndDate)
 
       await fireLayer.loadFireData(fireStartDate, fireEndDate);
 
@@ -471,16 +472,16 @@ const MapView = () => {
   // Set up popup interactions after map initialized
   useEffect(() => {
     if (!isMapInitialized || !mapInstance.current || !fireLayer || !isOverlayReady) {
-      console.log('Prerequisites not met for popup setup:', {
-        isMapInitialized,
-        hasMap: !!mapInstance.current,
-        hasFireLayer: !!fireLayer,
-        isOverlayReady
-      });
+      // console.log('Prerequisites not met for popup setup:', {
+      //   isMapInitialized,
+      //   hasMap: !!mapInstance.current,
+      //   hasFireLayer: !!fireLayer,
+      //   isOverlayReady
+      // });
       return;
     }
     
-    console.log('Setting up popup interactions');
+    // console.log('Setting up popup interactions');
     const cleanup = setupPopupInteractions();
     
     return cleanup;
@@ -501,7 +502,7 @@ const MapView = () => {
 
   }, [fireLayerVisible, isMapInitialized, fireLayer, loadFireData, fireStartDate, fireEndDate]);
 
-
+  // update fire layer if date has changed
   useEffect(() => {
     if (fireLayerVisible && fireLayer && mapInstance.current) {
       loadFireData(fireStartDate, fireEndDate);
@@ -511,7 +512,18 @@ const MapView = () => {
   return (
     <div id="fullscreen" className={styles.fullscreen}>
       <div ref={mapRef} className={styles.map__container}>
-        <ToastContainer />
+        <ToastContainer 
+          position="top-right"
+          autoClose={2000}
+          hideProgressBar={false}
+          newestOnTop={false}
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss={false}
+          draggable
+          pauseOnHover={false}
+          // theme="dark"
+        />
 
         {/* Basemap Switcher */}
         <BasemapSwitcher

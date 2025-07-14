@@ -8,8 +8,8 @@ import { Heatmap as HeatmapLayer } from 'ol/layer';
 import Cluster from 'ol/source/Cluster';
 import { toast } from "react-toastify";
 
-export const createFireLayer = (setFireLength, fireStartDate, fireEndDate) => {
-  console.log(fireStartDate, fireEndDate)
+export const createFireLayer = (setFireLength, fireStartDate, fireEndDate, updateFireStatistics) => {
+  // console.log(fireStartDate, fireEndDate)
   // Main vector source to hold all fire point features
   const source = new VectorSource();
   
@@ -32,10 +32,11 @@ export const createFireLayer = (setFireLength, fireStartDate, fireEndDate) => {
   // heatmap for zoom levels (1-8)
   const heatmapLayer = new HeatmapLayer({
     source: source,
-    blur: 10,
-    radius: 5,
-    weight: function() {
-      return 3;
+    blur: 7,
+    radius: 3,
+    weight: function(feature) {
+      const confidence = feature.get('confidence') || 50;
+      return Math.min(1, confidence / 100);
     },
     gradient: ['rgba(0, 0, 255, 0.6)', 'rgba(0, 255, 255, 0.6)', 'rgba(0, 255, 0, 0.6)', 
                'rgba(255, 255, 0, 0.6)', 'rgba(255, 0, 0, 0.9)'],
@@ -46,7 +47,25 @@ export const createFireLayer = (setFireLength, fireStartDate, fireEndDate) => {
   const clusterLayer = new VectorLayer({
     source: clusterSource,
     style: function(feature) {
-      const size = feature.get('features').length;
+      const features = feature.get('features');
+      const size = features.length;
+      
+      // Calculate average confidence for cluster color intensity
+      let avgConfidence = 0;
+      let confidenceCount = 0;
+      features.forEach(f => {
+        const conf = f.get('confidence');
+        if (conf && !isNaN(conf)) {
+          avgConfidence += parseFloat(conf);
+          confidenceCount++;
+        }
+      });
+      avgConfidence = confidenceCount > 0 ? avgConfidence / confidenceCount : 50;
+      
+      const intensity = Math.min(1, avgConfidence / 100);
+      const red = Math.floor(255 * intensity);
+      const green = Math.floor(69 * (1 - intensity));
+      
       // circle radius based on cluster size
       let radius = Math.min(25, 12 + Math.log2(size) * 5);
       
@@ -54,7 +73,7 @@ export const createFireLayer = (setFireLength, fireStartDate, fireEndDate) => {
         image: new CircleStyle({
           radius: radius,
           fill: new Fill({
-            color: 'rgba(255, 69, 0, 0.7)'
+            color: `rgba(${red}, ${green}, 0, 0.7)`
           }),
           stroke: new Stroke({
             color: '#fff',
@@ -73,20 +92,32 @@ export const createFireLayer = (setFireLength, fireStartDate, fireEndDate) => {
     visible: false
   });
   
+  const getPointStyle = (feature) => {
+    const props = feature.getProperties();
+    const confidence = props.confidence || 50;
+    const isTechnogenic = props.technogenic === true;
+    
+    const iconSrc = isTechnogenic ? '/flame-tech.png' : '/flame.png';
+    const scale = 0.3 + (confidence / 100) * 0.4;
+    
+    return new Style({
+      image: new Icon({
+        src: iconSrc,
+        scale: scale,
+        size: [30, 30],
+      }),
+    });
+  };
+  
   // point for high zoom (13+)
   const pointLayer = new VectorLayer({
     declutter: true,
     source: source,
     renderMode: "vector",
-    style: pointStyle,
+    style: getPointStyle,
     properties: { id: "fireLayer" },
     visible: false
   });
-
-  // Add identifier to each layer to help with identification in click handlers
-  // heatmapLayer.set('layerType', 'fire-heatmap');
-  // clusterLayer.set('layerType', 'fire-cluster');
-  // pointLayer.set('layerType', 'fire-point');
   
   // Create a layer group object to manage the three layers
   const fireLayerGroup = {
@@ -107,18 +138,74 @@ export const createFireLayer = (setFireLength, fireStartDate, fireEndDate) => {
         const features = format.readFeatures(response.data, {
           featureProjection: "EPSG:3857",
         });
+
+                // today's date and yesterday's date
+        const today = new Date();
+        const yesterday = new Date(today);
+        yesterday.setDate(today.getDate() - 1);
         
-        // Ensure each feature has a name property if missing
+        const todayStr = today.toISOString().split('T')[0];
+        const yesterdayStr = yesterday.toISOString().split('T')[0];
+        
+        // today's fires
+        const todayUrl = `https://api.igmass.kz/fire/firebetweendate?date1=${todayStr}&date2=${todayStr}`;
+        const todayResponse = await axios.get(todayUrl);
+        
+        // yesterday's fires
+        const yesterdayUrl = `https://api.igmass.kz/fire/firebetweendate?date1=${yesterdayStr}&date2=${yesterdayStr}`;
+        const yesterdayResponse = await axios.get(yesterdayUrl);
+
+        const todayFeatures = format.readFeatures(todayResponse.data, {
+          featureProjection: "EPSG:3857",
+        });
+        const yesterdayFeatures = format.readFeatures(yesterdayResponse.data, {
+          featureProjection: "EPSG:3857",
+        });
+        
+        // Create a Set of yesterday's fire locations for quick lookup
+        const yesterdayLocations = new Set(
+          yesterdayFeatures.map(feature => {
+            const coords = feature.getGeometry().getCoordinates();
+            return `${coords[0]},${coords[1]}`;
+          })
+        );
+        
+        // Count new fires (fires that exist today but not yesterday)
+        const newFires = todayFeatures.filter(feature => {
+          const coords = feature.getGeometry().getCoordinates();
+          const locationKey = `${coords[0]},${coords[1]}`;
+          return !yesterdayLocations.has(locationKey);
+        });
+        
         features.forEach((feature, index) => {
-          if (!feature.get('name')) {
-            feature.set('name', `Fire Point ${index + 1}`);
+          const props = feature.getProperties();
+          
+          if (!props.name) {
+            const locality = props.locality || `Point ${index + 1}`;
+            feature.set('name', locality);
+          }
+          
+          // Ensure confidence is a number
+          if (props.confidence && typeof props.confidence === 'string') {
+            feature.set('confidence', parseFloat(props.confidence));
+          }
+          
+          // Ensure technogenic is boolean
+          if (typeof props.technogenic === 'string') {
+            feature.set('technogenic', props.technogenic === 'true');
           }
         });
         
         source.addFeatures(features);
 
+        // Update fire count
         if (setFireLength) {
           setFireLength(features.length);
+        }
+        
+        // Update statistics
+        if (updateFireStatistics) {
+          updateFireStatistics(features, newFires.length);
         }
         
         // Set initial visibility based on zoom level
@@ -175,6 +262,23 @@ export const createFireLayer = (setFireLength, fireStartDate, fireEndDate) => {
     // Function to get visibility state
     getVisible: function() {
       return this._visible;
+    },
+    
+    // Function to apply filters to the layer
+    applyFilters: function(filterFunction) {
+      const allFeatures = source.getFeatures();
+      const filteredFeatures = allFeatures.filter(filterFunction);
+      
+      // Clear and add filtered features
+      source.clear();
+      source.addFeatures(filteredFeatures);
+      
+      return filteredFeatures.length;
+    },
+    
+    // Function to get all features
+    getAllFeatures: function() {
+      return source.getFeatures();
     },
     
     attachToMap: function(map) {
