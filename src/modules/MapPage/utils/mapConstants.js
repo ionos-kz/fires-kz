@@ -11,6 +11,12 @@ export const KAZAKHSTAN_EXTENT = [
 
 export const DEFAULT_POSITION = {
     center: [7593493.19, 6273692.57],
-    zoom: 5.2,
+    zoom: 4.5,
     rotation: 0,
 };
+
+// export const DEFAULT_POSITION = {
+//     center: [7506140.157928831, 6214563.787973709],
+//     zoom: 4.45
+//     rotation: 0,
+// };

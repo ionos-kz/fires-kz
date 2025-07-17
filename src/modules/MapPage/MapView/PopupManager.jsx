@@ -45,15 +45,15 @@ const usePopupManager = (map, fireLayer) => {
   const [isOverlayReady, setIsOverlayReady] = useState(false);
 
   useEffect(() => {
-    console.log('usePopupManager useEffect - map:', !!map, 'popupRef.current:', !!popupRef.current);
+    // console.log('usePopupManager useEffect - map:', !!map, 'popupRef.current:', !!popupRef.current);
     
     if (!map || !popupRef.current) {
-      console.log('Missing map or popupRef, skipping overlay creation');
+      // console.log('Missing map or popupRef, skipping overlay creation');
       return;
     }
 
     if (overlayRef.current) {
-      console.log('Overlay already exists, skipping creation');
+      // console.log('Overlay already exists, skipping creation');
       return;
     }
 
@@ -68,10 +68,10 @@ const usePopupManager = (map, fireLayer) => {
     overlayRef.current = overlay;
     map.addOverlay(overlay);
     setIsOverlayReady(true);
-    console.log('Overlay created and added to map: ', overlay);
+    // console.log('Overlay created and added to map: ', overlay);
 
     return () => {
-      console.log('Cleaning up overlay');
+      // console.log('Cleaning up overlay');
       if (map && overlay) {
         map.removeOverlay(overlay);
       }
@@ -109,23 +109,23 @@ const usePopupManager = (map, fireLayer) => {
   }, []);
   
   const showPopup = useCallback((coordinate, content) => {
-    console.log('showPopup called with:', { coordinate, content, overlay: !!overlayRef.current });
+    // console.log('showPopup called with:', { coordinate, content, overlay: !!overlayRef.current });
     if (overlayRef.current && coordinate) {
       setPopupContent(content);
       overlayRef.current.setPosition(coordinate);
-      console.log('Popup position set to:', coordinate);
+      // console.log('Popup position set to:', coordinate);
     } else {
-      console.warn('Cannot show popup - overlay not ready or invalid coordinate');
+      // console.warn('Cannot show popup - overlay not ready or invalid coordinate');
     }
   }, []);
 
   const setupPopupInteractions = useCallback(() => {
     if (!map || !fireLayer) {
-      console.log('Missing map or fireLayer for popup interactions');
+      // console.log('Missing map or fireLayer for popup interactions');
       return () => {};
     }
 
-    console.log('Setting up popup interactions for fireLayer:', fireLayer);
+    // console.log('Setting up popup interactions for fireLayer:', fireLayer);
 
     const handlePointerMove = (evt) => {
       if (evt.dragging) return;
@@ -155,7 +155,7 @@ const usePopupManager = (map, fireLayer) => {
                           fireLayer.getLayers().includes(layer);
         
         if (!foundFeature && isFireLayer) {
-          console.log('Found fire feature:', feature, 'on layer:', layer);
+          // console.log('Found fire feature:', feature, 'on layer:', layer);
           
           if (layer === fireLayer.clusterLayer) {
             const features = feature.get('features');
@@ -264,7 +264,7 @@ const usePopupManager = (map, fireLayer) => {
             </div>
           `;
           
-          console.log('Showing popup with content:', content);
+          // console.log('Showing popup with content:', content);
           showPopup(coordinate, content);
           foundFeature = true;
           return true;
@@ -273,22 +273,22 @@ const usePopupManager = (map, fireLayer) => {
       });
       
       if (!foundFeature) {
-        console.log('No fire feature found at click location');
+        // console.log('No fire feature found at click location');
       }
     };
 
     if (!isOverlayReady) {
-      console.log('Overlay not ready, deferring popup interactions');
+      // console.log('Overlay not ready, deferring popup interactions');
       return () => {};
     }
 
     map.on('pointermove', handlePointerMove);
     map.on('click', handleFirePopupClick);
     
-    console.log('Popup interactions attached to map');
+    // console.log('Popup interactions attached to map');
     
     return () => {
-      console.log('Cleaning up popup interactions');
+      // console.log('Cleaning up popup interactions');
       map.un('pointermove', handlePointerMove);
       map.un('click', handleFirePopupClick);
     };
