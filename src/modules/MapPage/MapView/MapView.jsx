@@ -4,7 +4,7 @@ import View from "ol/View";
 import FullScreen from "ol/control/FullScreen";
 import { defaults as defaultControls } from "ol/control/defaults";
 import { ToastContainer } from 'react-toastify';
-import { Home, LucideAArrowDown } from 'lucide-react';
+import { Home } from 'lucide-react';
 
 import TileLayer from 'ol/layer/Tile.js';
 import XYZ from 'ol/source/XYZ.js';
@@ -12,7 +12,7 @@ import GeoTIFF from 'ol/source/GeoTIFF';
 
 import Select from 'ol/interaction/Select';
 
-import { Popover, List } from 'antd';
+import { Popover } from 'antd';
 
 import BasemapSwitcher from "./BasemapSwitcher.jsx";
 import MeasurementTools from "./MeasurementTools.jsx";
@@ -34,21 +34,13 @@ import useSentinel3Store from "../../../app/store/sentinel3Store.js";
 import useSentinel5Store from "../../../app/store/sentinel5Store.js";
 import useSentinel1Store from "../../../app/store/sentinel1Store.js";
 import { createSentinelLayer } from "src/utils/sentinelUtils.js";
-import { createSentinel3Layer } from "src/utils/sentinelUtils3.js";
-import { createSentinel5Layer } from "src/utils/sentinelUtils5.js";
-import { createSentinel1Layer } from "src/utils/sentinelUtils1.js";
 
 import VectorLayer from 'ol/layer/Vector';
 import VectorSource from 'ol/source/Vector';
 import GeoJSON from 'ol/format/GeoJSON';
 import Style from 'ol/style/Style';
 import Stroke from 'ol/style/Stroke';
-import CircleStyle from 'ol/style/Circle';
 import Fill from "ol/style/Fill";
-import TileWMS from 'ol/source/TileWMS.js';
-
-import ImageLayer from 'ol/layer/Image';
-import ImageStatic from 'ol/source/ImageStatic';
 
 import "ol/ol.css";
 import 'ol-geocoder/dist/ol-geocoder.min.css';
@@ -295,6 +287,7 @@ const MapView = () => {
       // console.log('Creating layer for:', layerConfig);
       
       const layer = createSentinelLayer(
+        'sentinel2',
         layerConfig.id,
         layerConfig.bands,
         layerConfig.startDate,
@@ -325,7 +318,8 @@ const MapView = () => {
     newLayers3.forEach(layerConfig => {
       if (!mapInstance.current) return;
       
-      const layer = createSentinel3Layer(
+      const layer = createSentinelLayer(
+        'sentinel3',
         layerConfig.id,
         layerConfig.bands,
         layerConfig.startDate,
@@ -355,7 +349,8 @@ const MapView = () => {
     newLayers5.forEach(layerConfig => {
       if (!mapInstance.current) return;
       
-      const layer = createSentinel5Layer(
+      const layer = createSentinelLayer(
+        'sentinel5',
         layerConfig.id,
         layerConfig.bands,
         layerConfig.startDate,
@@ -385,7 +380,8 @@ const MapView = () => {
     newLayers1.forEach(layerConfig => {
       if (!mapInstance.current) return;
       
-      const layer = createSentinel1Layer(
+      const layer = createSentinelLayer(
+        'sentinel1',
         layerConfig.id,
         layerConfig.bands,
         layerConfig.startDate,
