@@ -84,6 +84,10 @@ export const newDD = [
             id: 'fire_pinpoints',
             label: 'Горячие точки',
           },
+          {
+            id: 'fire_risk',
+            label: 'Горячие точки',
+          },
           // {
           //   id: "firm-date"
           // }

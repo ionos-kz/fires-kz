@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo, useEffect } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import useFireStore from "src/app/store/fireStore";
 import { 
   Flame, 
@@ -258,10 +258,10 @@ const FireControls = () => {
     const exportFileDefaultName = `fire_data_${new Date().toISOString().split('T')[0]}.json`;
     
     const linkElement = document.createElement('a');
-    linkElement.setAttribute('href', dataUri);
-    linkElement.setAttribute('download', exportFileDefaultName);
-    linkElement.click();
-  }, [fireStats, fireStartDate, fireEndDate, fireIntensityFilter]);
+      linkElement.setAttribute('href', dataUri);
+      linkElement.setAttribute('download', exportFileDefaultName);
+      linkElement.click();
+    }, [fireStats, fireStartDate, fireEndDate, fireIntensityFilter]);
 
   const getMaxEndDate = useCallback(() => {
     if (!fireStartDate) return new Date().toISOString().split('T')[0];

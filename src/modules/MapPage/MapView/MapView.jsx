@@ -7,6 +7,7 @@ import { ToastContainer } from 'react-toastify';
 import { Home } from 'lucide-react';
 
 import TileLayer from 'ol/layer/Tile.js';
+import Tile from 'ol/layer/Tile.js';
 import XYZ from 'ol/source/XYZ.js';
 import GeoTIFF from 'ol/source/GeoTIFF';
 
@@ -48,6 +49,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import styles from "./MapView.module.scss";
 import './mapStyles.scss';
 import useMethaneStore from "src/app/store/methaneStore";
+import useRiskMapStore from "../../../app/store/riskMapStore.js";
 
 const MapView = () => {
   const mapRef = useRef(null);
@@ -136,6 +138,26 @@ const MapView = () => {
   const [sentinel3Layers, setSentinel3Layers] = useState([]);
   const [sentinel5Layers, setSentinel5Layers] = useState([]);
   const [sentinel1Layers, setSentinel1Layers] = useState([]);
+
+  const riskDates = useRiskMapStore((state) => state.riskDates);
+  let fireRiskLayers = useRef(null);
+
+  useEffect(() => {
+    const riskDatesFormatted = riskDates.map(item => 
+      item.date.replace(/-/g, ".")
+    );
+    console.log(riskDatesFormatted)
+    fireRiskLayers.current = (riskDatesFormatted && riskDatesFormatted.length > 0)
+      ? riskDatesFormatted.map(item => new TileLayer({
+          source: new XYZ({
+            url: `https://fires.kz/data/fire_haz/${item}/{z}/{x}/{-y}.png`
+          }),
+          visible: true
+        }))
+      : [];
+    console.log(fireRiskLayers.current)
+  }, [riskDates])
+
 
   // const plumeLayer = useMemo(() => {
   //   const source = new VectorSource({
@@ -568,7 +590,12 @@ const MapView = () => {
       loadTilesWhileAnimating: true,
       moveTolerance: 5,
       target: mapRef.current,
-      layers: [basemap, kazBoundary0, kazBoundary1, kazBoundary2, tiffLayer, emitJsonLayer, ...emitLayer, sn2Layer, ...sentinelLayers, ...sentinel3Layers, ...sentinel5Layers, ...sentinel1Layers, blanket],
+      layers: [
+        basemap, kazBoundary0, kazBoundary1, kazBoundary2, 
+        tiffLayer, emitJsonLayer, ...emitLayer, sn2Layer, ...sentinelLayers, 
+        ...sentinel3Layers, ...sentinel5Layers, ...sentinel1Layers,
+        ...fireRiskLayers.current, blanket,
+      ],
       view,
       controls: defaultControls().extend([new FullScreen(), geocoder]),
     });
@@ -581,6 +608,8 @@ const MapView = () => {
 
     const contextMenu = createContextMenu(map, view, DEFAULT_POSITION, styles);
     map.addControl(contextMenu);
+
+    // fireRiskLayers && (map.addLayer(fireRiskLayers))
 
     // sandbox
     const select = new Select({
@@ -663,7 +692,7 @@ const MapView = () => {
       map.un('click', handleClick);
       setIsMapInitialized(false);
     };
-  }, [basemap, blanket, tiffLayer, emitJsonLayer, sn2Layer]);
+  }, [basemap, blanket, tiffLayer, emitJsonLayer, sn2Layer, riskDates]);
 
 
   // Set up popup interactions after map initialized

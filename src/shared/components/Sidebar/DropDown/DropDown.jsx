@@ -24,6 +24,7 @@ import SentinelControls3 from "./SentinelControls/SentinelControls3";
 import SentinelControls5 from "./SentinelControls/SentinelControls5";
 import SentinelControls1 from "./SentinelControls/SentinelControls1";
 import FireControls from "./Controls/FireControls/FireControls";
+import FireRisk from "./Controls/FireRisk";
 
 const DropDown = memo(({ openTabIndex }) => {
   // Store hooks
@@ -200,6 +201,13 @@ const DropDown = memo(({ openTabIndex }) => {
               setAutoRefresh={setAutoRefresh}
               fireLength={fireLength}
               setDateHasChanged={setDateHasChanged}
+            />
+          );    
+
+        case "fire_risk":
+          return (
+            <FireRisk
+              key={option.id}
             />
           );
 
