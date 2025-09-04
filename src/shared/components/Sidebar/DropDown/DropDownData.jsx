@@ -49,46 +49,26 @@ export const newDD = [
             id: 'district_boundaries',
             label: 'Районы Казахстана'
           }
-          // {
-          //   id: 'region_boundaries',
-          //   label: 'Границы областей',
-          // },
-          // {
-          //   id: 'district_boundaries',
-          //   label: 'Границы районов',
-          // },
-          // {
-          //   id: 'settlement_boundaries',
-          //   label: 'Границы поселков',
-          // },
-          // {
-          //   id: 'settlements_pinpoints',
-          //   label: 'Местоположения населенных пунктов',
-          // }
         ]
       },
-      // {
-      //   id: 'copernicusImages',
-      //   label_ru: 'Космоснимки',
-      //   isExpanded: false,
-      //   options: [
-      //     {
-      //       id: 'copernicus_image',
-      //       layer: 'satellite-image',
-      //       type: 'raster',
-      //       labelDate: 'Даты',
-      //       startDate: 0,
-      //       endDate: 0,
-      //       labelBands: 'Каналы',
-      //       bands: [],
-      //       isOn: false,
-      //       value: 100,
-      //       url: null,
-      //       labelSatellite: 'Спутник',
-      //       satellite: 'SENTINEL1_GRD'
-      //     },
-      //   ]
-      // }
+      {
+        id: 'kchs_objects',
+        label_ru: 'Объекты КЧС',
+        options: [
+          {
+            id: 'fire_departments',
+            label: 'Пожарные части',
+          },
+          {
+            id: 'hospitals',
+            label: 'Больницы'
+          },
+          {
+            id: 'fire_hydrants',
+            label: 'Пожарные гидранты'
+          }
+        ]
+      }
     ]
   },
   {
@@ -117,12 +97,24 @@ export const newDD = [
     items: [
       {
         id: 'satellite',
-        label_ru: 'Copernicus images',
+        label_ru: 'Satellite images',
         isExpanded: true,
         options: [
           {
             id: 'sentinel2',
             label: 'Sentinel-2',
+          },
+          {
+            id: 'sentinel3',
+            label: 'Sentinel-3',
+          },
+          {
+            id: 'sentinel5',
+            label: 'Sentinel-5',
+          },
+          {
+            id: 'sentinel1',
+            label: 'Sentinel-1',
           },
           // {
           //   id: "firm-date"

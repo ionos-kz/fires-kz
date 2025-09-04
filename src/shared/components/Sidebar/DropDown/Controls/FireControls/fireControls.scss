@@ -599,6 +599,42 @@
   font-weight: 700;
 }
 
+.fire-controls__radio-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.fire-controls__radio {
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+
+  input[type="radio"] {
+    accent-color: #007bff; // Modern browsers support this
+  }
+}
+
+.fire-controls__clear-btn {
+  margin-top: 0.5rem;
+  align-self: flex-start;
+  background-color: transparent;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 0.3rem 0.6rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover {
+    border-color: #007bff;
+    color: #007bff;
+  }
+}
+
+
 .fire-stats-weather {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));

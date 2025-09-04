@@ -30,7 +30,13 @@ import { flyHome } from "../utils/flyHome.js";
 import useFireStore from "src/app/store/fireStore";
 import useAdminBoundaryStore from "src/app/store/adminBoundaryStore.js";
 import useSentinelStore from "../../../app/store/sentinelStore.js";
+import useSentinel3Store from "../../../app/store/sentinel3Store.js";
+import useSentinel5Store from "../../../app/store/sentinel5Store.js";
+import useSentinel1Store from "../../../app/store/sentinel1Store.js";
 import { createSentinelLayer } from "src/utils/sentinelUtils.js";
+import { createSentinel3Layer } from "src/utils/sentinelUtils3.js";
+import { createSentinel5Layer } from "src/utils/sentinelUtils5.js";
+import { createSentinel1Layer } from "src/utils/sentinelUtils1.js";
 
 import VectorLayer from 'ol/layer/Vector';
 import VectorSource from 'ol/source/Vector';
@@ -64,6 +70,9 @@ const MapView = () => {
     fireEndDate,
     dateHasChanged,
     updateFireStatistics,
+    showTechnogenicOnly,
+    setShowTechnogenicOnly,
+    showNaturalOnly,
    } = useFireStore();  // controls fire point visibility via zustand
   const { layerVisibility } = useAdminBoundaryStore();
 
@@ -104,7 +113,37 @@ const MapView = () => {
     setActiveLayers
   } = useSentinelStore();
 
+  const {
+    sentinel3Visible,
+    sentinel3Opacity,
+    activeLayers3,
+    addActiveLayer3,
+    removeActiveLayer3,
+    setActiveLayers3
+  } = useSentinel3Store();
+
+  const {
+    sentinel5Visible,
+    sentinel5Opacity,
+    activeLayers5,
+    addActiveLayer5,
+    removeActiveLayer5,
+    setActiveLayers5
+  } = useSentinel5Store();
+
+  const {
+    sentinel1Visible,
+    sentinel1Opacity,
+    activeLayers1,
+    addActiveLayer1,
+    removeActiveLayer1,
+    setActiveLayers1
+  } = useSentinel1Store();
+
   const [sentinelLayers, setSentinelLayers] = useState([]);
+  const [sentinel3Layers, setSentinel3Layers] = useState([]);
+  const [sentinel5Layers, setSentinel5Layers] = useState([]);
+  const [sentinel1Layers, setSentinel1Layers] = useState([]);
 
   // const plumeLayer = useMemo(() => {
   //   const source = new VectorSource({
@@ -273,6 +312,96 @@ const MapView = () => {
   }, [activeLayers]);
 
   useEffect(() => {
+    console.log('Sentinel-3 active layers changed:', activeLayers3);
+    console.log('Current Sentinel-3 layers:', sentinel3Layers.length);
+    
+    const currentLayer3Ids = sentinel3Layers.map(layer => layer.get('id'));
+    const newLayers3 = activeLayers3.filter(layerConfig => 
+      !currentLayer3Ids.includes(layerConfig.id)
+    );
+    
+    console.log('New Sentinel-3 layers to add:', newLayers3);
+    
+    newLayers3.forEach(layerConfig => {
+      if (!mapInstance.current) return;
+      
+      const layer = createSentinel3Layer(
+        layerConfig.id,
+        layerConfig.bands,
+        layerConfig.startDate,
+        layerConfig.endDate,
+        layerConfig.opacity
+      );
+
+      if (layer) {
+        mapInstance.current.addLayer(layer);
+        setSentinel3Layers(prev => [...prev, layer]);
+        console.log('Added Sentinel-3 layer to map:', layerConfig);
+      }
+    });
+  }, [activeLayers3])
+
+  useEffect(() => {
+    console.log('Sentinel-5 active layers changed:', activeLayers3);
+    console.log('Current Sentinel-5 layers:', sentinel3Layers.length);
+    
+    const currentLayer5Ids = sentinel5Layers.map(layer => layer.get('id'));
+    const newLayers5 = activeLayers5.filter(layerConfig => 
+      !currentLayer5Ids.includes(layerConfig.id)
+    );
+    
+    console.log('New Sentinel-5 layers to add:', newLayers5);
+    
+    newLayers5.forEach(layerConfig => {
+      if (!mapInstance.current) return;
+      
+      const layer = createSentinel5Layer(
+        layerConfig.id,
+        layerConfig.bands,
+        layerConfig.startDate,
+        layerConfig.endDate,
+        layerConfig.opacity
+      );
+
+      if (layer) {
+        mapInstance.current.addLayer(layer);
+        setSentinel5Layers(prev => [...prev, layer]);
+        console.log('Added Sentinel-5 layer to map:', layerConfig);
+      }
+    });
+  }, [activeLayers5])
+
+  useEffect(() => {
+    console.log('Sentinel-1 active layers changed:', activeLayers1);
+    console.log('Current Sentinel-1 layers:', sentinel1Layers.length);
+    
+    const currentLayer1Ids = sentinel1Layers.map(layer => layer.get('id'));
+    const newLayers1 = activeLayers1.filter(layerConfig => 
+      !currentLayer1Ids.includes(layerConfig.id)
+    );
+    
+    console.log('New Sentinel-1 layers to add:', newLayers1);
+    
+    newLayers1.forEach(layerConfig => {
+      if (!mapInstance.current) return;
+      
+      const layer = createSentinel1Layer(
+        layerConfig.id,
+        layerConfig.bands,
+        layerConfig.startDate,
+        layerConfig.endDate,
+        layerConfig.opacity
+      );
+
+      if (layer) {
+        mapInstance.current.addLayer(layer);
+        setSentinel1Layers(prev => [...prev, layer]);
+        console.log('Added Sentinel-1 layer to map:', layerConfig);
+      }
+    });
+  }, [activeLayers1])
+
+  useEffect(() => {
     if (activeLayers.length === 0 && sentinelLayers.length > 0) {
       // Clear all sentinel layers
       sentinelLayers.forEach(layer => {
@@ -333,6 +462,78 @@ const MapView = () => {
       layer.setOpacity(sentinelOpacity / 100);
     });
   }, [sentinelOpacity, sentinelLayers]);
+
+    // Add visibility control for Sentinel-3
+  useEffect(() => {
+    sentinel3Layers.forEach(layer => {
+      layer.setVisible(sentinel3Visible);
+    });
+  }, [sentinel3Visible, sentinel3Layers]);
+
+  // Add opacity control for Sentinel-3
+  useEffect(() => {
+    sentinel3Layers.forEach(layer => {
+      layer.setOpacity(sentinel3Opacity / 100);
+    });
+  }, [sentinel3Opacity, sentinel3Layers]);
+
+    useEffect(() => {
+    if (activeLayers3.length === 0 && sentinel3Layers.length > 0) {
+      sentinel3Layers.forEach(layer => {
+        mapInstance.current.removeLayer(layer);
+      });
+      setSentinel3Layers([]);
+      console.log('Cleared all Sentinel-3 layers');
+    }
+  }, [activeLayers3.length, sentinel3Layers]);
+
+  // Add visibility control for Sentinel-3
+  useEffect(() => {
+    sentinel5Layers.forEach(layer => {
+      layer.setVisible(sentinel5Visible);
+    });
+  }, [sentinel5Visible, sentinel5Layers]);
+
+  // Add opacity control for Sentinel-5
+  useEffect(() => {
+    sentinel5Layers.forEach(layer => {
+      layer.setOpacity(sentinel5Opacity / 100);
+    });
+  }, [sentinel5Opacity, sentinel5Layers]);
+
+    // Add visibility control for Sentinel-1
+  useEffect(() => {
+    sentinel1Layers.forEach(layer => {
+      layer.setVisible(sentinel1Visible);
+    });
+  }, [sentinel1Visible, sentinel1Layers]);
+
+  // Add opacity control for Sentinel-1
+  useEffect(() => {
+    sentinel1Layers.forEach(layer => {
+      layer.setOpacity(sentinel1Opacity / 100);
+    });
+  }, [sentinel1Opacity, sentinel1Layers]);
+
+  useEffect(() => {
+    if (activeLayers1.length === 0 && sentinel1Layers.length > 0) {
+      sentinel1Layers.forEach(layer => {
+        mapInstance.current.removeLayer(layer);
+      });
+      setSentinel1Layers([]);
+      console.log('Cleared all Sentinel-1 layers');
+    }
+  }, [activeLayers1.length, sentinel1Layers]);
+
+    useEffect(() => {
+    if (activeLayers5.length === 0 && sentinel5Layers.length > 0) {
+      sentinel5Layers.forEach(layer => {
+        mapInstance.current.removeLayer(layer);
+      });
+      setSentinel5Layers([]);
+      console.log('Cleared all Sentinel-5 layers');
+    }
+  }, [activeLayers5.length, sentinel5Layers]);
   
 
   useEffect(() => {
@@ -371,7 +572,7 @@ const MapView = () => {
       loadTilesWhileAnimating: true,
       moveTolerance: 5,
       target: mapRef.current,
-      layers: [basemap, kazBoundary0, kazBoundary1, kazBoundary2, tiffLayer, emitJsonLayer, ...emitLayer, sn2Layer, ...sentinelLayers, blanket],
+      layers: [basemap, kazBoundary0, kazBoundary1, kazBoundary2, tiffLayer, emitJsonLayer, ...emitLayer, sn2Layer, ...sentinelLayers, ...sentinel3Layers, ...sentinel5Layers, ...sentinel1Layers, blanket],
       view,
       controls: defaultControls().extend([new FullScreen(), geocoder]),
     });
@@ -488,6 +689,18 @@ const MapView = () => {
   }, [isMapInitialized, setupPopupInteractions, fireLayer?.getVisible(), isOverlayReady]);
 
   useEffect(() => {
+    if (!fireLayer) return;
+
+    if (showTechnogenicOnly) {
+      fireLayer.showOnlyTechnogenic();
+    } else if (showNaturalOnly) {
+      fireLayer.showOnlyNatural();
+    } else {
+      fireLayer.clearAllFilters();
+    }
+  }, [showTechnogenicOnly, showNaturalOnly, fireLayer]);
+
+  useEffect(() => {
     if (!isMapInitialized || !mapInstance.current || !fireLayer) return;
 
     if (fireLayerVisible) {
@@ -536,6 +749,7 @@ const MapView = () => {
         <div className={styles.goHome}>
           <button
             className={styles.homeButton}
+            // onClick={toggleTechnogenicFilter}
             onClick={() => flyHome(mapInstance.current.getView())}
             aria-label="Go to home position"
           >

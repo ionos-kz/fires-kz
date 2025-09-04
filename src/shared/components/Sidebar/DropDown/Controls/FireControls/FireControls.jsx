@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
 import useFireStore from "src/app/store/fireStore";
 import { 
   Flame, 
@@ -21,9 +21,6 @@ import {
   Download,
   Share2,
   Map,
-  Layers,
-  Grid,
-  Palette,
   History,
 } from 'lucide-react';
 
@@ -62,10 +59,39 @@ const FireControls = () => {
     avgConfidence,
     firesByConfidence,
     firesByRegion,
-    newFiresSinceLastDay
+    newFiresSinceLastDay,
+    showTechnogenicOnly,
+    setShowTechnogenicOnly,
+    showNaturalOnly,
+    setShowNaturalOnly
   } = useFireStore();
-  const fireData = [
-  ]
+  const fireData = [];
+
+  const [areaTypeFilter, setAreaTypeFilter] = useState("all");
+
+  const handleAreaTypeFilterChange = (event) => {
+    const newValue = event.target.value;
+    setAreaTypeFilter(newValue);
+
+    // Use the new value directly, not the state variable
+    switch (newValue) {
+      case 'nature':
+        setShowNaturalOnly(true);
+        setShowTechnogenicOnly(false);
+        break;
+      case 'urban':
+        setShowNaturalOnly(false);
+        setShowTechnogenicOnly(true);
+        break;
+      default:
+        setShowNaturalOnly(false);
+        setShowTechnogenicOnly(false);
+    }
+  };
+
+  // useEffect(() => {
+  //   console.log(areaTypeFilter)
+  // }, [areaTypeFilter])
 
   const maxDaysDifference = 14;
 
@@ -118,8 +144,8 @@ const FireControls = () => {
   const fireStats = useMemo(() => ({
     totalFires: fireLength,
     averageIntensity: avgIntensity,
-    peakIntensity: 89.5,
-    affectedArea: 12847,
+    peakIntensity: 0,
+    affectedArea: 0,
     riskLevel: avgConfidence,
     
     regionalData: processRegionalFireData(fireData || []),
@@ -392,6 +418,50 @@ const FireControls = () => {
                 <option value="extreme">Extreme (80+)</option>
               </select>
             </div>
+
+            {/* Area Type Filter */}
+            <div className="fire-controls__section">
+              <label className="fire-controls__label">
+                <Filter size={12} />
+                Area Type
+              </label>
+
+              <div className="fire-controls__radio-group">
+                <label className="fire-controls__radio">
+                  <input
+                    type="radio"
+                    name="areaType"
+                    value="all"
+                    checked={areaTypeFilter === "all"}
+                    onChange={handleAreaTypeFilterChange}
+                  />
+                  All Areas
+                </label>
+
+                <label className="fire-controls__radio">
+                  <input
+                    type="radio"
+                    name="areaType"
+                    value="nature"
+                    checked={areaTypeFilter === "nature"}
+                    onChange={handleAreaTypeFilterChange}
+                  />
+                  Nature Only
+                </label>
+
+                <label className="fire-controls__radio">
+                  <input
+                    type="radio"
+                    name="areaType"
+                    value="urban"
+                    checked={areaTypeFilter === "urban"}
+                    onChange={handleAreaTypeFilterChange}
+                  />
+                  Urban Only
+                </label>
+              </div>
+            </div>
+
 
             {/* Stats Display */}
             <div className="fire-controls__stats">

@@ -32,7 +32,7 @@ const MapFireControls = ({ firesByRegion }) => {
 
   const styleFunction = useCallback((feature) => {
     const regionName =
-      feature.get('name') || feature.get('NAME') || feature.get('NAME_1') || feature.get('name_igmass');
+      feature.get('name') || feature.get('name_igmass');
     const fireCount = fireData[regionName] || 0;
 
     return new Style({

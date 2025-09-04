@@ -1,28 +1,13 @@
 import TileLayer from 'ol/layer/Tile';
 import TileWMS from 'ol/source/TileWMS';
 
-const BASE_URL = "https://sh.dataspace.copernicus.eu/ogc/wms/4c423dbd-36df-4327-a20b-19a08f888c59";
-const SEARCH_API_BASE = "https://catalogue.dataspace.copernicus.eu/resto/api/collections/Sentinel2/search.json";
+const BASE_URL = "https://sh.dataspace.copernicus.eu/ogc/wms/51330d81-9d6b-48ee-8a98-6e6bd0f36715";
+const SEARCH_API_BASE = "https://catalogue.dataspace.copernicus.eu/resto/api/collections/Sentinel3/search.json";
 
 const BAND_LAYERS = {
-  'true-color': {
-    layerName: 'TRUE_COLOR',
+  'OLCI-TRUE': {
+    layerName: 'OLCI-TRUE',
   },
-  'false-color': {
-    layerName: 'TEST',
-  },
-  'ndvi': {
-    layerName: 'NDVI_FIRESKZ',
-  },
-  'ndwi': {
-    layerName: 'NDWI',
-  },
-  'ndbr': {
-    layerName: 'NDBR',
-  },
-  'methane': {
-    layerName: 'METHANE',
-  }
 };
 
 const createFootprint = (bounds = null) => {
@@ -33,7 +18,8 @@ const createFootprint = (bounds = null) => {
   
   return "POLYGON((14.0 46.0,16.0 46.0,16.0 47.0,14.0 47.0,14.0 46.0))";
 };
-export const searchSentinelData = async (startDate, endDate, bbox = null, maxRecords = 5, isBandMethane) => {
+
+export const searchSentinelData = async (startDate, endDate, bbox = null, maxRecords = 1) => {
   try {
     const footprint = createFootprint(bbox);
     
@@ -42,7 +28,7 @@ export const searchSentinelData = async (startDate, endDate, bbox = null, maxRec
     
     const searchUrl = `${SEARCH_API_BASE}?startDate=${start}&completionDate=${end}&geometry=${encodeURIComponent(footprint)}&maxRecords=${maxRecords}`;
     
-    console.log('Searching Sentinel data with URL:', searchUrl);
+    console.log('Searching Sentinel-1 data with URL:', searchUrl);
     
     const response = await fetch(searchUrl);
     
@@ -73,7 +59,7 @@ export const searchSentinelData = async (startDate, endDate, bbox = null, maxRec
       Size: feature.properties.size
     })) || [];
     
-    console.log('Found', transformedResults.length, 'Sentinel-2 products');
+    console.log('Found', transformedResults.length, 'Sentinel-1 products');
     
     return { 
       value: transformedResults,
@@ -82,16 +68,21 @@ export const searchSentinelData = async (startDate, endDate, bbox = null, maxRec
     };
     
   } catch (error) {
-    console.error('Error searching Sentinel data:', error);
+    console.error('Error searching Sentinel-1 data:', error);
     throw error;
   }
 };
 
-export const createSentinelLayer = (layerId, bands, startDate, endDate, opacity = 0.8, productId = null) => {
+export const createSentinel1Layer = (layerId, bands, startDate, endDate, opacity = 0.8, productId = null) => {
   const timeRange = `${startDate}/${endDate}`;
   const config = BAND_LAYERS[bands];
   
-  console.log('Creating WMS layer with params:', {
+  if (!config) {
+    console.error(`Band configuration not found for: ${bands}`);
+    return null;
+  }
+  
+  console.log('Creating Sentinel-1 WMS layer with params:', {
     url: BASE_URL,
     layers: config.layerName,
     time: timeRange,
@@ -107,7 +98,7 @@ export const createSentinelLayer = (layerId, bands, startDate, endDate, opacity 
     'TRANSPARENT': true,
     'TILED': true,
     'VERSION': '1.3.0',
-    'CRS': 'EPSG:3857'
+    'CRS': 'EPSG:3817'
   };
   
   if (productId) {
@@ -123,12 +114,12 @@ export const createSentinelLayer = (layerId, bands, startDate, endDate, opacity 
     }),
     opacity: opacity,
     visible: true,
-    title: `Sentinel-2 ${bands} (${startDate} to ${endDate})`
+    title: `Sentinel-1 ${bands} (${startDate} to ${endDate})` 
   });
   
   // Set custom properties to identify and manage the layer
   layer.set('id', layerId);
-  layer.set('type', 'sentinel');
+  layer.set('type', 'sentinel1');
   layer.set('bands', bands);
   layer.set('timeRange', timeRange);
   layer.set('productId', productId);
@@ -136,10 +127,9 @@ export const createSentinelLayer = (layerId, bands, startDate, endDate, opacity 
   return layer;
 };
 
-// Helper function to get detailed product information
 export const getProductDetails = async (productId) => {
   try {
-    const detailUrl = `https://catalogue.dataspace.copernicus.eu/resto/api/collections/Sentinel2/${productId}.json`;
+    const detailUrl = `https://catalogue.dataspace.copernicus.eu/resto/api/collections/Sentinel3/${productId}.json`;
     
     const response = await fetch(detailUrl);
     
@@ -151,12 +141,11 @@ export const getProductDetails = async (productId) => {
     return data;
     
   } catch (error) {
-    console.error('Error fetching product details:', error);
+    console.error('Error fetching Sentinel-1 product details:', error);
     throw error;
   }
 };
 
-// Helper function to format date
 export const formatDate = (dateString) => {
   if (!dateString) return 'N/A';
   return new Date(dateString).toLocaleDateString('en-US', {
@@ -166,25 +155,4 @@ export const formatDate = (dateString) => {
     hour: '2-digit',
     minute: '2-digit'
   });
-};
-
-export const formatFileSize = (bytes) => {
-  if (!bytes) return "N/A";
-  const sizes = ["B", "KB", "MB", "GB"];
-  const i = Math.floor(Math.log(bytes) / Math.log(1024));
-  return `${(bytes / Math.pow(1024, i)).toFixed(1)} ${sizes[i]}`;
-};
-
-export const getCloudCoverLabel = (cloudCover) => {
-  if (cloudCover <= 10) return "Excellent";
-  if (cloudCover <= 30) return "Good";
-  if (cloudCover <= 60) return "Fair";
-  return "Poor";
-};
-
-export const getCloudCoverColor = (cloudCover) => {
-  if (cloudCover <= 10) return "#10b981"; // Emerald
-  if (cloudCover <= 30) return "#f59e0b"; // Amber
-  if (cloudCover <= 60) return "#ef4444"; // Red
-  return "#7c2d12"; // Dark red
 };

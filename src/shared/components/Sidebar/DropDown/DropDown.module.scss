@@ -2,7 +2,7 @@
 
 .dropdown {
   width: 24rem;
-  background-color: #fff;
+  background-color: $bg-color;
   border-radius: 0.5rem;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   max-height: 92vh;
@@ -18,7 +18,7 @@
   &__item {
     padding: 1rem;
     border-bottom: 1px solid #E9ECEF;
-    color: #333;
+    color: $font-color;
     transition: background-color 0.2s ease;
 
     &:last-child {
@@ -58,7 +58,7 @@
     display: flex;
     flex-direction: column;
     margin-top: 1rem;
-    gap: 1.25rem;
+    gap: 0.5rem;
     animation: fadeIn 0.3s ease;
   }
 

@@ -12,6 +12,10 @@ export const createFireLayer = (setFireLength, fireStartDate, fireEndDate, updat
   // console.log(fireStartDate, fireEndDate)
   // Main vector source to hold all fire point features
   const source = new VectorSource();
+
+  // original features for filtering
+  let originalFeatures = [];
+  let currentFilters = [];
   
   // cluster for medium zoom 
   const clusterSource = new Cluster({
@@ -139,7 +143,7 @@ export const createFireLayer = (setFireLength, fireStartDate, fireEndDate, updat
           featureProjection: "EPSG:3857",
         });
 
-                // today's date and yesterday's date
+        // today's date and yesterday's date
         const today = new Date();
         const yesterday = new Date(today);
         yesterday.setDate(today.getDate() - 1);
@@ -195,6 +199,9 @@ export const createFireLayer = (setFireLength, fireStartDate, fireEndDate, updat
             feature.set('technogenic', props.technogenic === 'true');
           }
         });
+
+        // original features
+        originalFeatures = [...features];
         
         source.addFeatures(features);
 
@@ -264,16 +271,79 @@ export const createFireLayer = (setFireLength, fireStartDate, fireEndDate, updat
       return this._visible;
     },
     
-    // Function to apply filters to the layer
-    applyFilters: function(filterFunction) {
-      const allFeatures = source.getFeatures();
-      const filteredFeatures = allFeatures.filter(filterFunction);
+    // Enhanced filtering system
+    addFilter: function(name, filterFunction) {
+      // Remove existing filter with same name
+      this.removeFilter(name);
       
-      // Clear and add filtered features
+      // Add new filter
+      currentFilters.push({ name, filterFunction });
+      
+      // Apply all filters
+      this.applyCurrentFilters();
+    },
+    
+    removeFilter: function(name) {
+      currentFilters = currentFilters.filter(filter => filter.name !== name);
+      this.applyCurrentFilters();
+    },
+    
+    applyCurrentFilters: function() {
+      let filteredFeatures = [...originalFeatures];
+      
+      // Apply all filters sequentially
+      currentFilters.forEach(filter => {
+        filteredFeatures = filteredFeatures.filter(filter.filterFunction);
+      });
+      
+      // Update source
       source.clear();
       source.addFeatures(filteredFeatures);
       
+      // Update fire count
+      if (setFireLength) {
+        setFireLength(filteredFeatures.length);
+      }
+      
       return filteredFeatures.length;
+    },
+    
+    clearAllFilters: function() {
+      currentFilters = [];
+      source.clear();
+      source.addFeatures(originalFeatures);
+      
+      if (setFireLength) {
+        setFireLength(originalFeatures.length);
+      }
+    },
+    
+    // Specific technogenic filter methods
+    showOnlyTechnogenic: function() {
+      this.addFilter('technogenic', feature => feature.get('technogenic') === true);
+    },
+    
+    showOnlyNatural: function() {
+      this.addFilter('technogenic', feature => feature.get('technogenic') !== true);
+    },
+    
+    removeTechnogenicFilter: function() {
+      this.removeFilter('technogenic');
+    },
+    
+    // Check if technogenic filter is active
+    isTechnogenicFilterActive: function() {
+      return currentFilters.some(filter => filter.name === 'technogenic');
+    },
+    
+    // Get current filter status
+    getFilterStatus: function() {
+      return {
+        hasFilters: currentFilters.length > 0,
+        activeFilters: currentFilters.map(f => f.name),
+        totalFeatures: originalFeatures.length,
+        visibleFeatures: source.getFeatures().length
+      };
     },
     
     // Function to get all features
