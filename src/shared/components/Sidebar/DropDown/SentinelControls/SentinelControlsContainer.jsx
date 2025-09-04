@@ -6,149 +6,75 @@ import {
 import ProductMetadata from './ProductMetadata';
 import LayerCard from "./LayerCard";
 import { 
-  searchSentinelData, formatDate, getCloudCoverLabel, getCloudCoverColor
+    formatDate, getCloudCoverLabel, getCloudCoverColor, showProductDetails
  } from "src/utils/sentinelUtils";
 import styles from "./SentinelControls.module.scss";
-import useSentinel5Store from "../../../../../app/store/sentinel5Store";
 
-const SentinelControls5 = () => {
-  const {
-    sentinel5Visible,
-    sentinel5Opacity,
-    selectedBands5,
-    startDate,
-    endDate,
-    searchResults,
-    isLoading,
-    activeLayers5,
-    setSentinel5Visible,
-    setSentinel5Opacity,
-    setSelectedBands5,
-    setStartDate,
-    setEndDate,
-    setSearchResults,
-    setIsLoading,
-    addActiveLayer5,
-    clearActiveLayers5,
-    removeActiveLayer5,
-    toggleLayerVisibility,
-  } = useSentinel5Store();
+const SentinelControlsContainer = ({
+      // Handlers
+  handleSearchSentinelData,
+  addToMap,
+  setActiveSection,
+  
+  // State
+  error,
+  activeSection,
+  
+  // Configuration
+  bandOptions,
+  
+  // Store values
+  sentinelVisible,
+  setSentinelVisible,
+  toggleLayerVisibility,
+  sentinelOpacity,
+  setSentinelOpacity,
+  selectedBands,
+  setSelectedBands,
+  startDate,
+  endDate,
+  setStartDate,
+  setEndDate,
+  searchResults,
+  isLoading,
+  activeLayers,
+  clearActiveLayers,
+  removeActiveLayer,
+}) => {    
+    const [selectedProduct, setSelectedProduct] = useState(null);
 
-  const [error, setError] = useState(null);
-  const [selectedProduct, setSelectedProduct] = useState(null);
-  const [activeSection, setActiveSection] = useState("search");
-
-  const bandOptions = [
-    { value: "NO2", label: "NO2", icon: "🌍", description: "Nitrogen Dioxide" },
-    { value: "O3", label: "O3", icon: "🌍", description: "Ozone" },
-    { value: "CH4", label: "CH4", icon: "🌍", description: "Methane" },
-  ];
-
-  const handleVisibilityToggle5 = () => {
-    setSentinel5Visible(!sentinel5Visible);
-  };
-
-  const handleOpacityChange = (e) => {
-    setSentinel5Opacity(Number(e.target.value));
-  };
-
-  const handleBandChange = (e) => {
-    setSelectedBands5(e.target.value);
-  };
-
-  const handleSearchSentinelData = async () => {
-    if (!startDate || !endDate) {
-      setError("Please select both start and end dates");
-      return;
-    }
-
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-    const daysDiff = (end - start) / (1000 * 60 * 60 * 24);
-
-    if (daysDiff < 0) {
-      setError("End date must be after start date");
-      return;
-    }
-
-    if (daysDiff > 565) {
-      setError("Date range cannot exceed 1 year");
-      return;
-    }
-
-    setError(null);
-    setIsLoading(true);
-    setSearchResults([]);
-    setActiveSection("results");
-
-    try {
-      const bbox = null;
-      const data = await searchSentinelData('sentinel5', startDate, endDate, bbox, 10);
-      setSearchResults(data.value || []);
-
-      if (data.value?.length === 0) {
-        setError("No Sentinel-5 images found for the specified criteria");
-      }
-    } catch (error) {
-      console.error("Error searching Sentinel data:", error);
-      setError(`Search failed: ${error.message}`);
-      setSearchResults([]);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const addToMap = (product) => {
-    if (!startDate || !endDate) {
-      setError("Please set date range first");
-      return;
-    }
-
-    const layerId = `sentinel_${product.Id}_${5}_${Date.now()}`;
-
-    const layerConfig = {
-      id: layerId,
-      bands: selectedBands5,
-      startDate,
-      endDate,
-      opacity: sentinel5Opacity / 100,
-      productId: product.Id,
-      name: product.Name,
-      cloudCover: product.CloudCoverPercentage,
-      visible: true,
-      acquisitionDate: product.ContentDate?.beginPosition,
+    const handleVisibilityToggle = () => {
+        setSentinelVisible(!sentinelVisible);
     };
-    console.log(layerConfig);
 
-    addActiveLayer5(layerConfig);
-    setSentinel5Visible(true);
-    setError(null);
-    setActiveSection("layers");
-  };
+    const handleOpacityChange = (e) => {
+        setSentinelOpacity(Number(e.target.value));
+    };
 
-  const showProductDetails = (product) => {
-    setSelectedProduct(selectedProduct?.Id === product.Id ? null : product);
-  };
+    const handleBandChange = (e) => {
+        setSelectedBands(e.target.value);
+    };
 
-  return (
+
+    return (
     <div className={styles.sentinelControls}>
       <div className={styles.sentinelControls__header}>
         <div className={styles.sentinelControls__visibility}>
           <button
             className={`${styles.sentinelControls__toggleBtn} ${
-              sentinel5Visible
+              sentinelVisible
                 ? styles["sentinelControls__toggleBtn--active"]
                 : ""
             }`}
-            onClick={handleVisibilityToggle5}
+            onClick={handleVisibilityToggle}
           >
-            {sentinel5Visible ? <Eye size={18} /> : <EyeOff size={18} />}
-            <span>Sentinel-5 Layer</span>
+            {sentinelVisible ? <Eye size={18} /> : <EyeOff size={18} />}
+            <span>Sentinel-2 Layer</span>
           </button>
         </div>
       </div>
 
-      {sentinel5Visible && (
+      {sentinelVisible && (
         <div className={styles.sentinelControls__content}>
           {/* Navigation Tabs */}
           <div className={styles.sentinelControls__tabs}>
@@ -182,10 +108,10 @@ const SentinelControls5 = () => {
                   : ""
               }`}
               onClick={() => setActiveSection("layers")}
-              disabled={activeLayers5.length === 0}
+              disabled={activeLayers.length === 0}
             >
               <Layers size={16} />
-              Layers ({activeLayers5.length})
+              Layers ({activeLayers.length})
             </button>
           </div>
 
@@ -194,13 +120,13 @@ const SentinelControls5 = () => {
             <div className={styles.sentinelControls__searchSection}>
               <div className={styles.sentinelControls__section}>
                 <label className={styles.sentinelControls__label}>
-                  Opacity: {sentinel5Opacity}%
+                  Opacity: {sentinelOpacity}%
                 </label>
                 <input
                   type="range"
                   min="0"
                   max="100"
-                  value={sentinel5Opacity}
+                  value={sentinelOpacity}
                   onChange={handleOpacityChange}
                   className={styles.sentinelControls__slider}
                 />
@@ -211,7 +137,7 @@ const SentinelControls5 = () => {
                   Band Combination
                 </label>
                 <select
-                  value={selectedBands5}
+                  value={selectedBands}
                   onChange={handleBandChange}
                   className={styles.sentinelControls__select}
                 >
@@ -267,7 +193,7 @@ const SentinelControls5 = () => {
                 disabled={isLoading || !startDate || !endDate}
               >
                 <Search size={16} />
-                {isLoading ? "Searching..." : "Search Sentinel-5 Data"}
+                {isLoading ? "Searching..." : "Search Sentinel-2 Data"}
               </button>
             </div>
           )}
@@ -309,7 +235,7 @@ const SentinelControls5 = () => {
                       <div className={styles.resultCard__actions}>
                         <button
                           className={styles.resultCard__infoBtn}
-                          onClick={() => showProductDetails(result)}
+                          onClick={() => showProductDetails(setSelectedProduct, selectedProduct, result)}
                           title="Show details"
                         >
                           <Info size={14} />
@@ -335,23 +261,23 @@ const SentinelControls5 = () => {
           )}
 
           {/* Active Layers Section */}
-          {activeSection === "layers" && activeLayers5.length > 0 && (
+          {activeSection === "layers" && activeLayers.length > 0 && (
             <div className={styles.sentinelControls__layersSection}>
               <div className={styles.sentinelControls__layersHeader}>
                 <button
                   className={styles.sentinelControls__clearBtn}
-                  onClick={() => clearActiveLayers5()}
-                  disabled={activeLayers5.length === 0}
+                  onClick={() => clearActiveLayers()}
+                  disabled={activeLayers.length === 0}
                 >
                   <Trash2 size={16} />
-                  Clear All ({activeLayers5.length})
+                  Clear All ({activeLayers.length})
                 </button>
               </div>
               <div className={styles.sentinelControls__layersList}>
-                {activeLayers5.map((layer, index) => (
+                {activeLayers.map((layer, index) => (
                   <LayerCard key={layer.id} layer={layer} index={index} 
-                    removeActiveLayer5={removeActiveLayer5}
                     bandOptions={bandOptions} toggleLayerVisibility={toggleLayerVisibility}
+                    removeActiveLayer={removeActiveLayer}
                   />
                 ))}
               </div>
@@ -363,4 +289,4 @@ const SentinelControls5 = () => {
   );
 };
 
-export default SentinelControls5;
+export default SentinelControlsContainer;

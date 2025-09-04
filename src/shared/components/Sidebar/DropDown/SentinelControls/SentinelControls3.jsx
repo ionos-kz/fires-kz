@@ -87,7 +87,7 @@ const SentinelControls3 = () => {
 
     try {
       const bbox = null;
-      const data = await searchSentinelData(startDate, endDate, bbox, 10);
+      const data = await searchSentinelData('sentinel1', startDate, endDate, bbox, 10);
       setSearchResults(data.value || []);
 
       if (data.value?.length === 0) {

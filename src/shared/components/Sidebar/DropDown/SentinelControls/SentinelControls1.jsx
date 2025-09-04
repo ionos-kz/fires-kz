@@ -1,26 +1,15 @@
 import { useState } from "react";
 import {
-  Calendar,
-  Eye,
-  EyeOff,
-  Layers,
-  Search,
-  MapPin,
-  Info,
-  AlertCircle,
-  Trash2,
-  ChevronDown,
-  ChevronUp,
-  Satellite,
-  Cloud,
-  Calendar as CalendarIcon,
-  Database,
-  Settings,
-  Image,
+  Calendar, Eye, EyeOff, Layers, Search, MapPin, Info,
+  AlertCircle, Trash2, Cloud, Database,
 } from "lucide-react";
-import useSentinel1Store from "../../../../../app/store/sentinel1Store";
-import { searchSentinelData, formatDate } from "src/utils/sentinelUtils1";
+import ProductMetadata from './ProductMetadata';
+import LayerCard from "./LayerCard";
+import { 
+  searchSentinelData, formatDate, getCloudCoverLabel, getCloudCoverColor
+ } from "src/utils/sentinelUtils";
 import styles from "./SentinelControls.module.scss";
+import useSentinel1Store from "../../../../../app/store/sentinel1Store";
 
 const SentinelControls1 = () => {
   const {
@@ -47,7 +36,6 @@ const SentinelControls1 = () => {
 
   const [error, setError] = useState(null);
   const [selectedProduct, setSelectedProduct] = useState(null);
-  const [expandedLayers, setExpandedLayers] = useState(new Set());
   const [activeSection, setActiveSection] = useState("search");
 
   const bandOptions = [
@@ -98,7 +86,7 @@ const SentinelControls1 = () => {
 
     try {
       const bbox = null;
-      const data = await searchSentinelData(startDate, endDate, bbox, 10);
+      const data = await searchSentinelData('sentinel3', startDate, endDate, bbox, 10);
       setSearchResults(data.value || []);
 
       if (data.value?.length === 0) {
@@ -141,271 +129,8 @@ const SentinelControls1 = () => {
     setActiveSection("layers");
   };
 
-  const toggleLayerVisibilityHandler = (layerId) => {
-    toggleLayerVisibility(layerId);
-  };
-
-  const removeLayer = (layerId) => {
-    removeActiveLayer1(layerId);
-    setExpandedLayers((prev) => {
-      const newSet = new Set(prev);
-      newSet.delete(layerId);
-      return newSet;
-    });
-  };
-
-  const toggleLayerExpansion = (layerId) => {
-    setExpandedLayers((prev) => {
-      const newSet = new Set(prev);
-      if (newSet.has(layerId)) {
-        newSet.delete(layerId);
-      } else {
-        newSet.add(layerId);
-      }
-      return newSet;
-    });
-  };
-
   const showProductDetails = (product) => {
     setSelectedProduct(selectedProduct?.Id === product.Id ? null : product);
-  };
-
-  const getCloudCoverColor = (cloudCover) => {
-    if (cloudCover <= 10) return "#10b981"; // Emerald
-    if (cloudCover <= 10) return "#f19e0b"; // Amber
-    if (cloudCover <= 60) return "#ef4444"; // Red
-    return "#7c2d12"; // Dark red
-  };
-
-  const getCloudCoverLabel = (cloudCover) => {
-    if (cloudCover <= 10) return "Excellent";
-    if (cloudCover <= 10) return "Good";
-    if (cloudCover <= 60) return "Fair";
-    return "Poor";
-  };
-
-  const getBandInfo = (bandValue) => {
-    return (
-      bandOptions.find((option) => option.value === bandValue) || {
-        label: bandValue,
-        icon: "📡",
-      }
-    );
-  };
-
-  const ProductMetadata = ({ product }) => (
-    <div className={styles.metadata}>
-      <div className={styles.metadata__grid}>
-        <div className={styles.metadata__item}>
-          <div className={styles.metadata__icon}>
-            <Satellite size={16} />
-          </div>
-          <div className={styles.metadata__content}>
-            <span className={styles.metadata__label}>Platform</span>
-            <span className={styles.metadata__value}>
-              {product.Platform || "N/A"}
-            </span>
-          </div>
-        </div>
-
-        <div className={styles.metadata__item}>
-          <div className={styles.metadata__icon}>
-            <Database size={16} />
-          </div>
-          <div className={styles.metadata__content}>
-            <span className={styles.metadata__label}>Product Type</span>
-            <span className={styles.metadata__value}>
-              {product.ProductType || "N/A"}
-            </span>
-          </div>
-        </div>
-
-        <div className={styles.metadata__item}>
-          <div className={styles.metadata__icon}>
-            <Settings size={16} />
-          </div>
-          <div className={styles.metadata__content}>
-            <span className={styles.metadata__label}>Processing Level</span>
-            <span className={styles.metadata__value}>
-              {product.ProcessingLevel || "N/A"}
-            </span>
-          </div>
-        </div>
-
-        <div className={styles.metadata__item}>
-          <div className={styles.metadata__icon}>
-            <CalendarIcon size={16} />
-          </div>
-          <div className={styles.metadata__content}>
-            <span className={styles.metadata__label}>Ingestion Date</span>
-            <span className={styles.metadata__value}>
-              {formatDate(product.IngestionDate)}
-            </span>
-          </div>
-        </div>
-
-        <div className={styles.metadata__item}>
-          <div className={styles.metadata__icon}>
-            <span className={styles.metadata__orbitIcon}>🛰️</span>
-          </div>
-          <div className={styles.metadata__content}>
-            <span className={styles.metadata__label}>Orbit Number</span>
-            <span className={styles.metadata__value}>
-              {product.OrbitNumber || "N/A"}
-            </span>
-          </div>
-        </div>
-
-        <div className={styles.metadata__item}>
-          <div className={styles.metadata__icon}>
-            <span className={styles.metadata__tileIcon}>🗂️</span>
-          </div>
-          <div className={styles.metadata__content}>
-            <span className={styles.metadata__label}>Tile ID</span>
-            <span className={styles.metadata__value}>
-              {product.TileId || "N/A"}
-            </span>
-          </div>
-        </div>
-
-        {/* {product.Size && (
-          <div className={styles.metadata__item}>
-            <div className={styles.metadata__icon}>
-              <span className={styles.metadata__sizeIcon}>💾</span>
-            </div>
-            <div className={styles.metadata__content}>
-              <span className={styles.metadata__label}>File Size</span>
-              <span className={styles.metadata__value}>{formatFileSize(product.Size)}</span>
-            </div>
-          </div>
-        )} */}
-      </div>
-
-      {product.ThumbnailUrl && (
-        <div className={styles.metadata__thumbnail}>
-          <div className={styles.metadata__thumbnailHeader}>
-            <Image size={16} />
-            <span>Preview</span>
-          </div>
-          <img
-            src={product.ThumbnailUrl}
-            alt="Product thumbnail"
-            className={styles.metadata__thumbnailImage}
-            onError={(e) => (e.target.style.display = "none")}
-          />
-        </div>
-      )}
-    </div>
-  );
-
-  const LayerCard = ({ layer, index }) => {
-    const bandInfo = getBandInfo(layer.bands);
-    const isExpanded = expandedLayers.has(layer.id);
-
-    return (
-      <div className={styles.layerCard}>
-        <div className={styles.layerCard__header}>
-          <div className={styles.layerCard__info}>
-            <div className={styles.layerCard__bandInfo}>
-              <span className={styles.layerCard__bandIcon}>
-                {bandInfo.icon}
-              </span>
-              <span className={styles.layerCard__bandName}>
-                {bandInfo.label}
-              </span>
-            </div>
-            <div className={styles.layerCard__details}>
-              <span className={styles.layerCard__date}>
-                {formatDate(layer.acquisitionDate)}
-              </span>
-              {layer.cloudCover !== undefined && (
-                <div className={styles.layerCard__cloudBadge}>
-                  <Cloud
-                    size={12}
-                    style={{ color: getCloudCoverColor(layer.cloudCover) }}
-                  />
-                  <span style={{ color: getCloudCoverColor(layer.cloudCover) }}>
-                    {layer.cloudCover.toFixed(1)}%
-                  </span>
-                  <span className={styles.layerCard__cloudLabel}>
-                    {getCloudCoverLabel(layer.cloudCover)}
-                  </span>
-                </div>
-              )}
-            </div>
-          </div>
-          <div className={styles.layerCard__actions}>
-            <button
-              className={`${styles.layerCard__actionBtn} ${
-                layer.visible ? styles["layerCard__actionBtn--active"] : ""
-              }`}
-              onClick={() => toggleLayerVisibilityHandler(layer.id)}
-              title={layer.visible ? "Hide layer" : "Show layer"}
-            >
-              {layer.visible ? <Eye size={14} /> : <EyeOff size={14} />}
-            </button>
-            <button
-              className={styles.layerCard__actionBtn}
-              onClick={() => toggleLayerExpansion(layer.id)}
-              title="Toggle details"
-            >
-              {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-            </button>
-            <button
-              className={`${styles.layerCard__actionBtn} ${styles.layerCard__actionBtn}--danger`}
-              onClick={() => removeLayer(layer.id)}
-              title="Remove layer"
-            >
-              <Trash2 size={14} />
-            </button>
-          </div>
-        </div>
-
-        {isExpanded && (
-          <div className={styles.layerCard__expandedContent}>
-            <div className={styles.layerCard__properties}>
-              <div className={styles.layerCard__property}>
-                <span className={styles.layerCard__propertyLabel}>
-                  Date Range:
-                </span>
-                <span className={styles.layerCard__propertyValue}>
-                  {layer.startDate} → {layer.endDate}
-                </span>
-              </div>
-              <div className={styles.layerCard__property}>
-                <span className={styles.layerCard__propertyLabel}>
-                  Opacity:
-                </span>
-                <span className={styles.layerCard__propertyValue}>
-                  {Math.round(layer.opacity * 100)}%
-                </span>
-              </div>
-              <div className={styles.layerCard__property}>
-                <span className={styles.layerCard__propertyLabel}>
-                  Product ID:
-                </span>
-                <span
-                  className={styles.layerCard__propertyValue}
-                  title={layer.productId}
-                >
-                  {layer.productId?.substring(0, 20)}...
-                </span>
-              </div>
-            </div>
-            {bandInfo.description && (
-              <div className={styles.layerCard__description}>
-                <span className={styles.layerCard__descriptionLabel}>
-                  Band Info:
-                </span>
-                <span className={styles.layerCard__descriptionText}>
-                  {bandInfo.description}
-                </span>
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-    );
   };
 
   return (
@@ -627,7 +352,10 @@ const SentinelControls1 = () => {
               </div>
               <div className={styles.sentinelControls__layersList}>
                 {activeLayers1.map((layer, index) => (
-                  <LayerCard key={layer.id} layer={layer} index={index} />
+                  <LayerCard key={layer.id} layer={layer} index={index} 
+                    removeActiveLayer1={removeActiveLayer1} bandOptions={bandOptions} 
+                    toggleLayerVisibility={toggleLayerVisibility}
+                  />
                 ))}
               </div>
             </div>
