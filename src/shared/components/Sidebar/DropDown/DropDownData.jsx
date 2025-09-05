@@ -86,7 +86,11 @@ export const newDD = [
           },
           {
             id: 'fire_risk',
-            label: 'Горячие точки',
+            label: 'Карта пожароопасности',
+          },
+          {
+            id: 'fire_modelling',
+            label: 'Карта моделирования пожаров',
           },
           // {
           //   id: "firm-date"

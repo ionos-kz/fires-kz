@@ -19,7 +19,6 @@ import {
   Target,
   AlertTriangle,
   Download,
-  Share2,
   Map,
   History,
 } from 'lucide-react';
@@ -45,7 +44,6 @@ const FireControls = () => {
     fireOpacity,     
     setFireOpacity,  
     fireIntensityFilter,   
-    setFireIntensityFilter,
     fireStartDate,   
     fireEndDate,     
     setFireStartDate,
@@ -60,10 +58,11 @@ const FireControls = () => {
     firesByConfidence,
     firesByRegion,
     newFiresSinceLastDay,
-    showTechnogenicOnly,
     setShowTechnogenicOnly,
-    showNaturalOnly,
-    setShowNaturalOnly
+    setShowNaturalOnly,
+    selectedModel,
+    setSelectedModel,
+    firesByModel, // Add this for statistics
   } = useFireStore();
   const fireData = [];
 
@@ -88,10 +87,6 @@ const FireControls = () => {
         setShowTechnogenicOnly(false);
     }
   };
-
-  // useEffect(() => {
-  //   console.log(areaTypeFilter)
-  // }, [areaTypeFilter])
 
   const maxDaysDifference = 14;
 
@@ -199,9 +194,9 @@ const FireControls = () => {
     setFireOpacity(Number(e.target.value));
   }, [setFireOpacity]);
 
-  const handleIntensityFilterChange = useCallback((e) => {
-    setFireIntensityFilter(e.target.value);
-  }, [setFireIntensityFilter]);
+  // const handleIntensityFilterChange = useCallback((e) => {
+  //   setFireIntensityFilter(e.target.value);
+  // }, [setFireIntensityFilter]);
 
   const isWithinRange = (date1, date2) => {
     if (!date1 || !date2) return true;
@@ -401,7 +396,7 @@ const FireControls = () => {
             </div>
 
             {/* Intensity Filter */}
-            <div className="fire-controls__section">
+            {/* <div className="fire-controls__section">
               <label className="fire-controls__label">
                 <Filter size={12} />
                 Fire Intensity
@@ -417,7 +412,7 @@ const FireControls = () => {
                 <option value="high">High (60-80)</option>
                 <option value="extreme">Extreme (80+)</option>
               </select>
-            </div>
+            </div> */}
 
             {/* Area Type Filter */}
             <div className="fire-controls__section">
@@ -462,6 +457,48 @@ const FireControls = () => {
               </div>
             </div>
 
+            {/* Model Filter */}
+            <div className="fire-controls__section">
+              <label className="fire-controls__label">
+                <Filter size={12} />
+                Detection Model
+              </label>
+
+              <div className="fire-controls__radio-group">
+                <label className="fire-controls__radio">
+                  <input
+                    type="radio"
+                    name="modelType"
+                    value="all"
+                    checked={selectedModel === null}
+                    onChange={() => setSelectedModel(null)}
+                  />
+                  All Models
+                </label>
+
+                <label className="fire-controls__radio">
+                  <input
+                    type="radio"
+                    name="modelType"
+                    value="model0"
+                    checked={selectedModel === 0}
+                    onChange={() => setSelectedModel(0)}
+                  />
+                  Model 0
+                </label>
+
+                <label className="fire-controls__radio">
+                  <input
+                    type="radio"
+                    name="modelType"
+                    value="model1"
+                    checked={selectedModel === 1}
+                    onChange={() => setSelectedModel(1)}
+                  />
+                  Model 1
+                </label>
+              </div>
+            </div>
 
             {/* Stats Display */}
             <div className="fire-controls__stats">
@@ -520,12 +557,12 @@ const FireControls = () => {
                 >
                   <Download size={14} />
                 </button>
-                <button 
+                {/* <button 
                   className="fire-controls__stat-btn"
                   title="Share fire data"
                 >
                   <Share2 size={14} />
-                </button>
+                </button> */}
               </div>
             </div>
           </div>
@@ -786,6 +823,29 @@ const FireControls = () => {
                       </div>
                     </div>
                   </div>
+                </div>
+              </div>
+
+              {/* Model Distribution */}
+              <div className="fire-stats-section">
+                <h3 className="fire-stats-section__title">
+                  <Target size={16} />
+                  Detection Models
+                </h3>
+                <div className="fire-stats-types">
+                  {Object.entries(firesByModel).map(([model, count]) => (
+                    <div key={model} className="fire-stats-types__item">
+                      <div className="fire-stats-types__icon">🤖</div>
+                      <div className="fire-stats-types__content">
+                        <div className="fire-stats-types__value">{count || 0}</div>
+                        <div className="fire-stats-types__label">{model}</div>
+                        <div className="fire-stats-types__percentage">
+                          {fireStats.totalFires > 0 ? 
+                            (((count || 0) / fireStats.totalFires) * 100).toFixed(1) : '0'}%
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
 

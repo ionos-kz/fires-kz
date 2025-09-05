@@ -24,14 +24,13 @@ export const createFireLayer = (setFireLength, fireStartDate, fireEndDate, updat
     minDistance: 20
   });
   
-  // Original point style with flame icon
-  const pointStyle = new Style({
-    image: new Icon({
-      src: '/flame.png',
-      scale: 0.5,
-      size: [30, 30],
-    }),
-  });
+  // const pointStyle = new Style({
+  //   image: new Icon({
+  //     src: '/flame.png',
+  //     scale: 0.5,
+  //     size: [30, 30],
+  //   }),
+  // });
   
   // heatmap for zoom levels (1-8)
   const heatmapLayer = new HeatmapLayer({
@@ -198,6 +197,14 @@ export const createFireLayer = (setFireLength, fireStartDate, fireEndDate, updat
           if (typeof props.technogenic === 'string') {
             feature.set('technogenic', props.technogenic === 'true');
           }
+
+          // Ensure model is a number
+          if (props.model && typeof props.model === 'string') {
+            feature.set('model', parseInt(props.model, 10));
+          } else if (props.model === undefined || props.model === null) {
+            // Set default model value if not present
+            feature.set('model', 0);
+          }
         });
 
         // original features
@@ -331,9 +338,51 @@ export const createFireLayer = (setFireLength, fireStartDate, fireEndDate, updat
       this.removeFilter('technogenic');
     },
     
+    // Model filter methods
+    showOnlyModel0: function() {
+      this.addFilter('model', feature => feature.get('model') === 0);
+    },
+    
+    showOnlyModel1: function() {
+      this.addFilter('model', feature => feature.get('model') === 1);
+    },
+    
+    removeModelFilter: function() {
+      this.removeFilter('model');
+    },
+    
+    // Generic model filter with specific value
+    filterByModel: function(modelValue) {
+      if (modelValue === null || modelValue === undefined) {
+        this.removeModelFilter();
+      } else {
+        this.addFilter('model', feature => feature.get('model') === modelValue);
+      }
+    },
+    
     // Check if technogenic filter is active
     isTechnogenicFilterActive: function() {
       return currentFilters.some(filter => filter.name === 'technogenic');
+    },
+    
+    // Check if model filter is active
+    isModelFilterActive: function() {
+      return currentFilters.some(filter => filter.name === 'model');
+    },
+    
+    // Get current model filter value
+    getCurrentModelFilter: function() {
+      const modelFilter = currentFilters.find(filter => filter.name === 'model');
+      if (!modelFilter) return null;
+      
+      // Test the filter function with model 0 and 1 to determine which is active
+      const testFeature0 = { get: () => 0 };
+      const testFeature1 = { get: () => 1 };
+      
+      if (modelFilter.filterFunction(testFeature0)) return 0;
+      if (modelFilter.filterFunction(testFeature1)) return 1;
+      
+      return null;
     },
     
     // Get current filter status
@@ -342,13 +391,21 @@ export const createFireLayer = (setFireLength, fireStartDate, fireEndDate, updat
         hasFilters: currentFilters.length > 0,
         activeFilters: currentFilters.map(f => f.name),
         totalFeatures: originalFeatures.length,
-        visibleFeatures: source.getFeatures().length
+        visibleFeatures: source.getFeatures().length,
+        isTechnogenicActive: this.isTechnogenicFilterActive(),
+        isModelActive: this.isModelFilterActive(),
+        currentModelFilter: this.getCurrentModelFilter()
       };
     },
     
     // Function to get all features
     getAllFeatures: function() {
       return source.getFeatures();
+    },
+    
+    // Function to get original (unfiltered) features
+    getOriginalFeatures: function() {
+      return originalFeatures;
     },
     
     attachToMap: function(map) {

@@ -1,24 +1,29 @@
 import { useEffect, useRef, useMemo, useState, useCallback } from "react";
+import { ToastContainer } from 'react-toastify';
+
 import Map from "ol/Map";
 import View from "ol/View";
 import FullScreen from "ol/control/FullScreen";
 import { defaults as defaultControls } from "ol/control/defaults";
-import { ToastContainer } from 'react-toastify';
-import { Home } from 'lucide-react';
-
 import TileLayer from 'ol/layer/Tile.js';
-import Tile from 'ol/layer/Tile.js';
 import XYZ from 'ol/source/XYZ.js';
 import GeoTIFF from 'ol/source/GeoTIFF';
-
+import VectorLayer from 'ol/layer/Vector';
+import VectorSource from 'ol/source/Vector';
+import GeoJSON from 'ol/format/GeoJSON';
+import Style from 'ol/style/Style';
+import Stroke from 'ol/style/Stroke';
+import Fill from "ol/style/Fill";
 import Select from 'ol/interaction/Select';
 
 import { Popover } from 'antd';
+import { Home } from 'lucide-react';
 
 import BasemapSwitcher from "./BasemapSwitcher.jsx";
 import MeasurementTools from "./MeasurementTools.jsx";
 import FirePopup from './FirePopup.jsx';
 import usePopupManager from './PopupManager.jsx';
+
 import { getMapStateFromHash, updateMapStateInHash } from "../utils/mapState.js";
 import { DEFAULT_POSITION } from "../utils/mapConstants.js";
 import { createAdminBoundary, createBlanketLayer } from "../utils/layers.js";
@@ -28,28 +33,24 @@ import { handleFullScreenChange } from "../utils/fullScreen.js";
 import { osmLayer } from "../utils/basemaps.js";
 import { createGeocoder } from "../utils/geocoder.js";
 import { flyHome } from "../utils/flyHome.js";
+import { styleFireModelFunction } from "../utils/colorFireModel.js";
+import { createSentinelLayer } from "src/utils/sentinelUtils.js";
+
 import useFireStore from "src/app/store/fireStore";
 import useAdminBoundaryStore from "src/app/store/adminBoundaryStore.js";
 import useSentinelStore from "../../../app/store/sentinelStore.js";
 import useSentinel3Store from "../../../app/store/sentinel3Store.js";
 import useSentinel5Store from "../../../app/store/sentinel5Store.js";
 import useSentinel1Store from "../../../app/store/sentinel1Store.js";
-import { createSentinelLayer } from "src/utils/sentinelUtils.js";
-
-import VectorLayer from 'ol/layer/Vector';
-import VectorSource from 'ol/source/Vector';
-import GeoJSON from 'ol/format/GeoJSON';
-import Style from 'ol/style/Style';
-import Stroke from 'ol/style/Stroke';
-import Fill from "ol/style/Fill";
+import useMethaneStore from "src/app/store/methaneStore";
+import useRiskMapStore from "../../../app/store/riskMapStore.js";
+import useMapStore from "../../../app/store/mapStore.js";
 
 import "ol/ol.css";
 import 'ol-geocoder/dist/ol-geocoder.min.css';
 import 'react-toastify/dist/ReactToastify.css';
 import styles from "./MapView.module.scss";
 import './mapStyles.scss';
-import useMethaneStore from "src/app/store/methaneStore";
-import useRiskMapStore from "../../../app/store/riskMapStore.js";
 
 const MapView = () => {
   const mapRef = useRef(null);
@@ -67,8 +68,11 @@ const MapView = () => {
     showTechnogenicOnly,
     setShowTechnogenicOnly,
     showNaturalOnly,
-   } = useFireStore();  // controls fire point visibility via zustand
+    setSelectedModel,
+    selectedModel
+   } = useFireStore();
   const { layerVisibility } = useAdminBoundaryStore();
+  const { fireModelLayer } = useMapStore()
 
   const blanket = useMemo(() => createBlanketLayer(), []);
   const fireLayer = useMemo(() => createFireLayer(setFireLength, fireStartDate, fireEndDate, updateFireStatistics), [setFireLength]);
@@ -157,39 +161,6 @@ const MapView = () => {
       : [];
     console.log(fireRiskLayers.current)
   }, [riskDates])
-
-
-  // const plumeLayer = useMemo(() => {
-  //   const source = new VectorSource({
-  //     url: '/layers/unep_methanedata_detected_plumes.geojson',
-  //     projection: 'EPSG:3857',
-  //     format: new GeoJSON(),
-  //   });
-
-  //   return new VectorLayer({
-  //     source,
-  //     style: new Style({
-  //       stroke: new Stroke({
-  //         color: '#333',
-  //         width: 1,
-  //       }),
-  //       fill: new Fill({
-  //         color: "#999",
-  //       })
-  //     }),
-  //     visible: methaneFlumesVisible
-  //   });
-  // }, [methaneFlumesVisible]);
-
-  // const sandGeoTiffLayer = new TileLayer({
-  //   source: new GeoTIFF({
-  //     sources: [
-  //       {
-  //         url: 'https://catalog.carbonmapper.org/l3a-vis-ch4-mfa-v002/2025/02/20/tan20250220t061843c00s4001-B/tan20250220t061843c00s4001-B_l3a-vis-ch4-mfa-v002_plume.tif?c=1114f5e56156b712772168b8b626b51c60ad59a99f1f&Expires=1747102441&Signature=kX0S9lRMFSqjOqpxVDhnQGVFK8TYzyQS4RKY6r5z3iepbShN-OqpPStaXq-gb5DnS46zuietqNZuvbqtgRWP0bmIgD~XA3JWiF8JC73FNSVT4P~Wd~ml6PIJDxEvMibYmgriROnzXs3g4ji1xo7FNqNpk-lgDto4fWY0hf5eub2~8h82TUP-zjZTwkSG8T3zjTbAvKZQBmDdBoCvS2x1fay2IVC~1VpOy93eCXD5mJFTs~~AChlL9hDQrIAKnRIBXzmXN4XpaY~p7SN9qoEXFdxXx4nYEvyG-d6jmJkpcpEr~eXmvUIrn9x9ic1229woYdx1d964p6UtasxtJoUA-A__&Key-Pair-Id=K1ZO5DZQBTMNGZ',
-  //       },
-  //     ],
-  //   }),
-  // });
 
   const sandGeoVectorLayer = new VectorLayer({
     source: new VectorSource({
@@ -389,15 +360,15 @@ const MapView = () => {
   }, [activeLayers5])
 
   useEffect(() => {
-    console.log('Sentinel-1 active layers changed:', activeLayers1);
-    console.log('Current Sentinel-1 layers:', sentinel1Layers.length);
+    // console.log('Sentinel-1 active layers changed:', activeLayers1);
+    // console.log('Current Sentinel-1 layers:', sentinel1Layers.length);
     
     const currentLayer1Ids = sentinel1Layers.map(layer => layer.get('id'));
     const newLayers1 = activeLayers1.filter(layerConfig => 
       !currentLayer1Ids.includes(layerConfig.id)
     );
     
-    console.log('New Sentinel-1 layers to add:', newLayers1);
+    // console.log('New Sentinel-1 layers to add:', newLayers1);
     
     newLayers1.forEach(layerConfig => {
       if (!mapInstance.current) return;
@@ -414,7 +385,7 @@ const MapView = () => {
       if (layer) {
         mapInstance.current.addLayer(layer);
         setSentinel1Layers(prev => [...prev, layer]);
-        console.log('Added Sentinel-1 layer to map:', layerConfig);
+        // console.log('Added Sentinel-1 layer to map:', layerConfig);
       }
     });
   }, [activeLayers1])
@@ -426,7 +397,7 @@ const MapView = () => {
         mapInstance.current.removeLayer(layer);
       });
       setSentinelLayers([]);
-      console.log('Cleared all Sentinel layers');
+      // console.log('Cleared all Sentinel layers');
     }
   }, [activeLayers.length, sentinelLayers])
 
@@ -501,7 +472,7 @@ const MapView = () => {
         mapInstance.current.removeLayer(layer);
       });
       setSentinel3Layers([]);
-      console.log('Cleared all Sentinel-3 layers');
+      // console.log('Cleared all Sentinel-3 layers');
     }
   }, [activeLayers3.length, sentinel3Layers]);
 
@@ -539,7 +510,7 @@ const MapView = () => {
         mapInstance.current.removeLayer(layer);
       });
       setSentinel1Layers([]);
-      console.log('Cleared all Sentinel-1 layers');
+      // console.log('Cleared all Sentinel-1 layers');
     }
   }, [activeLayers1.length, sentinel1Layers]);
 
@@ -549,7 +520,7 @@ const MapView = () => {
         mapInstance.current.removeLayer(layer);
       });
       setSentinel5Layers([]);
-      console.log('Cleared all Sentinel-5 layers');
+      // console.log('Cleared all Sentinel-5 layers');
     }
   }, [activeLayers5.length, sentinel5Layers]);
   
@@ -567,22 +538,6 @@ const MapView = () => {
     });
 
     const geocoder = createGeocoder();
-    // Sentinel Hub WMS layer
-    // const sentinelLayer3 = new TileLayer({
-    //   source: new TileWMS({
-    //     url: "https://sh.dataspace.copernicus.eu/ogc/wms/4c423dbd-36df-4327-a20b-19a08f888c59",
-    //     params: {
-    //       'LAYERS': 'TEST',
-    //       'TIME': '2023-06-01/2023-08-31',
-    //       'FORMAT': 'image/png',
-    //       'TRANSPARENT': true
-    //     },
-    //     attributions: '&copy; <a href="https://dataspace.copernicus.eu/" target="_blank">Copernicus Data Space Ecosystem</a>',
-    //     crossOrigin: 'anonymous',
-    //     tileSize: 512
-    //   }),
-    //   opacity: 0.7,
-    // });
 
     const map = new Map({
       pixelRatio: window.devicePixelRatio || 1,
@@ -711,7 +666,7 @@ const MapView = () => {
     const cleanup = setupPopupInteractions();
     
     return cleanup;
-  }, [isMapInitialized, setupPopupInteractions, fireLayer?.getVisible(), isOverlayReady]);
+  }, [isMapInitialized, setupPopupInteractions, fireLayer?.getVisible(), isOverlayReady, fireLayer]);
 
   useEffect(() => {
     if (!fireLayer) return;
@@ -724,6 +679,47 @@ const MapView = () => {
       fireLayer.clearAllFilters();
     }
   }, [showTechnogenicOnly, showNaturalOnly, fireLayer]);
+
+  useEffect(() => {
+    if (!fireLayer) return;
+
+    if (selectedModel === 1) {
+      fireLayer.showOnlyModel1();
+    } else if (selectedModel === 0) {
+      fireLayer.showOnlyModel0();
+    } else {
+      fireLayer.clearAllFilters();
+    }
+  }, [selectedModel, fireLayer]);
+
+  useEffect(() => {
+    if (!mapInstance.current || !fireModelLayer || !isMapInitialized) return;
+
+    try {
+      const cleanedGeoJSON = {
+        ...fireModelLayer,
+        features: fireModelLayer['features'].map(feature => ({
+          ...feature,
+          type: "Feature"
+        }))
+      };
+
+      const vectorLayer = new VectorLayer({
+        source: new VectorSource({
+          features: new GeoJSON().readFeatures(cleanedGeoJSON, {
+            dataProjection: 'EPSG:4326',
+            featureProjection: 'EPSG:3857'
+          })
+        }),
+        style: styleFireModelFunction
+      });
+
+      mapInstance.current.addLayer(vectorLayer);
+
+    } catch (error) {
+      console.error('Error processing GeoJSON data:', error);
+    }
+  }, [fireModelLayer, isMapInitialized]);
 
   useEffect(() => {
     if (!isMapInitialized || !mapInstance.current || !fireLayer) return;
@@ -774,7 +770,6 @@ const MapView = () => {
         <div className={styles.goHome}>
           <button
             className={styles.homeButton}
-            // onClick={toggleTechnogenicFilter}
             onClick={() => flyHome(mapInstance.current.getView())}
             aria-label="Go to home position"
           >

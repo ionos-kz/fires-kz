@@ -30,6 +30,7 @@ export const createFireSlice = (set, get) => ({
   firesByDate: {},
   firesByConfidence: {},
   firesByIntensity: {},
+  firesByModel: {}, // New: statistics by model
   
   // for filtering
   selectedRegions: [],
@@ -37,6 +38,7 @@ export const createFireSlice = (set, get) => ({
   confidenceThreshold: 0,
   showTechnogenicOnly: false,
   showNaturalOnly: false,
+  selectedModel: null, // null = all, 0 = model 0, 1 = model 1
   
   // UI states
   opacityValues: {},
@@ -89,6 +91,11 @@ export const createFireSlice = (set, get) => ({
       firesByDate: dateStats
     })),
 
+  setFiresByModel: (modelStats) =>
+    set(() => ({
+      firesByModel: modelStats
+    })),
+
   // filter setters
   setSelectedRegions: (regions) =>
     set(() => ({
@@ -115,6 +122,11 @@ export const createFireSlice = (set, get) => ({
     set(() => ({
       showNaturalOnly: show,
       showTechnogenicOnly: show ? false : get().showTechnogenicOnly
+    })),
+
+  setSelectedModel: (model) =>
+    set(() => ({
+      selectedModel: model
     })),
 
   // setters
@@ -176,6 +188,7 @@ export const createFireSlice = (set, get) => ({
       state.setFiresBySatellite({});
       state.setFiresByConfidence({});
       state.setFiresByDate({});
+      state.setFiresByModel({});
       return;
     }
 
@@ -187,6 +200,7 @@ export const createFireSlice = (set, get) => ({
     const satelliteStats = {};
     const confidenceStats = {};
     const dateStats = {};
+    const modelStats = {}
 
     features.forEach(feature => {
       const props = feature.getProperties();
@@ -224,12 +238,24 @@ export const createFireSlice = (set, get) => ({
         }
       }
 
-      // Update stats
+      // Update confidence stats
       confidenceStats[confidenceLevel] = (confidenceStats[confidenceLevel] || 0) + 1;
 
       // by date
       const date = props.acq_date || 'Unknown';
       dateStats[date] = (dateStats[date] || 0) + 1;
+
+      // by model - handle both number and string values
+      let modelValue = props.model;
+      if (typeof modelValue === 'string') {
+        modelValue = parseInt(modelValue, 10);
+      }
+      if (typeof modelValue === 'number' && !isNaN(modelValue)) {
+        const modelKey = `Model ${modelValue}`;
+        modelStats[modelKey] = (modelStats[modelKey] || 0) + 1;
+      } else {
+        modelStats['Unknown'] = (modelStats['Unknown'] || 0) + 1;
+      }
     });
 
     // Update all statistics
@@ -240,6 +266,7 @@ export const createFireSlice = (set, get) => ({
     state.setFiresBySatellite(satelliteStats);
     state.setFiresByConfidence(confidenceStats);
     state.setFiresByDate(dateStats);
+    state.setFiresByModel(modelStats);
     state.setNewFiresSinceLastDay(newFires);
 
     const avgIntensity = confidenceCount > 0 ? (totalConfidence / confidenceCount).toFixed(2) : null;
@@ -285,6 +312,21 @@ export const createFireSlice = (set, get) => ({
         return false;
       }
 
+      // Model filter - improved handling
+      if (state.selectedModel !== null) {
+        let featureModel = props.model;
+        
+        // Convert string to number if needed
+        if (typeof featureModel === 'string') {
+          featureModel = parseInt(featureModel, 10);
+        }
+        
+        // Check if the feature's model matches the selected model
+        if (featureModel !== state.selectedModel) {
+          return false;
+        }
+      }
+
       return true;
     });
   },
@@ -297,6 +339,7 @@ export const createFireSlice = (set, get) => ({
     state.setConfidenceThreshold(0);
     state.setShowTechnogenicOnly(false);
     state.setShowNaturalOnly(false);
+    state.setSelectedModel(null);
   },
 
   // Method to get available regions from current data
@@ -309,5 +352,59 @@ export const createFireSlice = (set, get) => ({
   getAvailableSatellites: () => {
     const state = get();
     return Object.keys(state.firesBySatellite);
+  },
+
+  // Method to get available models from current data
+  getAvailableModels: () => {
+    const state = get();
+    return Object.keys(state.firesByModel);
+  },
+
+  // Method to toggle between model filters
+  toggleModelFilter: (modelValue) => {
+    const state = get();
+    if (state.selectedModel === modelValue) {
+      // If the same model is selected, clear the filter
+      state.setSelectedModel(null);
+    } else {
+      // Otherwise, set the new model filter
+      state.setSelectedModel(modelValue);
+    }
+  },
+
+  // Method to check if a specific model filter is active
+  isModelFilterActive: (modelValue) => {
+    const state = get();
+    return state.selectedModel === modelValue;
+  },
+
+  // Method to get current active filters summary
+  getActiveFiltersSummary: () => {
+    const state = get();
+    const summary = {};
+    
+    if (state.selectedRegions.length > 0) {
+      summary.regions = state.selectedRegions;
+    }
+    
+    if (state.selectedSatellites.length > 0) {
+      summary.satellites = state.selectedSatellites;
+    }
+    
+    if (state.confidenceThreshold > 0) {
+      summary.confidenceThreshold = state.confidenceThreshold;
+    }
+    
+    if (state.showTechnogenicOnly) {
+      summary.technogenic = 'technogenic only';
+    } else if (state.showNaturalOnly) {
+      summary.technogenic = 'natural only';
+    }
+    
+    if (state.selectedModel !== null) {
+      summary.model = `Model ${state.selectedModel}`;
+    }
+    
+    return summary;
   }
 });

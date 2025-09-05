@@ -1,5 +1,6 @@
 import { useRef, useState, useEffect, useCallback } from "react";
 import Overlay from 'ol/Overlay';
+import useMapStore from "../../../app/store/mapStore";
 
 const formatDate = (dateStr) => {
   if (!dateStr) return '';
@@ -47,7 +48,9 @@ const callFireModelAPI = async (fireImageId) => {
   try {
     const response = await fetch(`https://api.igmass.kz/fire/firemodelbyid?id=${fireImageId}`);
     const data = await response.json();
-    console.log('Fire Model API Response:', data);
+    // const geojsonStr = JSON.stringify(data, null, 2);
+    // console.log('Fire Model API Response:', geojsonStr);
+    return data
   } catch (error) {
     console.error('Error calling Fire Model API:', error);
   }
@@ -58,6 +61,12 @@ const usePopupManager = (map, fireLayer) => {
   const [popupContent, setPopupContent] = useState('');
   const overlayRef = useRef(null);
   const [isOverlayReady, setIsOverlayReady] = useState(false);
+  const { setFireModelLayer } = useMapStore()
+
+  const handleFireModelLayer = async (fireImageId) => {
+    const modelLayer = await callFireModelAPI(fireImageId);
+    setFireModelLayer(modelLayer)
+  }
 
   useEffect(() => {
     // console.log('usePopupManager useEffect - map:', !!map, 'popupRef.current:', !!popupRef.current);
@@ -215,6 +224,7 @@ const usePopupManager = (map, fireLayer) => {
           const confidenceRaw = feature.get('confidence') || '';
           const power = feature.get('power') || feature.get('brightness') || '';
           const fireImageId = feature.get('fireimageid') || '';
+          const model = feature.get('model') || '';
           
           const confidenceInfo = getConfidenceLabel(confidenceRaw);
           const confidenceBadge = confidenceInfo ? 
@@ -274,9 +284,9 @@ const usePopupManager = (map, fireLayer) => {
               </div>
               <div class="fire-popup-footer">
                 Fire detection data
-                ${fireImageId ? `
+                ${(fireImageId && model) ? `
                   <button 
-                    onclick="window.callFireModelAPI('${fireImageId}')" 
+                    onclick="window.handleFireModelLayer('${fireImageId}')" 
                     style="
                       margin-top: 10px;
                       padding: 5px 10px;
@@ -296,7 +306,7 @@ const usePopupManager = (map, fireLayer) => {
           `;
           
           // global for the onclick handler
-          window.callFireModelAPI = callFireModelAPI;
+          window.handleFireModelLayer = handleFireModelLayer;
           
           // console.log('Showing popup with content:', content);
           showPopup(coordinate, content);
