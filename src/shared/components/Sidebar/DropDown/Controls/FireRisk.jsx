@@ -11,7 +11,7 @@ import {
 } from 'lucide-react';
 
 import './FireControls/fireControls.scss';
-import useRiskMapStore from '../../../../../app/store/riskMapStore';
+import useRiskMapStore from 'src/app/store/riskMapStore';
 
 const FireRisk = () => {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -229,6 +229,26 @@ const FireRisk = () => {
               </div>
             </div>
           )}
+
+          <div className="fire-controls__section">
+            <div className="fire-controls__legend">
+              <div className="fire-controls__legend-header">
+                <AlertTriangle size={12} />
+                Risk Scale Legend
+              </div>
+              <div className="fire-controls__legend-gradient"></div>
+              <div className="fire-controls__legend-labels">
+                <span>0</span>
+                <span>25</span>
+                <span>50</span>
+                <span>75</span>
+                <span>100</span>
+              </div>
+              <div className="fire-controls__legend-description">
+                Risk intensity scale: Green (Low) → Yellow (Moderate) → Orange (High) → Red (Extreme)
+              </div>
+            </div>
+          </div>
 
           {/* Summary Stats */}
           <div className="fire-controls__stats">

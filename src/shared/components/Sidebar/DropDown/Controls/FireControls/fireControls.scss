@@ -393,6 +393,49 @@
   animation: spin 1s linear infinite;
 }
 
+.fire-controls__legend {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 16px;
+  margin-top: 12px;
+}
+
+.fire-controls__legend-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #374151;
+  margin-bottom: 12px;
+}
+
+.fire-controls__legend-gradient {
+  position: relative;
+  height: 20px;
+  background: linear-gradient(to right, #22c55e 0%, #eab308 33%, #f97316 66%, #ef4444 100%);
+  border-radius: 10px;
+  margin-bottom: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.fire-controls__legend-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.fire-controls__legend-description {
+  font-size: 11px;
+  color: #9ca3af;
+  text-align: center;
+  margin-top: 8px;
+  font-style: italic;
+}
+
 /* Stats Modal */
 .fire-stats-modal {
   position: fixed;
