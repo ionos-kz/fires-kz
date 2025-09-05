@@ -1288,6 +1288,23 @@
   margin: 0;
 }
 
+.fire-modelling__btn--primary {
+  background-color: #3b82f6;
+  color: white;
+  
+  &:hover {
+    background-color: #2563eb;
+  }
+}
+
+.fire-controls__stat-btn {
+  transition: all 0.2s ease;
+  
+  &:active {
+    transform: scale(0.95);
+  }
+}
+
 /* Responsive adjustments for layer cards */
 @media (max-width: 768px) {
   .fire-modelling__layer-header {

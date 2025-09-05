@@ -712,20 +712,18 @@ const MapView = () => {
         style: styleFireModelFunction
       });
 
-      // Add more descriptive data when adding to store
       addFireModellingLayer({
         id: Date.now(),
         layer: vectorLayer,
         opacity: 1,
         visible: true,
-        name: fireModelLayer.name || 'Fire Spread Model', // Add from your data
+        name: fireModelLayer.name || 'Fire Spread Model',
         type: fireModelLayer.type || 'Prediction Model',
-        color: '#ff6b6b', // Or extract from style
+        color: '#ff6b6b',
         metadata: {
           source: fireModelLayer.source || 'System Generated',
           accuracy: fireModelLayer.accuracy || 'High',
           timestamp: new Date().toISOString(),
-          // Add any other relevant metadata from fireModelLayer
         }
       });
 

@@ -1,4 +1,5 @@
-import { useState, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { Style } from 'ol/style';
 import { 
   Layers, 
   Eye,
@@ -7,22 +8,28 @@ import {
   Trash2,
   RotateCcw,
   Settings,
-  Info
+  Info,
+  Play,        
+  Pause,       
+  SkipBack,    
+  ChevronRight 
 } from 'lucide-react';
 
 import './fireControls.scss';
 import useFireModellingStore from 'src/app/store/fireModellingStore'; // Uncomment when store is created
 
 const FireModelling = () => {
-  const [isExpanded, setIsExpanded] = useState(false);
-  const [isVisible, setIsVisible] = useState(false);
+    const [isExpanded, setIsExpanded] = useState(false);
+    const [isVisible, setIsVisible] = useState(false);
+    const [animatingLayers, setAnimatingLayers] = useState({});
+    const animationIntervals = useRef({});
 
-  const { 
-    fireModellingLayers,
-    removeFireModellingLayer,
-    updateFireModellingLayer,
-    mapInstance,
-  } = useFireModellingStore();
+    const { 
+        fireModellingLayers,
+        removeFireModellingLayer,
+        updateFireModellingLayer,
+        mapInstance,
+    } = useFireModellingStore();
 
     // Convert fireModellingLayers object to array for rendering
     const modellingLayers = Object.values(fireModellingLayers).map(layer => ({
@@ -32,61 +39,166 @@ const FireModelling = () => {
         color: layer.color || '#ff6b6b',
         opacity: layer.opacity,
         visible: layer.visible,
-        addedAt: new Date(layer.id), // Using id as timestamp
+        addedAt: new Date(layer.id),
         metadata: layer.metadata || {}
     }));
 
-  const formatTime = (date) => {
-    return date.toLocaleTimeString('en-US', { 
-      hour: '2-digit', 
-      minute: '2-digit' 
-    });
-  };
-  const handleToggleVisibility = () => {
-  setIsVisible(!isVisible);
-  // Toggle all layers visibility
-  Object.keys(fireModellingLayers).forEach(id => {
-    updateFireModellingLayer(id, { visible: !isVisible });
-    if (fireModellingLayers[id].layer) {
-      fireModellingLayers[id].layer.setVisible(!isVisible);
-    }
-  });
-};
+    const formatTime = (date) => {
+        return date.toLocaleTimeString('en-US', { 
+        hour: '2-digit', 
+        minute: '2-digit' 
+        });
+    };
 
-const handleLayerVisibilityToggle = (id) => {
-  const layer = fireModellingLayers[id];
-  if (layer) {
-    const newVisible = !layer.visible;
-    updateFireModellingLayer(id, { visible: newVisible });
-    if (layer.layer) {
-      layer.layer.setVisible(newVisible);
-    }
-  }
-};
+    const handleToggleVisibility = () => {
+        setIsVisible(!isVisible);
+        Object.keys(fireModellingLayers).forEach(id => {
+            updateFireModellingLayer(id, { visible: !isVisible });
+            if (fireModellingLayers[id].layer) {
+            fireModellingLayers[id].layer.setVisible(!isVisible);
+            }
+        });
+    };
 
-const handleOpacityChange = (id, value) => {
-  const opacity = value / 100;
-  updateFireModellingLayer(id, { opacity });
-  if (fireModellingLayers[id]?.layer) {
-    fireModellingLayers[id].layer.setOpacity(opacity);
-  }
-};
+    const handleLayerVisibilityToggle = (id) => {
+        const layer = fireModellingLayers[id];
+        if (layer) {
+            const newVisible = !layer.visible;
+            updateFireModellingLayer(id, { visible: newVisible });
+            if (layer.layer) {
+            layer.layer.setVisible(newVisible);
+            }
+        }
+    };
 
-const handleResetLayer = (id) => {
-  updateFireModellingLayer(id, { opacity: 1, visible: true });
-  if (fireModellingLayers[id]?.layer) {
-    fireModellingLayers[id].layer.setOpacity(1);
-    fireModellingLayers[id].layer.setVisible(true);
-  }
-};
+    const handleOpacityChange = (id, value) => {
+        const opacity = value / 100;
+        updateFireModellingLayer(id, { opacity });
+        if (fireModellingLayers[id]?.layer) {
+            fireModellingLayers[id].layer.setOpacity(opacity);
+        }
+    };
 
-const handleDeleteLayer = (id) => {
-  const layer = fireModellingLayers[id];
-  if (layer?.layer && mapInstance) {
-    mapInstance.removeLayer(layer.layer);
-  }
-  removeFireModellingLayer(id);
-};
+    const handleResetLayer = (id) => {
+        updateFireModellingLayer(id, { opacity: 1, visible: true });
+        if (fireModellingLayers[id]?.layer) {
+            fireModellingLayers[id].layer.setOpacity(1);
+            fireModellingLayers[id].layer.setVisible(true);
+        }
+    };
+
+    const handleDeleteLayer = (id) => {
+        const layer = fireModellingLayers[id];
+        if (layer?.layer && mapInstance) {
+            mapInstance.removeLayer(layer.layer);
+        }
+        removeFireModellingLayer(id);
+    };
+    const startAnimation = (layerId) => {
+        const layer = fireModellingLayers[layerId];
+        if (!layer?.layer) return;
+
+        // Get all features and find max dn value
+        const features = layer.layer.getSource().getFeatures();
+        const maxDn = Math.max(...features.map(f => f.get('dn') || 0));
+        
+        setAnimatingLayers(prev => ({
+            ...prev,
+            [layerId]: {
+                isPlaying: true,
+                currentFrame: 0,
+                maxFrame: maxDn,
+                speed: 500 // ms
+            }
+        }));
+
+        // Start animation interval
+        animationIntervals.current[layerId] = setInterval(() => {
+            setAnimatingLayers(prev => {
+            const layerAnim = prev[layerId];
+            if (!layerAnim) return prev;
+
+            const nextFrame = layerAnim.currentFrame >= layerAnim.maxFrame 
+                ? 0 
+                : layerAnim.currentFrame + 1;
+
+            // Update layer visibility based on dn value
+            features.forEach(feature => {
+                const dn = feature.get('dn') || 0;
+                feature.setStyle(dn <= nextFrame ? undefined : new Style({}));
+            });
+
+            return {
+                ...prev,
+                [layerId]: {
+                ...layerAnim,
+                currentFrame: nextFrame
+                }
+            };
+            });
+        }, 500);
+    };
+
+    const pauseAnimation = (layerId) => {
+        if (animationIntervals.current[layerId]) {
+            clearInterval(animationIntervals.current[layerId]);
+            delete animationIntervals.current[layerId];
+        }
+        
+        setAnimatingLayers(prev => ({
+            ...prev,
+            [layerId]: {
+                ...prev[layerId],
+                isPlaying: false
+            }
+        }));
+    };
+
+    const resetAnimation = (layerId) => {
+        pauseAnimation(layerId);
+        
+        const layer = fireModellingLayers[layerId];
+        if (layer?.layer) {
+            // Show all features
+            layer.layer.getSource().getFeatures().forEach(feature => {
+                feature.setStyle(undefined);
+            });
+        }
+        
+        setAnimatingLayers(prev => {
+            const updated = { ...prev };
+            delete updated[layerId];
+            return updated;
+        });
+        };
+
+        const setAnimationFrame = (layerId, frame) => {
+        const layer = fireModellingLayers[layerId];
+        if (!layer?.layer) return;
+
+        const features = layer.layer.getSource().getFeatures();
+        features.forEach(feature => {
+            const dn = feature.get('dn') || 0;
+            feature.setStyle(dn <= frame ? undefined : new ol.style.Style({}));
+        });
+
+        setAnimatingLayers(prev => ({
+            ...prev,
+            [layerId]: {
+            ...prev[layerId],
+            currentFrame: frame
+            }
+        }));
+    };
+
+    // Cleanup intervals on unmount
+    useEffect(() => {
+    return () => {
+        Object.keys(animationIntervals.current).forEach(layerId => {
+            clearInterval(animationIntervals.current[layerId]);
+        });
+    };
+    }, []);
 
   return (
     <div className="fire-controls">
@@ -152,33 +264,65 @@ const handleDeleteLayer = (id) => {
                         </div>
                       </div>
                       
-                      <div className="fire-modelling__layer-actions">
+                    <div className="fire-modelling__layer-actions">
+                    {/* Animation controls */}
+                    {animatingLayers[layer.id] ? (
+                        <>
                         <button
-                          onClick={() => handleLayerVisibilityToggle(layer.id)}
-                          className={`fire-controls__stat-btn ${
-                            layer.visible ? 'fire-modelling__btn--visible' : ''
-                          }`}
-                          title={layer.visible ? 'Hide layer' : 'Show layer'}
+                            onClick={() => resetAnimation(layer.id)}
+                            className="fire-controls__stat-btn"
+                            title="Reset animation"
                         >
-                          {layer.visible ? <Eye size={12} /> : <EyeOff size={12} />}
+                            <SkipBack size={12} />
                         </button>
-                        
                         <button
-                          onClick={() => handleResetLayer(layer.id)}
-                          className="fire-controls__stat-btn"
-                          title="Reset layer settings"
+                            onClick={() => 
+                            animatingLayers[layer.id]?.isPlaying 
+                                ? pauseAnimation(layer.id) 
+                                : startAnimation(layer.id)
+                            }
+                            className="fire-controls__stat-btn fire-modelling__btn--primary"
+                            title={animatingLayers[layer.id]?.isPlaying ? 'Pause' : 'Play'}
                         >
-                          <RotateCcw size={12} />
+                            {animatingLayers[layer.id]?.isPlaying ? <Pause size={12} /> : <Play size={12} />}
                         </button>
-                        
+                        </>
+                    ) : (
                         <button
-                          onClick={() => handleDeleteLayer(layer.id)}
-                          className="fire-controls__stat-btn fire-modelling__btn--danger"
-                          title="Delete layer"
+                        onClick={() => startAnimation(layer.id)}
+                        className="fire-controls__stat-btn fire-modelling__btn--primary"
+                        title="Animate layer"
                         >
-                          <Trash2 size={12} />
+                        <Play size={12} />
                         </button>
-                      </div>
+                    )}
+                    
+                    <button
+                        onClick={() => handleLayerVisibilityToggle(layer.id)}
+                        className={`fire-controls__stat-btn ${
+                        layer.visible ? 'fire-modelling__btn--visible' : ''
+                        }`}
+                        title={layer.visible ? 'Hide layer' : 'Show layer'}
+                    >
+                        {layer.visible ? <Eye size={12} /> : <EyeOff size={12} />}
+                    </button>
+                    
+                    <button
+                        onClick={() => handleResetLayer(layer.id)}
+                        className="fire-controls__stat-btn"
+                        title="Reset layer settings"
+                    >
+                        <RotateCcw size={12} />
+                    </button>
+                    
+                    <button
+                        onClick={() => handleDeleteLayer(layer.id)}
+                        className="fire-controls__stat-btn fire-modelling__btn--danger"
+                        title="Delete layer"
+                    >
+                        <Trash2 size={12} />
+                    </button>
+                    </div>
                     </div>
 
                     {/* Opacity Control */}
@@ -203,6 +347,32 @@ const handleDeleteLayer = (id) => {
                             />
                         </div>
                       </div>
+
+                      {/* Animation Progress */}
+                        {animatingLayers[layer.id] && (
+                        <div className="fire-controls__section" style={{ marginBottom: '12px' }}>
+                            <label className="fire-controls__label" style={{ marginBottom: '6px' }}>
+                            <ChevronRight size={10} />
+                            Frame: {animatingLayers[layer.id].currentFrame} / {animatingLayers[layer.id].maxFrame}
+                            </label>
+                            <div className="fire-controls__slider-container">
+                            <input
+                                type="range"
+                                min="0"
+                                max={animatingLayers[layer.id].maxFrame}
+                                value={animatingLayers[layer.id].currentFrame}
+                                onChange={(e) => setAnimationFrame(layer.id, parseInt(e.target.value))}
+                                className="fire-controls__slider"
+                            />
+                            <div 
+                                className="fire-controls__slider-fill"
+                                style={{ 
+                                width: `${(animatingLayers[layer.id].currentFrame / animatingLayers[layer.id].maxFrame) * 100}%` 
+                                }}
+                            />
+                            </div>
+                        </div>
+                        )}
 
                       {/* Layer Metadata */}
                       {layer.metadata && (
