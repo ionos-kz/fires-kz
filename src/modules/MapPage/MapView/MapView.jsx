@@ -3,6 +3,7 @@ import { ToastContainer } from 'react-toastify';
 
 import Map from "ol/Map";
 import View from "ol/View";
+import Overlay from 'ol/Overlay';
 import FullScreen from "ol/control/FullScreen";
 import { defaults as defaultControls } from "ol/control/defaults";
 import TileLayer from 'ol/layer/Tile.js';
@@ -712,6 +713,70 @@ const MapView = () => {
         style: styleFireModelFunction
       });
 
+      // Create popup overlay
+      const popupElement = document.createElement('div');
+      popupElement.className = 'ol-popup';
+      popupElement.innerHTML = `
+        <a href="#" class="ol-popup-closer"></a>
+        <div class="ol-popup-content"></div>
+      `;
+
+      const overlay = new Overlay({
+        element: popupElement,
+        autoPan: true,
+        autoPanAnimation: {
+          duration: 250,
+        },
+      });
+
+      mapInstance.current.addOverlay(overlay);
+
+      const clickHandler = (evt) => {
+        const feature = mapInstance.current.forEachFeatureAtPixel(
+          evt.pixel,
+          (feature, layer) => {
+            // Only handle features from fire model layer
+            if (layer === vectorLayer) {
+              return feature;
+            }
+          }
+        );
+
+        if (feature) {
+          const coordinate = evt.coordinate;
+          const properties = feature.getProperties();
+          
+          const content = `
+            <div>
+              <h3>Fire Spread Model</h3>
+              <p><strong>Accuracy:</strong> ${fireModelLayer.accuracy || 'High'}</p>
+              <p><strong>Satellite:</strong> ${properties.satellite || 'System Generated'}</p>
+              ${properties.fireimageid ? `<p><strong>fireimageid:</strong> ${properties.fireimageid}</p>` : ''}
+              ${properties.dn ? `<p><strong>Order:</strong> ${properties.dn}</p>` : ''}
+              ${properties['locality_names'] ? `<p><strong>Locality:</strong> ${properties['locality_names']}</p>` : ''}
+            </div>
+          `;
+
+          popupElement.querySelector('.ol-popup-content').innerHTML = content;
+          overlay.setPosition(coordinate);
+
+          // close button functionality
+          popupElement.querySelector('.ol-popup-closer').onclick = function() {
+            overlay.setPosition(undefined);
+            return false;
+          };
+        } else {
+          // Hide popup if clicked outside features
+          overlay.setPosition(undefined);
+        }
+      };
+
+      mapInstance.current.on('singleclick', clickHandler);
+
+      // Store references for cleanup
+      vectorLayer.clickHandler = clickHandler;
+      vectorLayer.overlay = overlay;
+
       addFireModellingLayer({
         id: Date.now(),
         layer: vectorLayer,
@@ -728,13 +793,21 @@ const MapView = () => {
       });
 
       mapInstance.current.addLayer(vectorLayer);
-      setMapInstance(mapInstance.current)
+      setMapInstance(mapInstance.current);
+
+      // Cleanup function
+      return () => {
+        if (mapInstance.current && vectorLayer.clickHandler) {
+          mapInstance.current.un('singleclick', vectorLayer.clickHandler);
+          mapInstance.current.removeOverlay(vectorLayer.overlay);
+        }
+      };
 
     } catch (error) {
       console.error('Error processing GeoJSON data:', error);
     }
   }, [fireModelLayer, isMapInitialized, addFireModellingLayer]);
-
+  
   useEffect(() => {
     if (!isMapInitialized || !mapInstance.current || !fireLayer) return;
 
@@ -849,7 +922,6 @@ const MapView = () => {
           onClose={closePopup} 
         />
       </div>
-
     </div>
   );
 };

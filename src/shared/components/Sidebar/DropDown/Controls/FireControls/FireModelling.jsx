@@ -45,8 +45,8 @@ const FireModelling = () => {
 
     const formatTime = (date) => {
         return date.toLocaleTimeString('en-US', { 
-        hour: '2-digit', 
-        minute: '2-digit' 
+            hour: '2-digit', 
+            minute: '2-digit' 
         });
     };
 
@@ -55,7 +55,7 @@ const FireModelling = () => {
         Object.keys(fireModellingLayers).forEach(id => {
             updateFireModellingLayer(id, { visible: !isVisible });
             if (fireModellingLayers[id].layer) {
-            fireModellingLayers[id].layer.setVisible(!isVisible);
+                fireModellingLayers[id].layer.setVisible(!isVisible);
             }
         });
     };
@@ -66,7 +66,7 @@ const FireModelling = () => {
             const newVisible = !layer.visible;
             updateFireModellingLayer(id, { visible: newVisible });
             if (layer.layer) {
-            layer.layer.setVisible(newVisible);
+                layer.layer.setVisible(newVisible);
             }
         }
     };

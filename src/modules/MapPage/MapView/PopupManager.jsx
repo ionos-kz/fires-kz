@@ -145,13 +145,13 @@ const usePopupManager = (map, fireLayer) => {
       overlayRef.current.setPosition(coordinate);
       // console.log('Popup position set to:', coordinate);
     } else {
-      // console.warn('Cannot show popup - overlay not ready or invalid coordinate');
+      console.warn('Cannot show popup - overlay not ready or invalid coordinate');
     }
   }, []);
 
   const setupPopupInteractions = useCallback(() => {
     if (!map || !fireLayer) {
-      // console.log('Missing map or fireLayer for popup interactions');
+      console.log('Missing map or fireLayer for popup interactions');
       return () => {};
     }
 
