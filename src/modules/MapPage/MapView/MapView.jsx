@@ -51,6 +51,7 @@ import 'ol-geocoder/dist/ol-geocoder.min.css';
 import 'react-toastify/dist/ReactToastify.css';
 import styles from "./MapView.module.scss";
 import './mapStyles.scss';
+import useFireModellingStore from "../../../app/store/fireModellingStore.js";
 
 const MapView = () => {
   const mapRef = useRef(null);
@@ -161,6 +162,11 @@ const MapView = () => {
       : [];
     console.log(fireRiskLayers.current)
   }, [riskDates])
+
+  const { 
+    addFireModellingLayer, removeFireModellingLayer, fireModellingLayers, 
+    setMapInstance,
+   } = useFireModellingStore.getState();
 
   const sandGeoVectorLayer = new VectorLayer({
     source: new VectorSource({
@@ -696,17 +702,9 @@ const MapView = () => {
     if (!mapInstance.current || !fireModelLayer || !isMapInitialized) return;
 
     try {
-      const cleanedGeoJSON = {
-        ...fireModelLayer,
-        features: fireModelLayer['features'].map(feature => ({
-          ...feature,
-          type: "Feature"
-        }))
-      };
-
       const vectorLayer = new VectorLayer({
         source: new VectorSource({
-          features: new GeoJSON().readFeatures(cleanedGeoJSON, {
+          features: new GeoJSON().readFeatures(fireModelLayer, {
             dataProjection: 'EPSG:4326',
             featureProjection: 'EPSG:3857'
           })
@@ -714,12 +712,30 @@ const MapView = () => {
         style: styleFireModelFunction
       });
 
+      // Add more descriptive data when adding to store
+      addFireModellingLayer({
+        id: Date.now(),
+        layer: vectorLayer,
+        opacity: 1,
+        visible: true,
+        name: fireModelLayer.name || 'Fire Spread Model', // Add from your data
+        type: fireModelLayer.type || 'Prediction Model',
+        color: '#ff6b6b', // Or extract from style
+        metadata: {
+          source: fireModelLayer.source || 'System Generated',
+          accuracy: fireModelLayer.accuracy || 'High',
+          timestamp: new Date().toISOString(),
+          // Add any other relevant metadata from fireModelLayer
+        }
+      });
+
       mapInstance.current.addLayer(vectorLayer);
+      setMapInstance(mapInstance.current)
 
     } catch (error) {
       console.error('Error processing GeoJSON data:', error);
     }
-  }, [fireModelLayer, isMapInitialized]);
+  }, [fireModelLayer, isMapInitialized, addFireModellingLayer]);
 
   useEffect(() => {
     if (!isMapInitialized || !mapInstance.current || !fireLayer) return;
