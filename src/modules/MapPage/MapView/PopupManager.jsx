@@ -48,9 +48,16 @@ const callFireModelAPI = async (fireImageId) => {
   try {
     const response = await fetch(`https://api.igmass.kz/fire/firemodelbyid?id=${fireImageId}`);
     const data = await response.json();
+    const cleanedGeoJSON = {
+      ...data,
+      features: data['features'].map(feature => ({
+        ...feature,
+        type: "Feature"
+      }))
+    };
     // const geojsonStr = JSON.stringify(data, null, 2);
     // console.log('Fire Model API Response:', geojsonStr);
-    return data
+    return cleanedGeoJSON
   } catch (error) {
     console.error('Error calling Fire Model API:', error);
   }
@@ -138,13 +145,13 @@ const usePopupManager = (map, fireLayer) => {
       overlayRef.current.setPosition(coordinate);
       // console.log('Popup position set to:', coordinate);
     } else {
-      // console.warn('Cannot show popup - overlay not ready or invalid coordinate');
+      console.warn('Cannot show popup - overlay not ready or invalid coordinate');
     }
   }, []);
 
   const setupPopupInteractions = useCallback(() => {
     if (!map || !fireLayer) {
-      // console.log('Missing map or fireLayer for popup interactions');
+      console.log('Missing map or fireLayer for popup interactions');
       return () => {};
     }
 

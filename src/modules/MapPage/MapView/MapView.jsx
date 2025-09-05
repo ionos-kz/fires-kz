@@ -3,6 +3,7 @@ import { ToastContainer } from 'react-toastify';
 
 import Map from "ol/Map";
 import View from "ol/View";
+import Overlay from 'ol/Overlay';
 import FullScreen from "ol/control/FullScreen";
 import { defaults as defaultControls } from "ol/control/defaults";
 import TileLayer from 'ol/layer/Tile.js';
@@ -51,6 +52,7 @@ import 'ol-geocoder/dist/ol-geocoder.min.css';
 import 'react-toastify/dist/ReactToastify.css';
 import styles from "./MapView.module.scss";
 import './mapStyles.scss';
+import useFireModellingStore from "../../../app/store/fireModellingStore.js";
 
 const MapView = () => {
   const mapRef = useRef(null);
@@ -161,6 +163,11 @@ const MapView = () => {
       : [];
     console.log(fireRiskLayers.current)
   }, [riskDates])
+
+  const { 
+    addFireModellingLayer, removeFireModellingLayer, fireModellingLayers, 
+    setMapInstance,
+   } = useFireModellingStore.getState();
 
   const sandGeoVectorLayer = new VectorLayer({
     source: new VectorSource({
@@ -696,17 +703,9 @@ const MapView = () => {
     if (!mapInstance.current || !fireModelLayer || !isMapInitialized) return;
 
     try {
-      const cleanedGeoJSON = {
-        ...fireModelLayer,
-        features: fireModelLayer['features'].map(feature => ({
-          ...feature,
-          type: "Feature"
-        }))
-      };
-
       const vectorLayer = new VectorLayer({
         source: new VectorSource({
-          features: new GeoJSON().readFeatures(cleanedGeoJSON, {
+          features: new GeoJSON().readFeatures(fireModelLayer, {
             dataProjection: 'EPSG:4326',
             featureProjection: 'EPSG:3857'
           })
@@ -714,13 +713,101 @@ const MapView = () => {
         style: styleFireModelFunction
       });
 
+      // Create popup overlay
+      const popupElement = document.createElement('div');
+      popupElement.className = 'ol-popup';
+      popupElement.innerHTML = `
+        <a href="#" class="ol-popup-closer"></a>
+        <div class="ol-popup-content"></div>
+      `;
+
+      const overlay = new Overlay({
+        element: popupElement,
+        autoPan: true,
+        autoPanAnimation: {
+          duration: 250,
+        },
+      });
+
+      mapInstance.current.addOverlay(overlay);
+
+      const clickHandler = (evt) => {
+        const feature = mapInstance.current.forEachFeatureAtPixel(
+          evt.pixel,
+          (feature, layer) => {
+            // Only handle features from fire model layer
+            if (layer === vectorLayer) {
+              return feature;
+            }
+          }
+        );
+
+        if (feature) {
+          const coordinate = evt.coordinate;
+          const properties = feature.getProperties();
+          
+          const content = `
+            <div>
+              <h3>Fire Spread Model</h3>
+              <p><strong>Accuracy:</strong> ${fireModelLayer.accuracy || 'High'}</p>
+              <p><strong>Satellite:</strong> ${properties.satellite || 'System Generated'}</p>
+              ${properties.fireimageid ? `<p><strong>fireimageid:</strong> ${properties.fireimageid}</p>` : ''}
+              ${properties.dn ? `<p><strong>Order:</strong> ${properties.dn}</p>` : ''}
+              ${properties['locality_names'] ? `<p><strong>Locality:</strong> ${properties['locality_names']}</p>` : ''}
+            </div>
+          `;
+
+          popupElement.querySelector('.ol-popup-content').innerHTML = content;
+          overlay.setPosition(coordinate);
+
+          // close button functionality
+          popupElement.querySelector('.ol-popup-closer').onclick = function() {
+            overlay.setPosition(undefined);
+            return false;
+          };
+        } else {
+          // Hide popup if clicked outside features
+          overlay.setPosition(undefined);
+        }
+      };
+
+      mapInstance.current.on('singleclick', clickHandler);
+
+      // Store references for cleanup
+      vectorLayer.clickHandler = clickHandler;
+      vectorLayer.overlay = overlay;
+
+      addFireModellingLayer({
+        id: Date.now(),
+        layer: vectorLayer,
+        opacity: 1,
+        visible: true,
+        name: fireModelLayer.name || 'Fire Spread Model',
+        type: fireModelLayer.type || 'Prediction Model',
+        color: '#ff6b6b',
+        metadata: {
+          source: fireModelLayer.source || 'System Generated',
+          accuracy: fireModelLayer.accuracy || 'High',
+          timestamp: new Date().toISOString(),
+        }
+      });
+
       mapInstance.current.addLayer(vectorLayer);
+      setMapInstance(mapInstance.current);
+
+      // Cleanup function
+      return () => {
+        if (mapInstance.current && vectorLayer.clickHandler) {
+          mapInstance.current.un('singleclick', vectorLayer.clickHandler);
+          mapInstance.current.removeOverlay(vectorLayer.overlay);
+        }
+      };
 
     } catch (error) {
       console.error('Error processing GeoJSON data:', error);
     }
-  }, [fireModelLayer, isMapInitialized]);
-
+  }, [fireModelLayer, isMapInitialized, addFireModellingLayer]);
+  
   useEffect(() => {
     if (!isMapInitialized || !mapInstance.current || !fireLayer) return;
 
@@ -835,7 +922,6 @@ const MapView = () => {
           onClose={closePopup} 
         />
       </div>
-
     </div>
   );
 };

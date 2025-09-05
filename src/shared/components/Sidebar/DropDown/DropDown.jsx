@@ -25,6 +25,7 @@ import SentinelControls5 from "./SentinelControls/SentinelControls5";
 import SentinelControls1 from "./SentinelControls/SentinelControls1";
 import FireControls from "./Controls/FireControls/FireControls";
 import FireRisk from "./Controls/FireRisk";
+import FireModelling from "./Controls/FireControls/FireModelling";
 
 const DropDown = memo(({ openTabIndex }) => {
   // Store hooks
@@ -207,6 +208,13 @@ const DropDown = memo(({ openTabIndex }) => {
         case "fire_risk":
           return (
             <FireRisk
+              key={option.id}
+            />
+          );
+
+        case "fire_modelling":
+          return (
+            <FireModelling
               key={option.id}
             />
           );
