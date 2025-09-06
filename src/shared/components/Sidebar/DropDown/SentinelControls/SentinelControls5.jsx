@@ -143,7 +143,7 @@ const SentinelControls5 = () => {
             onClick={handleVisibilityToggle5}
           >
             {sentinel5Visible ? <Eye size={18} /> : <EyeOff size={18} />}
-            <span>Sentinel-5 Layer</span>
+            <span>Sentinel-5 </span>
           </button>
         </div>
       </div>
@@ -161,7 +161,7 @@ const SentinelControls5 = () => {
               onClick={() => setActiveSection("search")}
             >
               <Search size={16} />
-              Search
+              Искать
             </button>
             <button
               className={`${styles.sentinelControls__tab} ${
@@ -171,9 +171,10 @@ const SentinelControls5 = () => {
               }`}
               onClick={() => setActiveSection("results")}
               disabled={searchResults.length === 0}
+              style={{whiteSpace: 'nowrap'}}
             >
               <Database size={16} />
-              Results ({searchResults.length})
+              Результаты ({searchResults.length})
             </button>
             <button
               className={`${styles.sentinelControls__tab} ${
@@ -185,7 +186,7 @@ const SentinelControls5 = () => {
               disabled={activeLayers5.length === 0}
             >
               <Layers size={16} />
-              Layers ({activeLayers5.length})
+              Слои ({activeLayers5.length})
             </button>
           </div>
 
@@ -194,7 +195,7 @@ const SentinelControls5 = () => {
             <div className={styles.sentinelControls__searchSection}>
               <div className={styles.sentinelControls__section}>
                 <label className={styles.sentinelControls__label}>
-                  Opacity: {sentinel5Opacity}%
+                  Прозрачность: {sentinel5Opacity}%
                 </label>
                 <input
                   type="range"
@@ -208,7 +209,7 @@ const SentinelControls5 = () => {
 
               <div className={styles.sentinelControls__section}>
                 <label className={styles.sentinelControls__label}>
-                  Band Combination
+                  Комбинация каналов
                 </label>
                 <select
                   value={selectedBands5}
@@ -227,7 +228,7 @@ const SentinelControls5 = () => {
                 <div className={styles.sentinelControls__dateGroup}>
                   <label className={styles.sentinelControls__label}>
                     <Calendar size={16} />
-                    Start Date
+                    Дата начала
                   </label>
                   <input
                     type="date"
@@ -241,7 +242,7 @@ const SentinelControls5 = () => {
                 <div className={styles.sentinelControls__dateGroup}>
                   <label className={styles.sentinelControls__label}>
                     <Calendar size={16} />
-                    End Date
+                    Дата окончания
                   </label>
                   <input
                     type="date"
@@ -267,7 +268,7 @@ const SentinelControls5 = () => {
                 disabled={isLoading || !startDate || !endDate}
               >
                 <Search size={16} />
-                {isLoading ? "Searching..." : "Search Sentinel-5 Data"}
+                {isLoading ? "Поиск..." : "Поиск данных Sentinel-5"}
               </button>
             </div>
           )}
@@ -310,17 +311,17 @@ const SentinelControls5 = () => {
                         <button
                           className={styles.resultCard__infoBtn}
                           onClick={() => showProductDetails(result)}
-                          title="Show details"
+                          title="Подробнее"
                         >
                           <Info size={14} />
                         </button>
                         <button
                           className={styles.resultCard__addBtn}
                           onClick={() => addToMap(result)}
-                          title="Add to map"
+                          title="Добавить на карту"
                         >
                           <MapPin size={14} />
-                          Add
+                          Добавить
                         </button>
                       </div>
                     </div>
@@ -344,7 +345,7 @@ const SentinelControls5 = () => {
                   disabled={activeLayers5.length === 0}
                 >
                   <Trash2 size={16} />
-                  Clear All ({activeLayers5.length})
+                  Очистить всё ({activeLayers5.length})
                 </button>
               </div>
               <div className={styles.sentinelControls__layersList}>

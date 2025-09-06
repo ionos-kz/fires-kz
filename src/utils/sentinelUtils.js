@@ -219,7 +219,7 @@ export const getSatelliteConfig = (satellite) => {
 // Utility functions
 export const formatDate = (dateString) => {
   if (!dateString) return 'N/A';
-  return new Date(dateString).toLocaleDateString('en-US', {
+  return new Date(dateString).toLocaleDateString('ru-RU', {
     year: 'numeric',
     month: 'short',
     day: 'numeric',
@@ -236,11 +236,11 @@ export const formatFileSize = (bytes) => {
 };
 
 export const getCloudCoverLabel = (cloudCover) => {
-  if (cloudCover == null) return "N/A";
-  if (cloudCover <= 10) return "Excellent";
-  if (cloudCover <= 30) return "Good";
-  if (cloudCover <= 60) return "Fair";
-  return "Poor";
+  if (cloudCover == null) return "Н/Д";
+  if (cloudCover <= 10) return "Отлично";
+  if (cloudCover <= 30) return "Хорошо";
+  if (cloudCover <= 60) return "Удовлетворительно";
+  return "Плохо";
 };
 
 export const getCloudCoverColor = (cloudCover) => {

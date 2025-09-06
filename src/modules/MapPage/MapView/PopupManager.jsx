@@ -232,6 +232,7 @@ const usePopupManager = (map, fireLayer) => {
           const power = feature.get('power') || feature.get('brightness') || '';
           const fireImageId = feature.get('fireimageid') || '';
           const model = feature.get('model') || '';
+          const localitydistance = feature.get('localitydistance') || '';
           
           const confidenceInfo = getConfidenceLabel(confidenceRaw);
           const confidenceBadge = confidenceInfo ? 
@@ -259,7 +260,7 @@ const usePopupManager = (map, fireLayer) => {
           if (confidenceRaw) {
             content += `
               <div class="fire-popup-row">
-                <div class="fire-popup-label">Confidence:</div>
+                <div class="fire-popup-label">Уверенность:</div>
                 <div class="fire-popup-value">${confidenceRaw}</div>
               </div>
             `;
@@ -273,14 +274,53 @@ const usePopupManager = (map, fireLayer) => {
               </div>
             `;
           }
+
+          if (localitydistance) {
+            content += `
+             <div class="fire-popup-row">
+                <div class="fire-popup-label">Расстояние до населённого пункта:</div>
+                <div class="fire-popup-value">${localitydistance} км</div>
+              </div>
+            `;
+          }
+
+          const fieldLabels = {
+            // Основные
+            name:             { ru: "Название", en: "Name" },
+            fireimageid:      { ru: "ID снимка пожара", en: "Fire Image ID" },
+            region:           { ru: "Регион", en: "Region" },
+            regionid:         { ru: "ID региона", en: "Region ID" },
+            model:            { ru: "Модель", en: "Model" },
+
+            // География
+            latitude:         { ru: "Широта", en: "Latitude" },
+            longitude:        { ru: "Долгота", en: "Longitude" },
+
+            // Время
+            ndate:            { ru: "Дата наблюдения", en: "Observation Date" },
+            acq_date:         { ru: "Дата съёмки", en: "Acquisition Date" },
+            acq_time:         { ru: "Время съёмки", en: "Acquisition Time" },
+            load_date:        { ru: "Дата загрузки", en: "Load Date" },
+            datetime:         { ru: "Дата и время", en: "Date/Time" },
+
+            // Спутники
+            satellite:        { ru: "Спутник", en: "Satellite" },
+
+            // Прочее
+            technogenic:      { ru: "Техногенный пожар", en: "Technogenic Fire" },
+            firedep:          { ru: "Пожарная часть", en: "Fire Department" },
+          };
+
+
+          const lang = "ru";
           
           const props = feature.getProperties();
           Object.keys(props).forEach(key => {
-            if (!['name', 'date', 'datetime', 'confidence', 'power', 'brightness', 'geometry'].includes(key) && 
-                props[key] !== undefined && props[key] !== null && props[key] !== '') {
+            if (!['name', 'date', 'datetime', 'confidence', 'power', 'brightness', 'geometry', 'locality', 'model'].includes(key) && props[key] !== undefined && props[key] !== null && props[key] !== '') {
+              const label = fieldLabels[key]?.[lang] || key;
               content += `
                 <div class="fire-popup-row">
-                  <div class="fire-popup-label">${key}:</div>
+                  <div class="fire-popup-label">${label}:</div>
                   <div class="fire-popup-value">${props[key]}</div>
                 </div>
               `;
@@ -290,7 +330,6 @@ const usePopupManager = (map, fireLayer) => {
           content += `
               </div>
               <div class="fire-popup-footer">
-                Fire detection data
                 ${(fireImageId && model) ? `
                   <button 
                     onclick="window.handleFireModelLayer('${fireImageId}')" 
@@ -305,7 +344,7 @@ const usePopupManager = (map, fireLayer) => {
                       font-size: 12px;
                     "
                   >
-                    Get Fire Model Data
+                    Моделировать данные
                   </button>
                 ` : ''}
               </div>

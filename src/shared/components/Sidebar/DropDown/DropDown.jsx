@@ -1,8 +1,6 @@
 import { memo, useEffect, useCallback } from "react";
 import { ChevronDown } from "lucide-react";
 
-import tileList from "./emit_list.json";
-
 import Options from "../Options/Options";
 import { newDD } from "./DropDownData";
 import useFireStore from "src/app/store/fireStore";
@@ -85,22 +83,6 @@ const DropDown = memo(({ openTabIndex }) => {
 
   // console.log(layerVisibility, layerOpacity)
   const satelliteHookData = useSatelliteData();
-
-  useEffect(() => {
-    if (!beginDateEmmit || !endDateEmmit) return;
-
-    const matchingIds = tileList
-      .filter((item) => {
-        const itemDate = dayjs(item.date);
-        return (
-          itemDate.isAfter(dayjs(beginDateEmmit).subtract(1, "day")) &&
-          itemDate.isBefore(dayjs(endDateEmmit).add(1, "day"))
-        );
-      })
-      .map((item) => item.full_string);
-
-    setEmmitLayerIds(matchingIds);
-  }, [beginDateEmmit, endDateEmmit, setEmmitLayerIds]);
 
   const getOpacityValue = useCallback(
     (optionId) => opacityValues[optionId] || 100,

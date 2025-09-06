@@ -384,10 +384,10 @@ const MeasurementTools = ({ map }) => {
           <div className={styles.measureActions}>
             <button 
               className={styles.measureActionButton}
-              aria-label="Clear all measurements"
+              aria-label="Очистить всё measurements"
               disabled={measurementResults.length === 0}
               onClick={clearAllMeasurements}
-              data-tippy-content="Clear All"
+              data-tippy-content="Очистить всё"
               data-tippy-placement="top"
             >
               <Trash2 size={16} />

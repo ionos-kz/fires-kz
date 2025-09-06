@@ -37,10 +37,10 @@ export const newDD = [
         id: 'admin_boundaries',
         label_ru: 'Админстративные границы',
         options: [
-          {
-            id: 'country_boundaries',
-            label: 'Границы Казахстана',
-          },
+          // {
+          //   id: 'country_boundaries',
+          //   label: 'Границы Казахстана',
+          // },
           {
             id: 'region_boundaries',
             label: 'Области Казахстана'
@@ -51,24 +51,24 @@ export const newDD = [
           }
         ]
       },
-      {
-        id: 'kchs_objects',
-        label_ru: 'Объекты КЧС',
-        options: [
-          {
-            id: 'fire_departments',
-            label: 'Пожарные части',
-          },
-          {
-            id: 'hospitals',
-            label: 'Больницы'
-          },
-          {
-            id: 'fire_hydrants',
-            label: 'Пожарные гидранты'
-          }
-        ]
-      }
+      // {
+      //   id: 'kchs_objects',
+      //   label_ru: 'Объекты КЧС',
+      //   options: [
+      //     {
+      //       id: 'fire_departments',
+      //       label: 'Пожарные части',
+      //     },
+      //     {
+      //       id: 'hospitals',
+      //       label: 'Больницы'
+      //     },
+      //     {
+      //       id: 'fire_hydrants',
+      //       label: 'Пожарные гидранты'
+      //     }
+      //   ]
+      // }
     ]
   },
   {
@@ -85,12 +85,12 @@ export const newDD = [
             label: 'Горячие точки',
           },
           {
-            id: 'fire_risk',
-            label: 'Карта пожароопасности',
-          },
-          {
             id: 'fire_modelling',
             label: 'Карта моделирования пожаров',
+          },
+          {
+            id: 'fire_risk',
+            label: 'Карта пожароопасности',
           },
           // {
           //   id: "firm-date"
@@ -105,24 +105,24 @@ export const newDD = [
     items: [
       {
         id: 'satellite',
-        label_ru: 'Satellite images',
+        label_ru: 'Космоснимки',
         isExpanded: true,
         options: [
+           {
+            id: 'sentinel3',
+            label: 'Sentinel-3',
+          },
           {
             id: 'sentinel2',
             label: 'Sentinel-2',
           },
           {
-            id: 'sentinel3',
-            label: 'Sentinel-3',
+            id: 'sentinel1',
+            label: 'Sentinel-1',
           },
           {
             id: 'sentinel5',
             label: 'Sentinel-5',
-          },
-          {
-            id: 'sentinel1',
-            label: 'Sentinel-1',
           },
           // {
           //   id: "firm-date"

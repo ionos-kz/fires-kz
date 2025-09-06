@@ -38,17 +38,19 @@ const LinearDateChooser = ({
   }, [startDate, endDate]);
 
   useEffect(() => {
-    if (scrollRef.current) {
-      const targetDate = selectedStart || new Date();
-      const dateIndex = dateRange.findIndex(date => 
-        date.toDateString() === targetDate.toDateString()
-      );
-      if (dateIndex !== -1) {
-        const scrollPosition = dateIndex * 60 - 200;
-        scrollRef.current.scrollTo({ left: scrollPosition, behavior: 'smooth' });
-      }
+    if (!scrollRef.current) return;
+
+    const targetDate = selectedStart || new Date();
+    const dateIndex = dateRange.findIndex(
+      date => date.toDateString() === targetDate.toDateString()
+    );
+
+    if (dateIndex !== -1) {
+      const scrollPosition = dateIndex * 60 - 200;
+      scrollRef.current.scrollTo({ left: scrollPosition, behavior: 'smooth' });
     }
-  }, [selectedStart, dateRange]);
+  }, []);
+
 
   const handleDateClick = (date) => {
     if (!isSelecting) {
@@ -120,6 +122,20 @@ const LinearDateChooser = ({
     }
   };
 
+  const getDaysInclusive = (start, end) => {
+    const startDate = new Date(start);
+    startDate.setHours(0, 0, 0, 0);
+
+    const endDate = new Date(end);
+    endDate.setHours(0, 0, 0, 0);
+
+    const diffTime = endDate - startDate;
+    return diffTime >= 0 
+      ? Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1
+      : 0;
+  };
+
+
   return (
     <div className="linear-date-chooser-overlay">
       <div className="linear-date-chooser">
@@ -140,7 +156,7 @@ const LinearDateChooser = ({
                 {formatFullDate(selectedStart)} - {formatFullDate(selectedEnd)}
               </span>
               <span className="linear-date-chooser__range-days">
-                ({Math.ceil((selectedEnd - selectedStart) / (1000 * 60 * 60 * 24)) + 1} days)
+                ({getDaysInclusive(selectedStart, selectedEnd)} days)
               </span>
             </div>
           ) : (

@@ -213,7 +213,7 @@ const FireModelling = () => {
             )}
           </div>
           <span className="fire-controls__toggle-label">
-            Fire Modelling
+            Моделирование
           </span>
           <Layers 
             size={16} 
@@ -242,13 +242,12 @@ const FireModelling = () => {
             <div className="fire-controls__section">
               <label className="fire-controls__label">
                 <Layers size={12} />
-                Modelling Layers ({modellingLayers.length})
+                Слои моделирования ({modellingLayers.length})
               </label>
               
               <div className="fire-controls__stats" style={{ maxHeight: '400px', overflowY: 'auto' }}>
                 {modellingLayers.map(layer => (
                   <div key={layer.id} className="fire-modelling__layer-card">
-                    <div className="fire-modelling__layer-header">
                       <div className="fire-modelling__layer-info">
                         <div className="fire-modelling__layer-title">
                           <span className="fire-modelling__layer-name">
@@ -260,7 +259,7 @@ const FireModelling = () => {
                           />
                         </div>
                         <div className="fire-modelling__layer-meta">
-                          Added: {formatTime(layer.addedAt)} • {layer.type}
+                          Добавлено: {formatTime(layer.addedAt)} • {layer.type}
                         </div>
                       </div>
                       
@@ -271,7 +270,7 @@ const FireModelling = () => {
                         <button
                             onClick={() => resetAnimation(layer.id)}
                             className="fire-controls__stat-btn"
-                            title="Reset animation"
+                            title="Сброс анимации"
                         >
                             <SkipBack size={12} />
                         </button>
@@ -282,7 +281,7 @@ const FireModelling = () => {
                                 : startAnimation(layer.id)
                             }
                             className="fire-controls__stat-btn fire-modelling__btn--primary"
-                            title={animatingLayers[layer.id]?.isPlaying ? 'Pause' : 'Play'}
+                            title={animatingLayers[layer.id]?.isPlaying ? 'Воспроизвести' : 'Пауза'}
                         >
                             {animatingLayers[layer.id]?.isPlaying ? <Pause size={12} /> : <Play size={12} />}
                         </button>
@@ -291,7 +290,7 @@ const FireModelling = () => {
                         <button
                         onClick={() => startAnimation(layer.id)}
                         className="fire-controls__stat-btn fire-modelling__btn--primary"
-                        title="Animate layer"
+                        title="Анимировать слой"
                         >
                         <Play size={12} />
                         </button>
@@ -302,7 +301,7 @@ const FireModelling = () => {
                         className={`fire-controls__stat-btn ${
                         layer.visible ? 'fire-modelling__btn--visible' : ''
                         }`}
-                        title={layer.visible ? 'Hide layer' : 'Show layer'}
+                        title={layer.visible ? 'Скрыть слой' : 'Показать слой'}
                     >
                         {layer.visible ? <Eye size={12} /> : <EyeOff size={12} />}
                     </button>
@@ -310,7 +309,7 @@ const FireModelling = () => {
                     <button
                         onClick={() => handleResetLayer(layer.id)}
                         className="fire-controls__stat-btn"
-                        title="Reset layer settings"
+                        title="Сбросить настройки слоя"
                     >
                         <RotateCcw size={12} />
                     </button>
@@ -318,11 +317,10 @@ const FireModelling = () => {
                     <button
                         onClick={() => handleDeleteLayer(layer.id)}
                         className="fire-controls__stat-btn fire-modelling__btn--danger"
-                        title="Delete layer"
+                        title="Удалить слой"
                     >
                         <Trash2 size={12} />
                     </button>
-                    </div>
                     </div>
 
                     {/* Opacity Control */}
@@ -379,19 +377,36 @@ const FireModelling = () => {
                         <div className="fire-modelling__layer-metadata">
                           <div className="fire-controls__label" style={{ marginBottom: '6px' }}>
                             <Info size={10} />
-                            Layer Details
+                            Описание слоя
                           </div>
                           <div className="fire-modelling__metadata-grid">
-                            {Object.entries(layer.metadata).map(([key, value]) => (
-                              <div key={key} className="fire-modelling__metadata-item">
-                                <span className="fire-modelling__metadata-key">
-                                  {key.charAt(0).toUpperCase() + key.slice(1)}:
-                                </span>
-                                <span className="fire-modelling__metadata-value">
-                                  {value}
-                                </span>
-                              </div>
-                            ))}
+                            {Object.entries(layer.metadata).map(([key, value]) => {
+                              let displayValue = value;
+                              if (key.toLowerCase() === "timestamp") {
+                                displayValue = new Date(value).toLocaleDateString("ru-RU", {
+                                  weekday: "short",
+                                  year: "numeric",
+                                  month: "short",
+                                  day: "numeric",
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                });
+                              }
+
+                              return (
+                                <div
+                                  key={key}
+                                  className={`fire-modelling__metadata-item ${
+                                    key.toLowerCase() === "timestamp" ? "fire-modelling__metadata-item--block" : ""
+                                  }`}
+                                >
+                                  <span className="fire-modelling__metadata-key">
+                                    {key.charAt(0).toUpperCase() + key.slice(1)}:
+                                  </span>
+                                  <span className="fire-modelling__metadata-value">{displayValue}</span>
+                                </div>
+                              );
+                            })}
                           </div>
                         </div>
                       )}
@@ -407,9 +422,9 @@ const FireModelling = () => {
             <div className="fire-controls__section">
               <div className="fire-modelling__empty-state">
                 <Layers size={32} className="fire-modelling__empty-icon" />
-                <h4 className="fire-modelling__empty-title">No Modelling Layers</h4>
+                <h4 className="fire-modelling__empty-title">Нет слоёв моделирования</h4>
                 <p className="fire-modelling__empty-description">
-                  Add fire spread models, evacuation zones, or weather analysis layers to get started.
+                  Добавьте модели распространения пожара, чтобы начать работу
                 </p>
               </div>
             </div>
@@ -420,19 +435,19 @@ const FireModelling = () => {
             <div className="fire-controls__stat-header">
               <h4 className="fire-controls__stat-title">
                 <Layers size={14} />
-                Layer Summary
+                Сводка по слоям
               </h4>
             </div>
             
             <div className="fire-controls__stat-grid">
               <div className="fire-controls__stat-item">
-                <span className="fire-controls__stat-label">Total Layers</span>
+                <span className="fire-controls__stat-label">Всего слоёв</span>
                 <span className="fire-controls__stat-value">
                   {modellingLayers.length}
                 </span>
               </div>
               <div className="fire-controls__stat-item">
-                <span className="fire-controls__stat-label">Visible</span>
+                <span className="fire-controls__stat-label">Видимые</span>
                 <span 
                   className="fire-controls__stat-value"
                   style={{ color: '#10b981' }}
@@ -441,7 +456,7 @@ const FireModelling = () => {
                 </span>
               </div>
               <div className="fire-controls__stat-item">
-                <span className="fire-controls__stat-label">Hidden</span>
+                <span className="fire-controls__stat-label">Скрытые</span>
                 <span 
                   className="fire-controls__stat-value"
                   style={{ color: '#6b7280' }}
@@ -449,14 +464,14 @@ const FireModelling = () => {
                   {modellingLayers.filter(layer => !layer.visible).length}
                 </span>
               </div>
-              <div className="fire-controls__stat-item">
+              {/* <div className="fire-controls__stat-item">
                 <span className="fire-controls__stat-label">Avg Opacity</span>
                 <span className="fire-controls__stat-value">
                   {modellingLayers.length > 0 
                     ? Math.round(modellingLayers.reduce((acc, layer) => acc + layer.opacity, 0) / modellingLayers.length * 100)
                     : 0}%
                 </span>
-              </div>
+              </div> */}
             </div>
           </div>
         </div>

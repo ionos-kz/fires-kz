@@ -33,31 +33,31 @@ const SentinelControls = ({ productType }) => {
   const bandOptions = [
     {
       value: "true-color",
-      label: "True Color (RGB)",
+      label: "Естественные цвета (RGB)",
       icon: "🌍",
       description: "Natural color composite",
     },
     {
       value: "false-color",
-      label: "False Color (NIR-R-G)",
+      label: "Ложные цвета (NIR-R-G)",
       icon: "🌿",
       description: "Vegetation analysis",
     },
     {
       value: "ndvi",
-      label: "NDVI (Vegetation)",
+      label: "NDVI (Растительность)",
       icon: "🌱",
       description: "Normalized Difference Vegetation Index",
     },
     {
       value: "ndwi",
-      label: "NDWI (Water)",
+      label: "NDWI (Вода)",
       icon: "💧",
       description: "Water body detection",
     },
     {
       value: "ndbr",
-      label: "NDBR (Burn Ratio)",
+      label: "NDBR (Коэффициент выгорания)",
       icon: "🔥",
       description: "Burn severity mapping",
     },

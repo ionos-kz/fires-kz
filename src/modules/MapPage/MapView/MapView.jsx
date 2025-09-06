@@ -146,6 +146,8 @@ const MapView = () => {
   const [sentinel1Layers, setSentinel1Layers] = useState([]);
 
   const riskDates = useRiskMapStore((state) => state.riskDates);
+  const isRiskMapVisible = useRiskMapStore((state) => state.riskMapVisible);
+
   let fireRiskLayers = useRef(null);
 
   useEffect(() => {
@@ -156,13 +158,22 @@ const MapView = () => {
     fireRiskLayers.current = (riskDatesFormatted && riskDatesFormatted.length > 0)
       ? riskDatesFormatted.map(item => new TileLayer({
           source: new XYZ({
-            url: `https://fires.kz/data/fire_haz/${item}/{z}/{x}/{-y}.png`
+            url: `http://old.fires.kz/data/fire_haz/${item}/{z}/{x}/{-y}.png`
           }),
           visible: true
         }))
       : [];
     console.log(fireRiskLayers.current)
   }, [riskDates])
+
+  // useEffect(() => {
+  //   if (fireRiskLayers.current) {
+  //     fireRiskLayers.current.forEach(layer => {
+  //       layer.setVisible(isRiskMapVisible);
+  //     });
+  //   }
+  // }, [isRiskMapVisible, fireRiskLayers]);
+
 
   const { 
     addFireModellingLayer, removeFireModellingLayer, fireModellingLayers, 
@@ -398,8 +409,36 @@ const MapView = () => {
   }, [activeLayers1])
 
   useEffect(() => {
+    if (!mapInstance.current) return;
+
+    const view = mapInstance.current.getView();
+
+    if (sentinelVisible || sentinel1Visible || sentinel3Visible || sentinel5Visible) {
+      console.log('ss')
+      view.setMinZoom(5.63);
+      
+      if (view.getZoom() < 5.63) {
+        view.setZoom(5.63);
+      }
+    } else {
+      view.setMinZoom(2);
+      view.setMaxZoom(18);
+    }
+  }, [sentinelVisible, sentinel1Visible, sentinel3Visible, sentinel5Visible]);
+
+  useEffect(() => {
+    if (!mapInstance.current || !fireRiskLayers.current) return;
+
+    fireRiskLayers.current.forEach(layer => {
+      layer.setVisible(isRiskMapVisible);
+    });
+  }, [isRiskMapVisible, fireRiskLayers.current]);
+
+
+
+  useEffect(() => {
     if (activeLayers.length === 0 && sentinelLayers.length > 0) {
-      // Clear all sentinel layers
+      // Очистить всё sentinel layers
       sentinelLayers.forEach(layer => {
         mapInstance.current.removeLayer(layer);
       });

@@ -2,8 +2,10 @@
 const formatDate = (date) => date.toISOString().split('T')[0];
 
 const today = new Date();
-const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-const defaultDateStart = formatDate(sevenDaysAgo);
+const yesterday = new Date();
+yesterday.setDate(today.getDate() - 1);
+
+const defaultDateStart = formatDate(yesterday);
 const defaultDateEnd = formatDate(today);
 
 export const createFireSlice = (set, get) => ({

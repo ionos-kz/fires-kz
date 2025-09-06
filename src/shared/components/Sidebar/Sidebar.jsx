@@ -22,7 +22,7 @@ import "tippy.js/dist/tippy.css";
 import styles from "./Sidebar.module.scss";
 
 const sidebarElements = [
-  { id: 0, icon: Waves, tooltip: "Слой по выбросам метана"},
+  // { id: 0, icon: Waves, tooltip: "Слой по выбросам метана"},
   { id: 1, icon: PencilRuler, tooltip: "Инструменты"},
   { id: 2, icon: Flame, tooltip: "Мониторинг пожаров"},
   { id: 3, icon: Satellite, tooltip: "Космические снимки"},
@@ -88,14 +88,14 @@ const Sidebar = memo(() => {
   return (
     <aside className={styles.sidebar}  ref={sidebarRef}>
       <div className={`${styles.menu} ${isMenuOpen && styles.open}`} >
-        {sidebarElements.map((el, index) => {
+        {sidebarElements.map((el) => {
           const Icon = el.icon;
 
           return (
             <div
-              id={`sidebar-tab-` + index}
-              key={index}
-              className={`${styles.tab} ${openTabIndex === index && styles.active}`}
+              id={`sidebar-tab-` + el.id}
+              key={el.id}
+              className={`${styles.tab} ${openTabIndex === el.id && styles.active}`}
               onClick={handleDDMenu}
               data-tippy-content={el.tooltip}
               role="button"

@@ -16,13 +16,14 @@ import useRiskMapStore from 'src/app/store/riskMapStore';
 const FireRisk = () => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [selectedDate, setSelectedDate] = useState('');
-  const [isVisible, setIsVisible] = useState(false);
   const [THISISARRAY, setTHISISARRAY] = useState([]);
   const [isLoadingDates, setIsLoadingDates] = useState(true);
 
   const riskDates = useRiskMapStore((state) => state.riskDates);
   const addDate = useRiskMapStore((state) => state.addDate);
   const removeDate = useRiskMapStore((state) => state.removeDate);
+  const isVisible = useRiskMapStore((state) => state.riskMapVisible);
+  const toggleVisibility = useRiskMapStore((state) => state.toggleRiskMapVisible);
 
   useEffect(() => {
     const fetchFireDates = async () => {
@@ -60,7 +61,7 @@ const FireRisk = () => {
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
+    return date.toLocaleDateString('ru-RU', {
       year: 'numeric',
       month: 'short',
       day: 'numeric'
@@ -69,16 +70,16 @@ const FireRisk = () => {
 
   const getRiskLevel = (dateString) => {
     const month = new Date(dateString).getMonth();
-    if (month >= 5 && month <= 8) return 'High'; // Summer months
-    if (month >= 3 && month <= 4 || month >= 9 && month <= 10) return 'Medium'; // Spring/Fall
-    return 'Low'; // Winter months
+    if (month >= 5 && month <= 8) return 'Высокий'; // Summer months
+    if (month >= 3 && month <= 4 || month >= 9 && month <= 10) return 'Средний'; // Spring/Fall
+    return 'Низкий'; // Winter months
   };
 
   const getRiskColor = (level) => {
     switch(level) {
-      case 'Low': return '#10b981';
-      case 'Medium': return '#f59e0b';
-      case 'High': return '#ef4444';
+      case 'Низкий': return '#10b981';
+      case 'Средний': return '#f59e0b';
+      case 'Высокий': return '#ef4444';
       default: return '#6b7280';
     }
   };
@@ -98,15 +99,11 @@ const FireRisk = () => {
     removeDate(id);
   }, [removeDate]);
 
-  const handleToggleVisibility = useCallback(() => {
-    setIsVisible(!isVisible);
-  }, [isVisible]);
-
   return (
     <div className="fire-controls">
       {/* Main Layer Toggle */}
       <div className="fire-controls__header">
-        <div className="fire-controls__toggle" onClick={handleToggleVisibility}>
+        <div className="fire-controls__toggle" onClick={toggleVisibility}>
           <div className="fire-controls__toggle-icon">
             {isVisible ? (
               <Eye size={16} className="fire-controls__icon-active" />
@@ -115,7 +112,7 @@ const FireRisk = () => {
             )}
           </div>
           <span className="fire-controls__toggle-label">
-            Fire Risk Analysis
+            Карта
           </span>
           <AlertTriangle 
             size={16} 
@@ -140,10 +137,10 @@ const FireRisk = () => {
         <div className="fire-controls__content">
           
           {/* Date Selection */}
-          <div className="fire-controls__section">
+          <div className="fire-controls__section" >
             <label className="fire-controls__label">
               <Calendar size={12} />
-              Select Risk Assessment Date
+              Выберите дату оценки риска
             </label>
             
             <div className="fire-controls__date-inputs">
@@ -155,26 +152,26 @@ const FireRisk = () => {
                 disabled={isLoadingDates}
               >
                 <option value="">
-                  {isLoadingDates ? "Loading dates..." : "Choose a date..."}
+                  {isLoadingDates ? "Загрузка дат..." : "Выберите дату..."}
                 </option>
                 {THISISARRAY.map(date => (
                   <option key={date} value={date}>
-                    {formatDate(date)} - {getRiskLevel(date)} Risk
+                    {formatDate(date)} - {getRiskLevel(date)} Риск
                   </option>
                 ))}
               </select>
               
               <button
                 onClick={handleAddItem}
-                disabled={!selectedDate || riskDates.some(item => item.date === selectedDate)}
+                disabled={!isVisible || !selectedDate || riskDates.some(item => item.date === selectedDate)}
                 className={`fire-controls__update-btn ${
                   selectedDate && !riskDates.some(item => item.date === selectedDate) 
                     ? 'fire-controls__update-btn--active' : ''
                 }`}
-                title="Add risk assessment"
+                title="Добавить оценку риска"
               >
                 <Plus size={14} />
-                Add
+                Показать
               </button>
             </div>
           </div>
@@ -183,7 +180,7 @@ const FireRisk = () => {
             <div className="fire-controls__section">
               <label className="fire-controls__label">
                 <Flame size={12} />
-                Risk Assessment Maps ({riskDates.length})
+                Карты оценки риска ({riskDates.length})
               </label>
               
               <div className="fire-controls__stats" style={{ maxHeight: '200px', overflowY: 'auto' }}>
@@ -208,14 +205,14 @@ const FireRisk = () => {
                         </span>
                       </div>
                       <div className="fire-stats-card__label" style={{ fontSize: '11px' }}>
-                        Added: {new Date(item.addedAt).toLocaleTimeString()}
+                        Добавлено: {new Date(item.addedAt).toLocaleTimeString()}
                       </div>
                     </div>
                     
                     <button
                       onClick={() => handleRemoveItem(item.id)}
                       className="fire-controls__stat-btn"
-                      title="Remove assessment"
+                      title="Удалить оценку"
                       style={{ 
                         minWidth: 'auto',
                         padding: '4px',
@@ -234,7 +231,7 @@ const FireRisk = () => {
             <div className="fire-controls__legend">
               <div className="fire-controls__legend-header">
                 <AlertTriangle size={12} />
-                Risk Scale Legend
+                Легенда шкалы риска
               </div>
               <div className="fire-controls__legend-gradient"></div>
               <div className="fire-controls__legend-labels">
@@ -245,47 +242,7 @@ const FireRisk = () => {
                 <span>100</span>
               </div>
               <div className="fire-controls__legend-description">
-                Risk intensity scale: Green (Low) → Yellow (Moderate) → Orange (High) → Red (Extreme)
-              </div>
-            </div>
-          </div>
-
-          {/* Summary Stats */}
-          <div className="fire-controls__stats">
-            <div className="fire-controls__stat-header">
-              <h4 className="fire-controls__stat-title">
-                <AlertTriangle size={14} />
-                Risk Distribution Summary
-              </h4>
-            </div>
-            
-            <div className="fire-controls__stat-grid">
-              <div className="fire-controls__stat-item">
-                <span className="fire-controls__stat-label">Low Risk</span>
-                <span 
-                  className="fire-controls__stat-value"
-                  style={{ color: getRiskColor('Low') }}
-                >
-                  {riskDates.filter(item => getRiskLevel(item.date) === 'Low').length}
-                </span>
-              </div>
-              <div className="fire-controls__stat-item">
-                <span className="fire-controls__stat-label">Medium Risk</span>
-                <span 
-                  className="fire-controls__stat-value"
-                  style={{ color: getRiskColor('Medium') }}
-                >
-                  {riskDates.filter(item => getRiskLevel(item.date) === 'Medium').length}
-                </span>
-              </div>
-              <div className="fire-controls__stat-item">
-                <span className="fire-controls__stat-label">High Risk</span>
-                <span 
-                  className="fire-controls__stat-value"
-                  style={{ color: getRiskColor('High') }}
-                >
-                  {riskDates.filter(item => getRiskLevel(item.date) === 'High').length}
-                </span>
+                Шкала интенсивности риска: Зелёный (Низкий) → Жёлтый (Умеренный) → Оранжевый (Высокий) → Красный (Экстремальный)
               </div>
             </div>
           </div>

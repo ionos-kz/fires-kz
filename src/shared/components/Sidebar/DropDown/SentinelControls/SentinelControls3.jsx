@@ -147,7 +147,7 @@ const SentinelControls3 = () => {
             onClick={handleVisibilityToggle3}
           >
             {sentinel3Visible ? <Eye size={18} /> : <EyeOff size={18} />}
-            <span>Sentinel-1 Layer</span>
+            <span>Sentinel-1</span>
           </button>
         </div>
       </div>
@@ -165,7 +165,7 @@ const SentinelControls3 = () => {
               onClick={() => setActiveSection("search")}
             >
               <Search size={16} />
-              Search
+              Искать
             </button>
             <button
               className={`${styles.sentinelControls__tab} ${
@@ -175,9 +175,10 @@ const SentinelControls3 = () => {
               }`}
               onClick={() => setActiveSection("results")}
               disabled={searchResults.length === 0}
+              style={{whiteSpace: 'nowrap'}}
             >
               <Database size={16} />
-              Results ({searchResults.length})
+              Результаты ({searchResults.length})
             </button>
             <button
               className={`${styles.sentinelControls__tab} ${
@@ -189,7 +190,7 @@ const SentinelControls3 = () => {
               disabled={activeLayers3.length === 0}
             >
               <Layers size={16} />
-              Layers ({activeLayers3.length})
+              Слои ({activeLayers3.length})
             </button>
           </div>
 
@@ -198,7 +199,7 @@ const SentinelControls3 = () => {
             <div className={styles.sentinelControls__searchSection}>
               <div className={styles.sentinelControls__section}>
                 <label className={styles.sentinelControls__label}>
-                  Opacity: {sentinel3Opacity}%
+                  Прозрачность: {sentinel3Opacity}%
                 </label>
                 <input
                   type="range"
@@ -212,7 +213,7 @@ const SentinelControls3 = () => {
 
               <div className={styles.sentinelControls__section}>
                 <label className={styles.sentinelControls__label}>
-                  Band Combination
+                  Комбинация каналов
                 </label>
                 <select
                   value={selectedBands3}
@@ -231,10 +232,11 @@ const SentinelControls3 = () => {
                 <div className={styles.sentinelControls__dateGroup}>
                   <label className={styles.sentinelControls__label}>
                     <Calendar size={16} />
-                    Start Date
+                    Дата начала
                   </label>
                   <input
                     type="date"
+                    lang="ru"
                     value={startDate}
                     onChange={(e) => setStartDate(e.target.value)}
                     className={styles.sentinelControls__dateInput}
@@ -245,10 +247,11 @@ const SentinelControls3 = () => {
                 <div className={styles.sentinelControls__dateGroup}>
                   <label className={styles.sentinelControls__label}>
                     <Calendar size={16} />
-                    End Date
+                    Дата окончания
                   </label>
                   <input
                     type="date"
+                    lang="ru"
                     value={endDate}
                     onChange={(e) => setEndDate(e.target.value)}
                     className={styles.sentinelControls__dateInput}
@@ -271,7 +274,7 @@ const SentinelControls3 = () => {
                 disabled={isLoading || !startDate || !endDate}
               >
                 <Search size={16} />
-                {isLoading ? "Searching..." : "Search Sentinel-3 Data"}
+                {isLoading ? "Поиск..." : "Поиск данных Sentinel-1"}
               </button>
             </div>
           )}
@@ -314,17 +317,17 @@ const SentinelControls3 = () => {
                         <button
                           className={styles.resultCard__infoBtn}
                           onClick={() => showProductDetails(result)}
-                          title="Show details"
+                          title="Подробнее"
                         >
                           <Info size={14} />
                         </button>
                         <button
                           className={styles.resultCard__addBtn}
                           onClick={() => addToMap(result)}
-                          title="Add to map"
+                          title="Добавить на карту"
                         >
                           <MapPin size={14} />
-                          Add
+                          Добавить
                         </button>
                       </div>
                     </div>
@@ -348,7 +351,7 @@ const SentinelControls3 = () => {
                   disabled={activeLayers3.length === 0}
                 >
                   <Trash2 size={16} />
-                  Clear All ({activeLayers3.length})
+                  Очистить всё ({activeLayers3.length})
                 </button>
               </div>
               <div className={styles.sentinelControls__layersList}>
