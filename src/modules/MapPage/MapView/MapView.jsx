@@ -152,17 +152,33 @@ const MapView = () => {
     const riskDatesFormatted = riskDates.map(item => 
       item.date.replace(/-/g, ".")
     );
-    console.log(riskDatesFormatted)
+    // console.log(riskDatesFormatted)
     fireRiskLayers.current = (riskDatesFormatted && riskDatesFormatted.length > 0)
       ? riskDatesFormatted.map(item => new TileLayer({
           source: new XYZ({
-            url: `https://fires.kz/data/fire_haz/${item}/{z}/{x}/{-y}.png`
+            url: `http://old.fires.kz/data/fire_haz/${item}/{z}/{x}/{-y}.png`
           }),
           visible: true
         }))
       : [];
-    console.log(fireRiskLayers.current)
+    // console.log(fireRiskLayers.current)
   }, [riskDates])
+
+  useEffect(() => {
+    if (!mapInstance.current || !fireRiskLayers.current) return;
+    
+    const currentLayers = mapInstance.current.getLayers().getArray(); // removing existing risk layers
+    currentLayers.forEach(layer => {
+      if (layer.get('layerType') === 'fireRisk') {
+        mapInstance.current.removeLayer(layer);
+      }
+    });
+    
+    fireRiskLayers.current.forEach(layer => {
+      layer.set('layerType', 'fireRisk');
+      mapInstance.current.addLayer(layer);
+    });
+  }, [riskDates, isMapInitialized]);
 
   const { 
     addFireModellingLayer, removeFireModellingLayer, fireModellingLayers, 
@@ -426,6 +442,9 @@ const MapView = () => {
       await fireLayer.loadFireData(fireStartDate, fireEndDate);
 
       fireLayer.setVisible(fireLayerVisible);
+      fireLayer.getLayers().forEach((layer, index) => {
+        layer.setZIndex(1000 + index);
+      });
     } finally {
       setIsLoadingFires(false);
     }
@@ -555,8 +574,7 @@ const MapView = () => {
       layers: [
         basemap, kazBoundary0, kazBoundary1, kazBoundary2, 
         tiffLayer, emitJsonLayer, ...emitLayer, sn2Layer, ...sentinelLayers, 
-        ...sentinel3Layers, ...sentinel5Layers, ...sentinel1Layers,
-        ...fireRiskLayers.current, blanket,
+        ...sentinel3Layers, ...sentinel5Layers, ...sentinel1Layers, blanket,
       ],
       view,
       controls: defaultControls().extend([new FullScreen(), geocoder]),
@@ -654,7 +672,7 @@ const MapView = () => {
       map.un('click', handleClick);
       setIsMapInitialized(false);
     };
-  }, [basemap, blanket, tiffLayer, emitJsonLayer, sn2Layer, riskDates]);
+  }, [basemap, blanket, tiffLayer, emitJsonLayer, sn2Layer]);
 
 
   // Set up popup interactions after map initialized

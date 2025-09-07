@@ -90,6 +90,7 @@ const Sidebar = memo(() => {
       <div className={`${styles.menu} ${isMenuOpen && styles.open}`} >
         {sidebarElements.map((el, index) => {
           const Icon = el.icon;
+          if (el.id === 0) return;
 
           return (
             <div
