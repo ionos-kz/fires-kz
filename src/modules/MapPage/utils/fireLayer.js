@@ -324,6 +324,14 @@ export const createFireLayer = (setFireLength, fireStartDate, fireEndDate, updat
         setFireLength(originalFeatures.length);
       }
     },
+
+    clearTechnogenicFilter: function() {
+      this.removeFilter('technogenic');
+    },
+
+    clearModelFilter: function() {
+      this.removeFilter('model');
+    },
     
     // Specific technogenic filter methods
     showOnlyTechnogenic: function() {
@@ -349,6 +357,37 @@ export const createFireLayer = (setFireLength, fireStartDate, fireEndDate, updat
     
     removeModelFilter: function() {
       this.removeFilter('model');
+    },
+
+    // Region filter methods
+    filterByRegions: function(regions) {
+      if (!regions || regions.length === 0) {
+        this.removeFilter('region');
+      } else {
+        this.addFilter('region', feature => {
+          const featureRegion = feature.get('region') || feature.get('region_ru');
+          return regions.includes(featureRegion);
+        });
+      }
+    },
+
+    removeRegionFilter: function() {
+      this.removeFilter('region');
+    },
+
+    // Check if region filter is active
+    isRegionFilterActive: function() {
+      return currentFilters.some(filter => filter.name === 'region');
+    },
+
+    // Get current region filter values
+    getCurrentRegionFilter: function() {
+      const regionFilter = currentFilters.find(filter => filter.name === 'region');
+      if (!regionFilter) return [];
+      
+      // This is a simplified way to get the active regions
+      // In a real implementation, you might want to store this info differently
+      return [];
     },
     
     // Generic model filter with specific value

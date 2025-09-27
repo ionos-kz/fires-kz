@@ -73,6 +73,7 @@ const MapView = () => {
     setShowTechnogenicOnly,
     showNaturalOnly,
     setSelectedModel,
+    selectedRegions,
     selectedModel
    } = useFireStore();
   const { layerVisibility, layerOpacity } = useAdminBoundaryStore();
@@ -734,7 +735,7 @@ const MapView = () => {
     } else if (showNaturalOnly) {
       fireLayer.showOnlyNatural();
     } else {
-      fireLayer.clearAllFilters();
+      fireLayer.clearTechnogenicFilter();
     }
   }, [showTechnogenicOnly, showNaturalOnly, fireLayer]);
 
@@ -746,9 +747,20 @@ const MapView = () => {
     } else if (selectedModel === 0) {
       fireLayer.showOnlyModel0();
     } else {
-      fireLayer.clearAllFilters();
+      fireLayer.clearModelFilter();
     }
   }, [selectedModel, fireLayer]);
+
+  // Region filtering effect
+  useEffect(() => {
+    if (!fireLayer) return;
+
+    if (selectedRegions.length > 0) {
+      fireLayer.filterByRegions(selectedRegions);
+    } else {
+      fireLayer.removeRegionFilter();
+    }
+  }, [selectedRegions, fireLayer]);
 
   useEffect(() => {
     if (!mapInstance.current || !fireModelLayer || !isMapInitialized) return;

@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
 import useFireStore from "src/app/store/fireStore";
 import { 
   Flame, 
@@ -26,6 +26,7 @@ import {
 import './fireControls.scss';
 import MapFireControls from './MapFireControls/MapFireControls';
 import LinearDateChooser from './LinearDateChooser';
+import { U } from 'ol/renderer/webgl/FlowLayer';
 
 const FireControls = () => {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -33,6 +34,7 @@ const FireControls = () => {
   const [showStats, setShowStats] = useState(false);
   const [isLoadingStats, setIsLoadingStats] = useState(false);
   const [showTimeline, setShowTimeline] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
 
   const handleShowTimeline = useCallback(() => {
     setShowTimeline(true);
@@ -59,6 +61,8 @@ const FireControls = () => {
     firesByRegion,
     newFiresSinceLastDay,
     setShowTechnogenicOnly,
+    selectedRegions,
+    setSelectedRegions,
     setShowNaturalOnly,
     selectedModel,
     setSelectedModel,
@@ -67,6 +71,7 @@ const FireControls = () => {
   const fireData = [];
 
   const [areaTypeFilter, setAreaTypeFilter] = useState("all");
+  console.log(firesByRegion)
 
   const handleAreaTypeFilterChange = (event) => {
     const newValue = event.target.value;
@@ -164,10 +169,10 @@ const FireControls = () => {
     },
     
     weatherConditions: {
-      temperature: 34,
-      humidity: 25,
-      windSpeed: 18,
-      windDirection: 'NE'
+      temperature: 'X',
+      humidity: 'X',
+      windSpeed: 'X',
+      windDirection: 'X'
     },
     
     intensityDistribution: {
@@ -184,7 +189,9 @@ const FireControls = () => {
     }
   }), [fireLength, fireData]);
 
-  // console.log(firesByRegion)
+  useEffect(() => {
+    console.log(fireStats.regionalData)
+  }, [fireStats.regionalData])
 
   const handleToggleLayer = useCallback(() => {
     setFireLayerVisible(!fireLayerVisible);
@@ -194,9 +201,9 @@ const FireControls = () => {
     setFireOpacity(Number(e.target.value));
   }, [setFireOpacity]);
 
-  // const handleIntensityFilterChange = useCallback((e) => {
-  //   setFireIntensityFilter(e.target.value);
-  // }, [setFireIntensityFilter]);
+  useEffect(() => {
+    
+  }, [])
 
   const isWithinRange = (date1, date2) => {
     if (!date1 || !date2) return true;
@@ -328,7 +335,7 @@ const FireControls = () => {
           <div className="fire-controls__content">
             
             {/* Opacity Control */}
-            <div className="fire-controls__section">
+            {/* <div className="fire-controls__section">
               <label className="fire-controls__label">
                 <MapPin size={12} />
                 Opacity: {fireOpacity}%
@@ -343,7 +350,7 @@ const FireControls = () => {
                   className="fire-controls__slider"
                 />
               </div>
-            </div>
+            </div> */}
 
             {/* Date Range */}
             <div className="fire-controls__section">
@@ -395,109 +402,184 @@ const FireControls = () => {
               </div>
             </div>
 
-            {/* Intensity Filter */}
-            {/* <div className="fire-controls__section">
-              <label className="fire-controls__label">
-                <Filter size={12} />
-                Fire Intensity
-              </label>
-              <select
-                value={fireIntensityFilter}
-                onChange={handleIntensityFilterChange}
-                className="fire-controls__select"
+            <div className='fire-controls__filters'>
+              <button
+                className={`fire-controls__update-btn ${!showFilters && 'fire-controls__update-btn--active'}`}
+                title="Show filters"
+                onClick={() => setShowFilters(!showFilters)}
               >
-                <option value="all">All Intensities</option>
-                <option value="low">Low (0-30)</option>
-                <option value="medium">Medium (30-60)</option>
-                <option value="high">High (60-80)</option>
-                <option value="extreme">Extreme (80+)</option>
-              </select>
-            </div> */}
+                <Filter size={14} />
+                Show Filters
+              </button>
 
-            {/* Area Type Filter */}
-            <div className="fire-controls__section">
-              <label className="fire-controls__label">
-                <Filter size={12} />
-                Area Type
-              </label>
+              {showFilters && (
+                <div style={{
+                  width: '100%'
+                }}>
+                  {/* Intensity Filter */}
+                  {/* <div className="fire-controls__section">
+                    <label className="fire-controls__label">
+                      <Filter size={12} />
+                      Fire Intensity
+                    </label>
+                    <select
+                      value={fireIntensityFilter}
+                      onChange={handleIntensityFilterChange}
+                      className="fire-controls__select"
+                    >
+                      <option value="all">All Intensities</option>
+                      <option value="low">Low (0-30)</option>
+                      <option value="medium">Medium (30-60)</option>
+                      <option value="high">High (60-80)</option>
+                      <option value="extreme">Extreme (80+)</option>
+                    </select>
+                  </div> */}
 
-              <div className="fire-controls__radio-group">
-                <label className="fire-controls__radio">
-                  <input
-                    type="radio"
-                    name="areaType"
-                    value="all"
-                    checked={areaTypeFilter === "all"}
-                    onChange={handleAreaTypeFilterChange}
-                  />
-                  All Areas
-                </label>
+                  {/* Area Type Filter */}
+                  <div className="fire-controls__section">
+                    <label className="fire-controls__label">
+                      <Filter size={12} />
+                      Area Type
+                    </label>
 
-                <label className="fire-controls__radio">
-                  <input
-                    type="radio"
-                    name="areaType"
-                    value="nature"
-                    checked={areaTypeFilter === "nature"}
-                    onChange={handleAreaTypeFilterChange}
-                  />
-                  Nature Only
-                </label>
+                    <div className="fire-controls__radio-group">
+                      <label className="fire-controls__radio">
+                        <input
+                          type="radio"
+                          name="areaType"
+                          value="all"
+                          checked={areaTypeFilter === "all"}
+                          onChange={handleAreaTypeFilterChange}
+                        />
+                        All Areas
+                      </label>
 
-                <label className="fire-controls__radio">
-                  <input
-                    type="radio"
-                    name="areaType"
-                    value="urban"
-                    checked={areaTypeFilter === "urban"}
-                    onChange={handleAreaTypeFilterChange}
-                  />
-                  Urban Only
-                </label>
-              </div>
-            </div>
+                      <label className="fire-controls__radio">
+                        <input
+                          type="radio"
+                          name="areaType"
+                          value="nature"
+                          checked={areaTypeFilter === "nature"}
+                          onChange={handleAreaTypeFilterChange}
+                        />
+                        Nature Only
+                      </label>
 
-            {/* Model Filter */}
-            <div className="fire-controls__section">
-              <label className="fire-controls__label">
-                <Filter size={12} />
-                Detection Model
-              </label>
+                      <label className="fire-controls__radio">
+                        <input
+                          type="radio"
+                          name="areaType"
+                          value="urban"
+                          checked={areaTypeFilter === "urban"}
+                          onChange={handleAreaTypeFilterChange}
+                        />
+                        Urban Only
+                      </label>
+                    </div>
+                  </div>
 
-              <div className="fire-controls__radio-group">
-                <label className="fire-controls__radio">
-                  <input
-                    type="radio"
-                    name="modelType"
-                    value="all"
-                    checked={selectedModel === null}
-                    onChange={() => setSelectedModel(null)}
-                  />
-                  All Models
-                </label>
+                  {/* Model Filter */}
+                  <div className="fire-controls__section">
+                    <label className="fire-controls__label">
+                      <Filter size={12} />
+                      Detection Model
+                    </label>
 
-                <label className="fire-controls__radio">
-                  <input
-                    type="radio"
-                    name="modelType"
-                    value="model0"
-                    checked={selectedModel === 0}
-                    onChange={() => setSelectedModel(0)}
-                  />
-                  Model 0
-                </label>
+                    <div className="fire-controls__radio-group">
+                      <label className="fire-controls__radio">
+                        <input
+                          type="radio"
+                          name="modelType"
+                          value="all"
+                          checked={selectedModel === null}
+                          onChange={() => setSelectedModel(null)}
+                        />
+                        All Models
+                      </label>
 
-                <label className="fire-controls__radio">
-                  <input
-                    type="radio"
-                    name="modelType"
-                    value="model1"
-                    checked={selectedModel === 1}
-                    onChange={() => setSelectedModel(1)}
-                  />
-                  Model 1
-                </label>
-              </div>
+                      <label className="fire-controls__radio">
+                        <input
+                          type="radio"
+                          name="modelType"
+                          value="model0"
+                          checked={selectedModel === 0}
+                          onChange={() => setSelectedModel(0)}
+                        />
+                        Model 0
+                      </label>
+
+                      <label className="fire-controls__radio">
+                        <input
+                          type="radio"
+                          name="modelType"
+                          value="model1"
+                          checked={selectedModel === 1}
+                          onChange={() => setSelectedModel(1)}
+                        />
+                        Model 1
+                      </label>
+                    </div>
+                  </div>
+
+                  {/* Region Filter */}
+                  <div className="fire-controls__section">
+                    <label className="fire-controls__label">
+                      <Filter size={12} />
+                      Region Filter
+                    </label>
+
+                    <div className="fire-controls__multi-select">
+                      <div className="fire-controls__selected-regions">
+                        {selectedRegions.length === 0 ? (
+                          <span className="fire-controls__placeholder">All Regions</span>
+                        ) : (
+                          selectedRegions.map(region => (
+                            <span key={region} className="fire-controls__selected-tag">
+                              {region}
+                              <button
+                                onClick={() => {
+                                  const newRegions = selectedRegions.filter(r => r !== region);
+                                  setSelectedRegions(newRegions);
+                                }}
+                                className="fire-controls__tag-remove"
+                              >
+                                <X size={10} />
+                              </button>
+                            </span>
+                          ))
+                        )}
+                      </div>
+                      
+                      {Object.keys(firesByRegion).length > 0 && (
+                        <div className="fire-controls__region-options">
+                          {Object.entries(firesByRegion).map(([region, count]) => {
+                            const isSelected = selectedRegions.includes(region);
+                            return (
+                              <label key={region} className="fire-controls__checkbox">
+                                <input
+                                  type="checkbox"
+                                  checked={isSelected}
+                                  onChange={(e) => {
+                                    if (e.target.checked) {
+                                      setSelectedRegions([...selectedRegions, region]);
+                                    } else {
+                                      setSelectedRegions(selectedRegions.filter(r => r !== region));
+                                    }
+                                  }}
+                                />
+                                <span className="fire-controls__checkbox-label">
+                                  {region} ({count})
+                                </span>
+                              </label>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                </div>
+              )}
             </div>
 
             {/* Stats Display */}

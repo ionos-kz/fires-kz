@@ -8,8 +8,6 @@ import Stroke from "ol/style/Stroke";
 import {bbox as bboxStrategy} from 'ol/loadingstrategy';
 import { useLayersStore } from "../../../app/store/layersStore";
 
-import layersList from "./layersList.json";
-
 export const createBlanketLayer = () => {
   return new VectorLayer({
     declutter: true,
