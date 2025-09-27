@@ -31,7 +31,7 @@ export const newDD = [
   },
   {
     id: 1,
-    key: 'tools',
+    key: 'add_layers',
     items: [
       {
         id: 'admin_boundaries',
@@ -58,15 +58,43 @@ export const newDD = [
           {
             id: 'fire_departments',
             label: 'Пожарные части',
+            layerType: 'Point'
           },
           {
             id: 'hospitals',
-            label: 'Больницы'
+            label: 'Больницы',
+            layerType: 'Point'
           },
           {
             id: 'fire_hydrants',
-            label: 'Пожарные гидранты'
-          }
+            label: 'Пожарные гидранты',
+            layerType: 'Point'
+          },
+          {
+            id: 'ava_ss',
+            label: 'Аварийно-спасательная служба',
+            layerType: 'Point'
+          },
+          {
+            id: 'kaz_avia',
+            label: 'КазАвиаСпас',
+            layerType: 'Point'
+          },
+          {
+            id: 'oso',
+            label: 'Объекты ОСО',
+            layerType: 'Point'
+          },
+          {
+            id: 'ps',
+            label: 'Пункты сбора',
+            layerType: 'Point'
+          },
+          {
+            id: 'fire_trains',
+            label: 'Пожарные поезда',
+            layerType: 'Point'
+          },
         ]
       }
     ]

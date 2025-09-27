@@ -1,14 +1,14 @@
 export const createAdminBoundarySlice = (set, get) => ({
     layerVisibility: {
-        adminBoundary1: false,
-        adminBoundary2: false,
-        adminBoundary3: false,
+        country_boundaries: false,
+        region_boundaries: false,
+        district_boundaries: false,
     },
   
     layerOpacity: {
-        adminBoundary1: 1.0,
-        adminBoundary2: 1.0,
-        adminBoundary3: 1.0,
+        country_boundaries: 0.1,
+        region_boundaries: 1.0,
+        district_boundaries: 1.0,
     },
 
     changeBoundaryVisibility: (level) =>
@@ -23,7 +23,7 @@ export const createAdminBoundarySlice = (set, get) => ({
         set((state) => ({
             layerVisibility: {
                 ...state.layerVisibility,
-                adminBoundary1: !state.layerVisibility.adminBoundary1
+                country_boundaries: !state.layerVisibility.country_boundaries
             }
         })),
 
@@ -31,7 +31,7 @@ export const createAdminBoundarySlice = (set, get) => ({
         set((state) => ({
             layerVisibility: {
                 ...state.layerVisibility,
-                adminBoundary2: !state.layerVisibility.adminBoundary2
+                region_boundaries: !state.layerVisibility.region_boundaries
             }
         })),
 
@@ -39,7 +39,7 @@ export const createAdminBoundarySlice = (set, get) => ({
         set((state) => ({
             layerVisibility: {
                 ...state.layerVisibility,
-                adminBoundary3: !state.layerVisibility.adminBoundary3
+                district_boundaries: !state.layerVisibility.district_boundaries
             }
         })),
 
@@ -51,20 +51,28 @@ export const createAdminBoundarySlice = (set, get) => ({
             }
         })),
 
+    changeOpacity: (layerId, newValue) =>
+        set((state) => ({
+            layerOpacity: {
+                ...state.layerOpacity,
+                [layerId]: newValue
+            }
+        })),
+
     resetLayerSettings: () =>
         set({
             layerVisibility: {
                 adminBoundary0: false,
-                adminBoundary1: false,
-                adminBoundary2: false,
-                adminBoundary3: false,
+                country_boundaries: false,
+                region_boundaries: false,
+                district_boundaries: false,
                 adminBoundary4: false,
             },
             layerOpacity: {
                 adminBoundary0: 1.0,
-                adminBoundary1: 1.0,
-                adminBoundary2: 1.0,
-                adminBoundary3: 1.0,
+                country_boundaries: 1.0,
+                region_boundaries: 1.0,
+                district_boundaries: 1.0,
                 adminBoundary4: 1.0,
             },
         }),

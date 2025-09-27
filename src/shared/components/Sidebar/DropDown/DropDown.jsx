@@ -26,12 +26,11 @@ import SentinelControls1 from "./SentinelControls/SentinelControls1";
 import FireControls from "./Controls/FireControls/FireControls";
 import FireRisk from "./Controls/FireRisk";
 import FireModelling from "./Controls/FireControls/FireModelling";
+import { useLayersStore } from "../../../../app/store/layersStore";
 
 const DropDown = memo(({ openTabIndex }) => {
   // Store hooks
   const {
-    opacityValues,
-    setOpacityValue,
     toggleStates,
     toggleOption,
     expandedItems,
@@ -81,9 +80,11 @@ const DropDown = memo(({ openTabIndex }) => {
     changeFirst,
     changeSecond,
     changeThird,
+    changeOpacity
   } = useAdminBoundaryStore();
 
-  // console.log(layerVisibility, layerOpacity)
+  const { layers, updateLayer, changeVisibility } = useLayersStore();
+
   const satelliteHookData = useSatelliteData();
 
   useEffect(() => {
@@ -103,17 +104,51 @@ const DropDown = memo(({ openTabIndex }) => {
   }, [beginDateEmmit, endDateEmmit, setEmmitLayerIds]);
 
   const getOpacityValue = useCallback(
-    (optionId) => opacityValues[optionId] || 100,
-    [opacityValues]
+    (optionId) => {
+      // Check if layer from useLayersStore
+      const layer = layers.find(l => l.id === optionId);
+      if (layer) {
+        return layer.opacity || 1;
+      }
+      return layerOpacity[optionId];
+    },
+    [layerOpacity, layers]
   );
+
   const getToggleState = useCallback(
-    (optionId) => toggleStates[optionId] || false,
-    [toggleStates]
+    (optionId) => {
+      // Check if layer from useLayersStore
+      const layer = layers.find(l => l.id === optionId);
+      if (layer) {
+        return layer.visible;
+      }
+      return toggleStates[optionId] || false;
+    },
+    [toggleStates, layers]
+  );
+
+  const handleOpacityValue = useCallback(
+    (optionId, value) => {
+      // Check if layer from useLayersStore
+      const layer = layers.find(l => l.id === optionId);
+      if (layer) {
+        updateLayer(optionId, { opacity: value });
+      } else {
+        changeOpacity(optionId, value);
+      }
+    },
+    [layers, updateLayer, changeOpacity]
   );
 
   const handleToggleChange = useCallback(
     (optionId) => {
-      if (optionId === "fire_pinpoints") setFireLayerVisible();
+      const layer = layers.find(l => l.id === optionId);
+      if (layer) {
+        changeVisibility(optionId);
+        console.log(optionId)
+        return;
+      }
+
       if (optionId === "country_boundaries") {
         changeFirst();
       } else if (optionId === "region_boundaries") {
@@ -121,9 +156,10 @@ const DropDown = memo(({ openTabIndex }) => {
       } else if (optionId === "district_boundaries") {
         changeThird();
       }
+      
       toggleOption(optionId);
     },
-    [setFireLayerVisible, toggleOption]
+    [layers, changeVisibility, changeFirst, changeSecond, changeThird, toggleOption]
   );
 
   const renderOption = useCallback(
@@ -219,29 +255,16 @@ const DropDown = memo(({ openTabIndex }) => {
             />
           );
 
-        // case "boundaries":
-        //   console.log(option.types)
-        //   return (
-        //     <AdministrativeBoundaries
-        //       key={option.id}
-        //       option={option}
-        //       getToggleState={getToggleState}
-        //       handleToggleChange={handleToggleChange}
-        //       getOpacityValue={getOpacityValue}
-        //       setOpacityValue={setOpacityValue}
-
-        //     />
-        //   )
-
         default:
           return (
             <Options
               key={option.id}
+              isOpacityOn={option.layerType}
               option={option}
               getToggleState={getToggleState}
               handleToggleChange={handleToggleChange}
               getOpacityValue={getOpacityValue}
-              setOpacityValue={setOpacityValue}
+              setOpacityValue={handleOpacityValue}
             />
           );
       }
@@ -268,7 +291,7 @@ const DropDown = memo(({ openTabIndex }) => {
       getToggleState,
       handleToggleChange,
       getOpacityValue,
-      setOpacityValue,
+      handleOpacityValue,
     ]
   );
 

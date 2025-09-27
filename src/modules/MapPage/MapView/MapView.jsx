@@ -25,17 +25,18 @@ import MeasurementTools from "./MeasurementTools.jsx";
 import FirePopup from './FirePopup.jsx';
 import usePopupManager from './PopupManager.jsx';
 
-import { getMapStateFromHash, updateMapStateInHash } from "../utils/mapState.js";
 import { DEFAULT_POSITION } from "../utils/mapConstants.js";
-import { createAdminBoundary, createBlanketLayer } from "../utils/layers.js";
+import { createAdminBoundary, createBlanketLayer, createEmergencyLayers } from "../utils/layers.js";
 import { createFireLayer } from "../utils/fireLayer.js";
+import { createSentinelLayer } from "src/utils/sentinelUtils.js";
+
+import { getMapStateFromHash, updateMapStateInHash } from "../utils/mapState.js";
 import { createContextMenu } from "../utils/contextMenu.js";
 import { handleFullScreenChange } from "../utils/fullScreen.js";
 import { osmLayer } from "../utils/basemaps.js";
 import { createGeocoder } from "../utils/geocoder.js";
 import { flyHome } from "../utils/flyHome.js";
 import { styleFireModelFunction } from "../utils/colorFireModel.js";
-import { createSentinelLayer } from "src/utils/sentinelUtils.js";
 
 import useFireStore from "src/app/store/fireStore";
 import useAdminBoundaryStore from "src/app/store/adminBoundaryStore.js";
@@ -46,13 +47,14 @@ import useSentinel1Store from "../../../app/store/sentinel1Store.js";
 import useMethaneStore from "src/app/store/methaneStore";
 import useRiskMapStore from "../../../app/store/riskMapStore.js";
 import useMapStore from "../../../app/store/mapStore.js";
+import useFireModellingStore from "../../../app/store/fireModellingStore.js";
+import { useLayersStore } from "../../../app/store/layersStore.js";
 
 import "ol/ol.css";
 import 'ol-geocoder/dist/ol-geocoder.min.css';
 import 'react-toastify/dist/ReactToastify.css';
 import styles from "./MapView.module.scss";
 import './mapStyles.scss';
-import useFireModellingStore from "../../../app/store/fireModellingStore.js";
 
 const MapView = () => {
   const mapRef = useRef(null);
@@ -73,7 +75,7 @@ const MapView = () => {
     setSelectedModel,
     selectedModel
    } = useFireStore();
-  const { layerVisibility } = useAdminBoundaryStore();
+  const { layerVisibility, layerOpacity } = useAdminBoundaryStore();
   const { fireModelLayer } = useMapStore()
 
   const blanket = useMemo(() => createBlanketLayer(), []);
@@ -147,6 +149,8 @@ const MapView = () => {
 
   const riskDates = useRiskMapStore((state) => state.riskDates);
   let fireRiskLayers = useRef(null);
+  
+  const { layers } = useLayersStore();
 
   useEffect(() => {
     const riskDatesFormatted = riskDates.map(item => 
@@ -451,20 +455,36 @@ const MapView = () => {
   }, [fireLayer, fireLayerVisible]);
 
   
-  const kazBoundary0 = useMemo(() => createAdminBoundary('1', layerVisibility.adminBoundary1), []);
-  useEffect(() => {
-    kazBoundary0.setVisible(layerVisibility.adminBoundary1)
-  }, [layerVisibility.adminBoundary1])
+  const kazBoundary0 = useMemo(() => createAdminBoundary('1', layerVisibility.country_boundaries), []);
 
-  const kazBoundary1 = useMemo(() => createAdminBoundary('2', layerVisibility.adminBoundary2), []);
   useEffect(() => {
-    kazBoundary1.setVisible(layerVisibility.adminBoundary2)
-  }, [layerVisibility.adminBoundary2])
+    kazBoundary0.setVisible(layerVisibility.country_boundaries);
+    kazBoundary0.setOpacity(layerOpacity.country_boundaries ?? 1);
+  }, [kazBoundary0, layerVisibility.country_boundaries, layerOpacity.country_boundaries]);
 
-  const kazBoundary2 = useMemo(() => createAdminBoundary('3', layerVisibility.adminBoundary3), []);
+  const kazBoundary1 = useMemo(() => createAdminBoundary('2', layerVisibility.region_boundaries), []);
   useEffect(() => {
-    kazBoundary2.setVisible(layerVisibility.adminBoundary3)
-  }, [layerVisibility.adminBoundary3])
+    kazBoundary1.setVisible(layerVisibility.region_boundaries)
+    kazBoundary1.setOpacity(layerOpacity.region_boundaries ?? 1);
+  }, [kazBoundary1, layerVisibility.region_boundaries, layerOpacity.region_boundaries])
+
+  const kazBoundary2 = useMemo(() => createAdminBoundary('3', layerVisibility.district_boundaries), []);
+  useEffect(() => {
+    kazBoundary2.setVisible(layerVisibility.district_boundaries)
+    kazBoundary2.setOpacity(layerOpacity.district_boundaries ?? 1);
+  }, [kazBoundary2, layerVisibility.district_boundaries, layerOpacity.district_boundaries])
+
+  const emergencyLayers = useMemo(() => createEmergencyLayers(), []);
+  useEffect(() => {
+    emergencyLayers.forEach(layer => {
+      const id = layer.get('id');
+      const obj = layers.find(i => i.id === id);
+      console.log(obj)
+      if (obj) {
+        layer.setVisible(obj.visible);
+      }
+    });
+  }, [emergencyLayers, layers]);
 
   useEffect(() => {
     sentinelLayers.forEach(layer => {
@@ -549,6 +569,19 @@ const MapView = () => {
       // console.log('Cleared all Sentinel-5 layers');
     }
   }, [activeLayers5.length, sentinel5Layers]);
+
+  useEffect(() => {
+    if (!mapRef.current?.map) return;
+    const map = mapRef.current.map;
+
+    layers.forEach((cfg, i) => {
+      const layer = map.getLayers().item(i);
+      if (layer) {
+        layer.setVisible(cfg.visible);
+        layer.setOpacity(cfg.opacity);
+      }
+    });
+  }, [layers]);
   
 
   useEffect(() => {
@@ -574,7 +607,7 @@ const MapView = () => {
       layers: [
         basemap, kazBoundary0, kazBoundary1, kazBoundary2, 
         tiffLayer, emitJsonLayer, ...emitLayer, sn2Layer, ...sentinelLayers, 
-        ...sentinel3Layers, ...sentinel5Layers, ...sentinel1Layers, blanket,
+        ...sentinel3Layers, ...sentinel5Layers, ...sentinel1Layers, blanket, ...emergencyLayers
       ],
       view,
       controls: defaultControls().extend([new FullScreen(), geocoder]),

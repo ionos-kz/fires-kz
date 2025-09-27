@@ -11,7 +11,6 @@ const AdministrativeBoundaries = ({
 
 }) => {
   return (
-    
     <div key={key} className={styles.dropdown__option}>
       <div className={styles.dropdown__up}>
         <div className={styles.dropdown__left}>
