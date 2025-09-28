@@ -15,7 +15,6 @@ import Stroke from 'ol/style/Stroke.js';
 import Style from 'ol/style/Style.js';
 
 import styles from './MeasurementTools.module.scss';
-import { remove } from 'ol/array';
 
 const MeasurementTools = ({ map }) => {
   const [showToolOptions, setShowToolOptions] = useState(false);

@@ -1,19 +1,19 @@
 import { useRef, useState, useEffect, useCallback } from "react";
-import Overlay from 'ol/Overlay';
-import useMapStore from "../../../app/store/mapStore";
+import Overlay from "ol/Overlay";
+import useMapStore from "../../../../app/store/mapStore";
 
 const formatDate = (dateStr) => {
-  if (!dateStr) return '';
+  if (!dateStr) return "";
   try {
     const date = new Date(dateStr);
     if (isNaN(date)) return dateStr;
-    return date.toLocaleDateString('kz-KZ', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
+    return date.toLocaleDateString("kz-KZ", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
     });
   } catch {
     return dateStr;
@@ -22,62 +22,64 @@ const formatDate = (dateStr) => {
 
 const getConfidenceLabel = (confidence) => {
   if (!confidence) return null;
-  
+
   const confValue = parseFloat(confidence);
   if (isNaN(confValue)) {
-    if (typeof confidence === 'string') {
+    if (typeof confidence === "string") {
       const lower = confidence.toLowerCase();
-      if (lower.includes('high')) return ['high', 'High'];
-      if (lower.includes('med')) return ['medium', 'Medium'];
-      if (lower.includes('low')) return ['low', 'Low'];
+      if (lower.includes("high")) return ["high", "High"];
+      if (lower.includes("med")) return ["medium", "Medium"];
+      if (lower.includes("low")) return ["low", "Low"];
     }
     return null;
   }
-  
-  if (confValue >= 80) return ['high', 'High'];
-  if (confValue >= 50) return ['medium', 'Medium'];
-  return ['low', 'Low'];
+
+  if (confValue >= 80) return ["high", "High"];
+  if (confValue >= 50) return ["medium", "Medium"];
+  return ["low", "Low"];
 };
 
 const callFireModelAPI = async (fireImageId) => {
   if (!fireImageId) {
-    console.log('No fireimageid available for API call');
+    console.log("No fireimageid available for API call");
     return;
   }
-  
+
   try {
-    const response = await fetch(`https://api.igmass.kz/fire/firemodelbyid?id=${fireImageId}`);
+    const response = await fetch(
+      `https://api.igmass.kz/fire/firemodelbyid?id=${fireImageId}`
+    );
     const data = await response.json();
     const cleanedGeoJSON = {
       ...data,
-      features: data['features'].map(feature => ({
+      features: data["features"].map((feature) => ({
         ...feature,
-        type: "Feature"
-      }))
+        type: "Feature",
+      })),
     };
     // const geojsonStr = JSON.stringify(data, null, 2);
     // console.log('Fire Model API Response:', geojsonStr);
-    return cleanedGeoJSON
+    return cleanedGeoJSON;
   } catch (error) {
-    console.error('Error calling Fire Model API:', error);
+    console.error("Error calling Fire Model API:", error);
   }
 };
 
 const usePopupManager = (map, fireLayer) => {
   const popupRef = useRef();
-  const [popupContent, setPopupContent] = useState('');
+  const [popupContent, setPopupContent] = useState("");
   const overlayRef = useRef(null);
   const [isOverlayReady, setIsOverlayReady] = useState(false);
-  const { setFireModelLayer } = useMapStore()
+  const { setFireModelLayer } = useMapStore();
 
   const handleFireModelLayer = async (fireImageId) => {
     const modelLayer = await callFireModelAPI(fireImageId);
-    setFireModelLayer(modelLayer)
-  }
+    setFireModelLayer(modelLayer);
+  };
 
   useEffect(() => {
     // console.log('usePopupManager useEffect - map:', !!map, 'popupRef.current:', !!popupRef.current);
-    
+
     if (!map || !popupRef.current) {
       // console.log('Missing map or popupRef, skipping overlay creation');
       return;
@@ -95,7 +97,7 @@ const usePopupManager = (map, fireLayer) => {
         duration: 250,
       },
     });
-    
+
     overlayRef.current = overlay;
     map.addOverlay(overlay);
     setIsOverlayReady(true);
@@ -120,11 +122,11 @@ const usePopupManager = (map, fireLayer) => {
           duration: 250,
         },
       });
-      
+
       overlayRef.current = overlay;
       map.addOverlay(overlay);
       setIsOverlayReady(true);
-      console.log('Overlay created after popup element ready');
+      console.log("Overlay created after popup element ready");
     }
   }, [map, popupRef.current]);
 
@@ -137,7 +139,7 @@ const usePopupManager = (map, fireLayer) => {
     }
     return false;
   }, []);
-  
+
   const showPopup = useCallback((coordinate, content) => {
     // console.log('showPopup called with:', { coordinate, content, overlay: !!overlayRef.current });
     if (overlayRef.current && coordinate) {
@@ -145,13 +147,15 @@ const usePopupManager = (map, fireLayer) => {
       overlayRef.current.setPosition(coordinate);
       // console.log('Popup position set to:', coordinate);
     } else {
-      console.warn('Cannot show popup - overlay not ready or invalid coordinate');
+      console.warn(
+        "Cannot show popup - overlay not ready or invalid coordinate"
+      );
     }
   }, []);
 
   const setupPopupInteractions = useCallback(() => {
     if (!map || !fireLayer) {
-      console.log('Missing map or fireLayer for popup interactions');
+      console.log("Missing map or fireLayer for popup interactions");
       return () => {};
     }
 
@@ -159,35 +163,35 @@ const usePopupManager = (map, fireLayer) => {
 
     const handlePointerMove = (evt) => {
       if (evt.dragging) return;
-      
+
       const pixel = map.getEventPixel(evt.originalEvent);
       const hit = map.hasFeatureAtPixel(pixel, {
-        layerFilter: layer => {
-          return fireLayer.containsLayer ? 
-            fireLayer.containsLayer(layer) : 
-            fireLayer.getLayers().includes(layer);
-        }
+        layerFilter: (layer) => {
+          return fireLayer.containsLayer
+            ? fireLayer.containsLayer(layer)
+            : fireLayer.getLayers().includes(layer);
+        },
       });
-      
-      map.getTargetElement().style.cursor = hit ? 'pointer' : '';
+
+      map.getTargetElement().style.cursor = hit ? "pointer" : "";
     };
 
     const handleFirePopupClick = (evt) => {
       closePopup();
-      
+
       // Check if clicked on fire feature
       let foundFeature = false;
-      
+
       map.forEachFeatureAtPixel(evt.pixel, (feature, layer) => {
-        const isFireLayer = fireLayer.containsLayer ? 
-                          fireLayer.containsLayer(layer) : 
-                          fireLayer.getLayers().includes(layer);
-        
+        const isFireLayer = fireLayer.containsLayer
+          ? fireLayer.containsLayer(layer)
+          : fireLayer.getLayers().includes(layer);
+
         if (!foundFeature && isFireLayer) {
           // console.log('Found fire feature:', feature, 'on layer:', layer);
-          
+
           if (layer === fireLayer.clusterLayer) {
-            const features = feature.get('features');
+            const features = feature.get("features");
             if (features && features.length > 0) {
               if (features.length > 1) {
                 const coordinate = evt.coordinate;
@@ -201,13 +205,21 @@ const usePopupManager = (map, fireLayer) => {
                     <div class="fire-popup-content">
                       <div class="fire-popup-row">
                         <div class="fire-popup-label">Count:</div>
-                        <div class="fire-popup-value">${features.length} fire points</div>
+                        <div class="fire-popup-value">${
+                          features.length
+                        } fire points</div>
                       </div>
                       <div class="fire-popup-row">
                         <div class="fire-popup-label">Date Range:</div>
                         <div class="fire-popup-value">
-                          ${formatDate(features[0].get('date') || features[0].get('datetime'))} - 
-                          ${formatDate(features[features.length-1].get('date') || features[features.length-1].get('datetime'))}
+                          ${formatDate(
+                            features[0].get("date") ||
+                              features[0].get("datetime")
+                          )} - 
+                          ${formatDate(
+                            features[features.length - 1].get("date") ||
+                              features[features.length - 1].get("datetime")
+                          )}
                         </div>
                       </div>
                     </div>
@@ -223,20 +235,23 @@ const usePopupManager = (map, fireLayer) => {
               feature = features[0];
             }
           }
-          
+
           const coordinate = evt.coordinate;
-          
-          const name = feature.get('name') || 'Unnamed Fire';
-          const date = formatDate(feature.get('date') || feature.get('datetime') || '');
-          const confidenceRaw = feature.get('confidence') || '';
-          const power = feature.get('power') || feature.get('brightness') || '';
-          const fireImageId = feature.get('fireimageid') || '';
-          const model = feature.get('model') || '';
-          
+
+          const name = feature.get("name") || "Unnamed Fire";
+          const date = formatDate(
+            feature.get("date") || feature.get("datetime") || ""
+          );
+          const confidenceRaw = feature.get("confidence") || "";
+          const power = feature.get("power") || feature.get("brightness") || "";
+          const fireImageId = feature.get("fireimageid") || "";
+          const model = feature.get("model") || "";
+
           const confidenceInfo = getConfidenceLabel(confidenceRaw);
-          const confidenceBadge = confidenceInfo ? 
-            `<span class="confidence-badge confidence-${confidenceInfo[0]}">${confidenceInfo[1]}</span>` : '';
-          
+          const confidenceBadge = confidenceInfo
+            ? `<span class="confidence-badge confidence-${confidenceInfo[0]}">${confidenceInfo[1]}</span>`
+            : "";
+
           let content = `
             <div class="fire-popup">
               <div class="fire-popup-header">
@@ -246,7 +261,7 @@ const usePopupManager = (map, fireLayer) => {
               </div>
               <div class="fire-popup-content">
           `;
-          
+
           if (date) {
             content += `
               <div class="fire-popup-row">
@@ -255,7 +270,7 @@ const usePopupManager = (map, fireLayer) => {
               </div>
             `;
           }
-          
+
           if (confidenceRaw) {
             content += `
               <div class="fire-popup-row">
@@ -264,7 +279,7 @@ const usePopupManager = (map, fireLayer) => {
               </div>
             `;
           }
-          
+
           if (power) {
             content += `
               <div class="fire-popup-row">
@@ -273,11 +288,23 @@ const usePopupManager = (map, fireLayer) => {
               </div>
             `;
           }
-          
+
           const props = feature.getProperties();
-          Object.keys(props).forEach(key => {
-            if (!['name', 'date', 'datetime', 'confidence', 'power', 'brightness', 'geometry'].includes(key) && 
-                props[key] !== undefined && props[key] !== null && props[key] !== '') {
+          Object.keys(props).forEach((key) => {
+            if (
+              ![
+                "name",
+                "date",
+                "datetime",
+                "confidence",
+                "power",
+                "brightness",
+                "geometry",
+              ].includes(key) &&
+              props[key] !== undefined &&
+              props[key] !== null &&
+              props[key] !== ""
+            ) {
               content += `
                 <div class="fire-popup-row">
                   <div class="fire-popup-label">${key}:</div>
@@ -286,12 +313,14 @@ const usePopupManager = (map, fireLayer) => {
               `;
             }
           });
-          
+
           content += `
               </div>
               <div class="fire-popup-footer">
                 Fire detection data
-                ${(fireImageId && model) ? `
+                ${
+                  fireImageId && model
+                    ? `
                   <button 
                     onclick="window.handleFireModelLayer('${fireImageId}')" 
                     style="
@@ -307,14 +336,16 @@ const usePopupManager = (map, fireLayer) => {
                   >
                     Get Fire Model Data
                   </button>
-                ` : ''}
+                `
+                    : ""
+                }
               </div>
             </div>
           `;
-          
+
           // global for the onclick handler
           window.handleFireModelLayer = handleFireModelLayer;
-          
+
           // console.log('Showing popup with content:', content);
           showPopup(coordinate, content);
           foundFeature = true;
@@ -322,7 +353,7 @@ const usePopupManager = (map, fireLayer) => {
         }
         return false;
       });
-      
+
       if (!foundFeature) {
         // console.log('No fire feature found at click location');
       }
@@ -333,15 +364,15 @@ const usePopupManager = (map, fireLayer) => {
       return () => {};
     }
 
-    map.on('pointermove', handlePointerMove);
-    map.on('click', handleFirePopupClick);
-    
+    map.on("pointermove", handlePointerMove);
+    map.on("click", handleFirePopupClick);
+
     // console.log('Popup interactions attached to map');
-    
+
     return () => {
       // console.log('Cleaning up popup interactions');
-      map.un('pointermove', handlePointerMove);
-      map.un('click', handleFirePopupClick);
+      map.un("pointermove", handlePointerMove);
+      map.un("click", handleFirePopupClick);
     };
   }, [map, fireLayer, closePopup, showPopup, isOverlayReady]);
 
@@ -351,7 +382,7 @@ const usePopupManager = (map, fireLayer) => {
     closePopup,
     showPopup,
     setupPopupInteractions,
-    isOverlayReady
+    isOverlayReady,
   };
 };
 

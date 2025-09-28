@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 
 import './fireControls.scss';
-import useFireModellingStore from 'src/app/store/fireModellingStore'; // Uncomment when store is created
+import useFireModellingStore from 'src/app/store/fireModellingStore';
 
 const FireModelling = () => {
     const [isExpanded, setIsExpanded] = useState(false);
