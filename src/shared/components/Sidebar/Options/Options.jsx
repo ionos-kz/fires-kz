@@ -1,8 +1,9 @@
 import ToggleSwitch from "../ToggleSwitch/ToggleSwitch";
 import { useMemo, useState } from 'react';
-import { Clock, Info, Eye, EyeOff, Layers, RefreshCw } from "lucide-react";
+import { Clock, Info, Eye, EyeOff, RefreshCw } from "lucide-react";
 
 import './Options.scss';
+import LayerInfoPopup from "./LayerInfoPopup";
 
 const Options = ({
   option,
@@ -15,7 +16,7 @@ const Options = ({
   onLayerRefresh,
   isLoading = false
 }) => {
-  const [showTooltip, setShowTooltip] = useState(false);
+  const [showLayerInfo, setShowLayerInfo] = useState(false);
   const [opacityInputValue, setOpacityInputValue] = useState(getOpacityValue(option.id) * 100);
 
   const isEnabled = getToggleState(option.id);
@@ -67,18 +68,10 @@ const Options = ({
             {/* Info tooltip */}
             <div 
               className="info-tooltip-container"
-              onMouseEnter={() => setShowTooltip(true)}
-              onMouseLeave={() => setShowTooltip(false)}
+              onClick={() => setShowLayerInfo(!showLayerInfo)}
             >
               <Info size={14} className="info-icon" />
-              {showTooltip && (
-                <div className="tooltip">
-                  <div className="tooltip-content">
-                    {option.description || `Information about ${option.label} layer. This layer provides additional data visualization on the map.`}
-                  </div>
-                  <div className="tooltip-arrow"></div>
-                </div>
-              )}
+              {showLayerInfo && (<LayerInfoPopup option={option} />)}
             </div>
 
             {/* Refresh button */}

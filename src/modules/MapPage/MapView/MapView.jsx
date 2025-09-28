@@ -1,12 +1,12 @@
 import { useRef, useState, useMemo, useEffect } from "react";
 import { ToastContainer } from "react-toastify";
 import { Popover } from "antd";
-import { Home } from "lucide-react";
 
 import BasemapSwitcher from "./components/BasemapSwitcher.jsx";
 import MeasurementTools from "./components/MeasurementTools.jsx";
 import FirePopup from "./components/FirePopup.jsx";
 import usePopupManager from "./components/PopupManager.jsx";
+import HomeButton from "./components/HomeButton.jsx";
 
 import {
   createAdminBoundary,
@@ -14,7 +14,6 @@ import {
   createEmergencyLayers,
 } from "../utils/layers.js";
 import { osmLayer } from "../utils/basemaps.js";
-import { flyHome } from "../utils/flyHome.js";
 
 import useFireStore from "src/app/store/fireStore";
 import useAdminBoundaryStore from "src/app/store/adminBoundaryStore.js";
@@ -248,20 +247,11 @@ const MapView = () => {
         />
 
         <BasemapSwitcher
-          styles={styles}
           currentBasemap={basemap}
           onBasemapChange={setBasemap}
         />
 
-        <div className={styles.goHome}>
-          <button
-            className={styles.homeButton}
-            onClick={() => flyHome(mapInstance?.getView())}
-            aria-label="Go to home position"
-          >
-            <Home />
-          </button>
-        </div>
+        <HomeButton view={mapInstance?.getView()} />
 
         {isMapInitialized && <MeasurementTools map={mapInstance} />}
 

@@ -1,7 +1,8 @@
 import { Home } from 'lucide-react';
 import { flyHome } from '../../utils/flyHome';
+import styles from './HomeButton.module.scss'
 
-const HomeButton = ({ styles, view }) => {
+const HomeButton = ({ view }) => {
   return (
     <div className={styles.goHome}>
       <button 
