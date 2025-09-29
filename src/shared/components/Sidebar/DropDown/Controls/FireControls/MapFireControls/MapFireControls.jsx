@@ -21,14 +21,50 @@ const MapFireControls = ({ firesByRegion }) => {
   const getColorForValue = useCallback((value) => {
     const maxValue = Math.max(...Object.values(fireData));
     if (maxValue === 0) return 'rgba(200, 200, 200, 0.3)';
+    
     const intensity = value / maxValue;
 
-    const red = Math.floor(255 * intensity);
-    const green = Math.floor(255 * (1 - intensity * 0.8));
-    const blue = Math.floor(100 * (1 - intensity));
+    const colors = [
+      { threshold: 0, color: '#ffffff' },
+      { threshold: 0.2, color: '#ffd700' },
+      { threshold: 0.4, color: '#ff8000' },
+      { threshold: 0.6, color: '#ff4500' },
+      { threshold: 0.8, color: '#cc0000' },
+      { threshold: 1, color: '#7a0000' }
+    ];
 
-    return `rgb(${red}, ${green}, ${blue})`;
+    for (let i = 0; i < colors.length - 1; i++) {
+      if (intensity >= colors[i].threshold && intensity <= colors[i + 1].threshold) {
+        const start = colors[i];
+        const end = colors[i + 1];
+        
+        // Calculate interpolation factor within range
+        const rangeIntensity = (intensity - start.threshold) / (end.threshold - start.threshold);
+        
+        // Interpolate between colors
+        const startRgb = hexToRgb(start.color);
+        const endRgb = hexToRgb(end.color);
+        
+        const r = Math.floor(startRgb.r + (endRgb.r - startRgb.r) * rangeIntensity);
+        const g = Math.floor(startRgb.g + (endRgb.g - startRgb.g) * rangeIntensity);
+        const b = Math.floor(startRgb.b + (endRgb.b - startRgb.b) * rangeIntensity);
+        
+        return `rgb(${r}, ${g}, ${b})`;
+      }
+    }
+
+    return colors[colors.length - 1].color;
   }, [fireData]);
+
+  // hex to RGB
+  const hexToRgb = (hex) => {
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return result ? {
+      r: parseInt(result[1], 16),
+      g: parseInt(result[2], 16),
+      b: parseInt(result[3], 16)
+    } : null;
+  };
 
   const styleFunction = useCallback((feature) => {
     const regionName =
@@ -84,7 +120,7 @@ const MapFireControls = ({ firesByRegion }) => {
         setHoveredRegion({ name: regionName, count: fireCount });
         feature.setStyle(new Style({
           fill: new Fill({ color: getColorForValue(fireCount) }),
-          stroke: new Stroke({ color: '#000', width: 2 }),
+          stroke: new Stroke({ color: '#fff', width: 2 }),
         }));
 
         lastFeature = feature;
@@ -106,34 +142,46 @@ const MapFireControls = ({ firesByRegion }) => {
 
   return (
     <div className={styles.mapFireWrapper}>
+      <div className={styles.mapSection}>
+        <div ref={mapContainerRef} className={styles.mapFireControls}></div>
 
-      <div ref={mapContainerRef} className={styles.mapFireControls}></div>
+        {hoveredRegion && (
+          <div className={styles.hoverBox}>
+            <strong>{hoveredRegion.name}</strong>
+            <p>{hoveredRegion.count} fires</p>
+          </div>
+        )}
 
-      {hoveredRegion && (
-        <div className={styles.hoverBox}>
-          <strong>{hoveredRegion.name}</strong>
-          <p>{hoveredRegion.count} fires</p>
+        {/* Color intensity legend on the map */}
+        <div className={styles.colorLegend}>
+          <div className={styles.gradientBar}></div>
+          <div className={styles.gradientLabels}>
+            <span>Low</span>
+            <span>High</span>
+          </div>
         </div>
-      )}
+      </div>
 
-      <div className={styles.legend}>
-        <h4>Top Fire Regions</h4>
-        <div className={styles.legendItems}>
-          {sortedRegions.slice(0, maxLegendItems).map(([region, count]) => (
-            <div key={region} className={styles.legendItem}>
-              <div
-                className={styles.legendColor}
-                style={{ backgroundColor: getColorForValue(count) }}
-              ></div>
-              <span>{region}</span>
-              <span>{count}</span>
-            </div>
-          ))}
-          {sortedRegions.length > maxLegendItems && (
-            <div className={styles.moreRegions}>
-              +{sortedRegions.length - maxLegendItems} more
-            </div>
-          )}
+      <div className={styles.legendSection}>
+        <div className={styles.legend}>
+          <h4>Top Fire Regions</h4>
+          <div className={styles.legendItems}>
+            {sortedRegions.slice(0, maxLegendItems).map(([region, count]) => (
+              <div key={region} className={styles.legendItem}>
+                <div
+                  className={styles.legendColor}
+                  style={{ backgroundColor: getColorForValue(count) }}
+                ></div>
+                <span className={styles.regionName}>{region}</span>
+                <span className={styles.fireCount}>{count}</span>
+              </div>
+            ))}
+            {sortedRegions.length > maxLegendItems && (
+              <div className={styles.moreRegions}>
+                +{sortedRegions.length - maxLegendItems} more regions
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

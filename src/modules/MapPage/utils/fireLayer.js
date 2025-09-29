@@ -371,6 +371,21 @@ export const createFireLayer = (setFireLength, fireStartDate, fireEndDate, updat
       }
     },
 
+    filterByConfidence: function(minConfidence) {
+      if (minConfidence === 0 || minConfidence === null || minConfidence === undefined) {
+        this.removeFilter('confidence');
+      } else {
+        this.addFilter('confidence', feature => {
+          const confidence = feature.get('confidence');
+          return confidence && confidence >= minConfidence;
+        });
+      }
+    },
+
+    removeConfidenceFilter: function() {
+      this.removeFilter('confidence');
+    },
+
     removeRegionFilter: function() {
       this.removeFilter('region');
     },

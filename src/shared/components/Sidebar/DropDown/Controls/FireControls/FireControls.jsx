@@ -26,7 +26,6 @@ import {
 import './fireControls.scss';
 import MapFireControls from './MapFireControls/MapFireControls';
 import LinearDateChooser from './LinearDateChooser';
-import { U } from 'ol/renderer/webgl/FlowLayer';
 
 const FireControls = () => {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -43,7 +42,6 @@ const FireControls = () => {
   const {
     setFireLayerVisible,  
     fireLayerVisible,
-    fireOpacity,     
     setFireOpacity,  
     fireIntensityFilter,   
     fireStartDate,   
@@ -66,7 +64,11 @@ const FireControls = () => {
     setShowNaturalOnly,
     selectedModel,
     setSelectedModel,
-    firesByModel, // Add this for statistics
+    firesByModel,  
+    confidenceFilter,
+    setConfidenceFilter,
+    confidenceFilterTimeout,
+    setConfidenceFilterTimeout,
   } = useFireStore();
   const fireData = [];
 
@@ -77,7 +79,6 @@ const FireControls = () => {
     const newValue = event.target.value;
     setAreaTypeFilter(newValue);
 
-    // Use the new value directly, not the state variable
     switch (newValue) {
       case 'nature':
         setShowNaturalOnly(true);
@@ -434,6 +435,66 @@ const FireControls = () => {
                       <option value="extreme">Extreme (80+)</option>
                     </select>
                   </div> */}
+
+                  {/* Confidence Filter */}
+                  <div className="fire-controls__section">
+                    <label className="fire-controls__label">
+                      <Filter size={12} />
+                      Confidence Filter (min %)
+                    </label>
+
+                    <div className="fire-controls__confidence-filter">
+                      <div className="fire-controls__confidence-input">
+                        <input
+                          type="number"
+                          min="0"
+                          max="100"
+                          value={confidenceFilter}
+                          onChange={(e) => {
+                            const value = parseInt(e.target.value) || 0;
+                            setConfidenceFilter(value);
+                            
+                            // Clear existing timeout
+                            if (confidenceFilterTimeout) {
+                              clearTimeout(confidenceFilterTimeout);
+                            }
+                            
+                            // Set new timeout for delayed application
+                            const newTimeout = setTimeout(() => {
+                              // Apply filter through fireLayer if it exists
+                              if (window.fireLayerInstance) {
+                                window.fireLayerInstance.filterByConfidence(value);
+                              }
+                            }, 500);
+                            
+                            setConfidenceFilterTimeout(newTimeout);
+                          }}
+                          className="fire-controls__confidence-number-input"
+                          placeholder="0"
+                        />
+                        <span className="fire-controls__confidence-unit">%</span>
+                      </div>
+                      
+                      <div className="fire-controls__confidence-presets">
+                        {[0, 30, 70, 90].map(preset => (
+                          <button
+                            key={preset}
+                            className={`fire-controls__confidence-preset ${
+                              confidenceFilter === preset ? 'fire-controls__confidence-preset--active' : ''
+                            }`}
+                            onClick={() => {
+                              setConfidenceFilter(preset);
+                              if (window.fireLayerInstance) {
+                                window.fireLayerInstance.filterByConfidence(preset);
+                              }
+                            }}
+                          >
+                            {preset}%
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
 
                   {/* Area Type Filter */}
                   <div className="fire-controls__section">

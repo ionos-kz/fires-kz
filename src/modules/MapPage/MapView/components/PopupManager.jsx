@@ -1,6 +1,8 @@
 import { useRef, useState, useEffect, useCallback } from "react";
 import Overlay from "ol/Overlay";
+import * as turf from '@turf/turf';
 import useMapStore from "../../../../app/store/mapStore";
+import useFireModellingStore from 'src/app/store/fireModellingStore';
 
 const formatDate = (dateStr) => {
   if (!dateStr) return "";
@@ -52,10 +54,22 @@ const callFireModelAPI = async (fireImageId) => {
     const data = await response.json();
     const cleanedGeoJSON = {
       ...data,
-      features: data["features"].map((feature) => ({
-        ...feature,
-        type: "Feature",
-      })),
+      features: data.features.map((feature) => {
+        const areaSqM = turf.area(feature); // Result in sq m
+
+        const newProps = {
+          ...feature.properties,
+          area_sqm: areaSqM,
+          area_ha: areaSqM / 10_000,  // ha
+          area_sqkm: areaSqM / 1_000_000, // sq km
+        };
+
+        return {
+          ...feature,
+          type: "Feature",
+          properties: newProps,
+        };
+      }),
     };
     // const geojsonStr = JSON.stringify(data, null, 2);
     // console.log('Fire Model API Response:', geojsonStr);
@@ -71,9 +85,20 @@ const usePopupManager = (map, fireLayer) => {
   const overlayRef = useRef(null);
   const [isOverlayReady, setIsOverlayReady] = useState(false);
   const { setFireModelLayer } = useMapStore();
+  const { setTotalArea } = useFireModellingStore();
 
   const handleFireModelLayer = async (fireImageId) => {
     const modelLayer = await callFireModelAPI(fireImageId);
+    if (modelLayer && modelLayer.features) {
+      // Calculate total area from all features
+      const totalAreaHa = modelLayer.features.reduce((sum, feature) => {
+        return sum + (feature.properties.area_ha || 0);
+      }, 0);
+      
+      // Store total area in the fire modelling store
+      setTotalArea(totalAreaHa);
+      console.log('Total fire area calculated:', totalAreaHa, 'hectares');
+    }
     setFireModelLayer(modelLayer);
   };
 

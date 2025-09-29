@@ -1,8 +1,10 @@
 import { useEffect } from 'react';
+
 import VectorLayer from 'ol/layer/Vector';
 import VectorSource from 'ol/source/Vector';
 import GeoJSON from 'ol/format/GeoJSON';
 import Overlay from 'ol/Overlay';
+
 import { styleFireModelFunction } from "../utils/colorFireModel.js";
 
 export const useFireModelling = (fireModelLayer, mapInstance, isMapInitialized, addFireModellingLayer, setMapInstance) => {
@@ -60,7 +62,8 @@ export const useFireModelling = (fireModelLayer, mapInstance, isMapInitialized, 
               <p><strong>Satellite:</strong> ${properties.satellite || 'System Generated'}</p>
               ${properties.fireimageid ? `<p><strong>fireimageid:</strong> ${properties.fireimageid}</p>` : ''}
               ${properties.dn ? `<p><strong>Order:</strong> ${properties.dn}</p>` : ''}
-              ${properties['locality_names'] ? `<p><strong>Locality:</strong> ${properties['locality_names']}</p>` : ''}
+              ${properties['locality'] ? `<p><strong>Locality:</strong> ${properties['locality_names']}</p>` : ''}
+              ${properties['area_ha'] ? `<p><strong>Area burned in ha:</strong> ${properties['area_ha']}</p>` : ''}
             </div>
           `;
 

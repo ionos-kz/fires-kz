@@ -18,6 +18,8 @@ export const createFireSlice = (set, get) => ({
   autoRefresh: false,
   fireLength: 0,
   dateHasChanged: false,
+  confidenceFilter: 0, // Current confidence filter value
+  confidenceFilterTimeout: null, // For delayed application
   
   // stats
   avgIntensity: null,
@@ -148,6 +150,16 @@ export const createFireSlice = (set, get) => ({
   setOpacityValue: (id, value) =>
     set((state) => ({
       opacityValues: { ...state.opacityValues, [id]: value },
+    })),
+  
+  setConfidenceFilter: (value) =>
+    set(() => ({
+      confidenceFilter: value
+    })),
+
+  setConfidenceFilterTimeout: (timeout) =>
+    set(() => ({
+      confidenceFilterTimeout: timeout
     })),
 
   toggleOption: (id) =>

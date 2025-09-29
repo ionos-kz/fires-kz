@@ -29,6 +29,7 @@ const FireModelling = () => {
         removeFireModellingLayer,
         updateFireModellingLayer,
         mapInstance,
+        total_area
     } = useFireModellingStore();
 
     // Convert fireModellingLayers object to array for rendering
@@ -252,7 +253,7 @@ const FireModelling = () => {
                       <div className="fire-modelling__layer-info">
                         <div className="fire-modelling__layer-title">
                           <span className="fire-modelling__layer-name">
-                            {layer.name}
+                            {layer.name} {total_area}
                           </span>
                           <div 
                             className="fire-modelling__layer-indicator"

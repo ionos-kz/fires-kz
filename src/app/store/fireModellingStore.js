@@ -12,6 +12,10 @@ import { create } from 'zustand';
 const useFireModellingStore = create((set) => ({
     mapInstance: null,
     fireModellingLayers: {},
+    total_area: null,
+
+    setTotalArea: (total_area) =>
+        set({ total_area }),
 
     setMapInstance: (mapInstance) =>
         set({ mapInstance }),

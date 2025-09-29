@@ -12,7 +12,8 @@ export const useFireLayer = (fireStore) => {
     showTechnogenicOnly,
     showNaturalOnly,
     selectedModel,
-    selectedRegions
+    selectedRegions,
+    confidenceFilter
   } = fireStore;
 
   const fireLayer = useMemo(() => 
@@ -76,6 +77,18 @@ export const useFireLayer = (fireStore) => {
       fireLayer.removeRegionFilter();
     }
   }, [selectedRegions, fireLayer]);
+
+  useEffect(() => {
+    if (!fireLayer) return;
+    
+    window.fireLayerInstance = fireLayer;
+    
+    return () => {
+      if (window.fireLayerInstance === fireLayer) {
+        delete window.fireLayerInstance;
+      }
+    };
+  }, [fireLayer]);
 
   return { fireLayer, loadFireData };
 };
