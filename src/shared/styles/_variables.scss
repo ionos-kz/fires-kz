@@ -29,3 +29,20 @@ $icon-main-size-map: 21px;
 // $active-bg-color: #2F7D4F;
 $active-bg-color: #1e90ff;
 $active-bg-color-map: yellow;
+
+
+// Landing styles
+:root {
+  --color-bg-primary: #07081A;
+  --color-text-primary: #D9DAF5;
+  --color-accent-blue: #4787E3;
+  --color-accent-dark-blue: #090A24;
+  --color-accent-pink: #7A2045;
+  --color-accent-purple: #888BE0;
+  --color-dark: #07081A;
+  
+  --container-max-width: 1312px;
+  --container-padding: 1rem;
+  
+  --transition-smooth: 0.25s ease;
+}

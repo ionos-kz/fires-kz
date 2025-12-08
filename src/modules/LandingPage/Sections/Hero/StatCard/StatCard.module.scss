@@ -1,0 +1,45 @@
+.card {
+    flex: 1;
+    min-width: 150px;
+    max-width: 200px;
+    padding: 1.25rem 1rem;
+    
+    background-color: var(--color-accent-dark-blue);
+    border-radius: 1rem 1rem 0 0;
+    
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    
+    @media (max-width: 768px) {
+        min-width: 120px;
+        max-width: 160px;
+        padding: 1rem 0.75rem;
+    }
+}
+
+.card__value {
+    color: var(--color-accent-purple);
+    font-weight: 600;
+    font-size: clamp(1.5rem, 2vw, 1.7rem);
+    text-align: center;
+    line-height: 1;
+}
+
+.card__divider {
+    height: 1px;
+    background: linear-gradient(
+        90deg,
+        rgba(255, 255, 255, 0) 0%, 
+        rgba(255, 255, 255, 1) 50%, 
+        rgba(255, 255, 255, 0) 100%
+    );
+    margin: 0.75rem 0;
+}
+
+.card__label {
+    color: var(--color-text-primary);
+    font-size: clamp(0.75rem, 1.5vw, 0.875rem);
+    text-align: center;
+    line-height: 1.4;
+    margin: 0;
+}

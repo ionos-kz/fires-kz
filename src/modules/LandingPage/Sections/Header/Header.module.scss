@@ -1,0 +1,132 @@
+.header {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    padding: 2.5rem 0;
+}
+
+.header__container {
+    max-width: var(--container-max-width);
+    margin: 0 auto;
+    padding: 0 var(--container-padding);
+    
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.header__logo img {
+    height: 40px;
+    width: auto;
+    display: block;
+}
+
+.nav__list {
+    display: flex;
+    gap: 3rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.nav__link {
+    color: var(--color-text-primary);
+    text-decoration: none;
+    font-weight: 500;
+    position: relative;
+    transition: color var(--transition-smooth);
+    
+    &::after {
+        content: '';
+        position: absolute;
+        bottom: -4px;
+        left: 0;
+        width: 0;
+        height: 2px;
+        background-color: var(--color-accent-purple);
+        transition: width var(--transition-smooth);
+    }
+    
+    &:hover {
+        color: #A0A3FF;
+        
+        &::after {
+            width: 100%;
+        }
+    }
+}
+
+// Mobile Menu Button
+.header__burger {
+    display: none;
+    flex-direction: column;
+    gap: 5px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.5rem;
+    
+    @media (max-width: 768px) {
+        display: flex;
+    }
+}
+
+.burger__line {
+    width: 25px;
+    height: 2px;
+    background-color: var(--color-text-primary);
+    transition: all 0.3s ease;
+    
+    &--open:nth-child(1) {
+        transform: rotate(45deg) translate(7px, 3px);
+    }
+    
+    &--open:nth-child(2) {
+        opacity: 0;
+    }
+    
+    &--open:nth-child(3) {
+        transform: rotate(-45deg) translate(7px, -3px);
+    }
+}
+
+.mobile__menu {
+    background-color: var(--color-accent-dark-blue);
+    overflow: hidden;
+    
+    @media (min-width: 769px) {
+        display: none;
+    }
+}
+
+.mobile__list {
+    list-style: none;
+    margin: 0;
+    padding: 1rem var(--container-padding) 2rem;
+}
+
+.mobile__link {
+    display: block;
+    padding: 1rem 0;
+    color: var(--color-text-primary);
+    text-decoration: none;
+    font-weight: 500;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    transition: color 0.3s ease;
+    
+    &:hover {
+        color: var(--color-accent-purple);
+    }
+}
+
+@media (max-width: 768px) {
+    .header {
+        padding: 1.5rem 0;
+    }
+    
+    .header__nav {
+        display: none;
+    }
+}

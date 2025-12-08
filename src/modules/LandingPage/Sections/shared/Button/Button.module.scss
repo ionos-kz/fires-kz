@@ -1,0 +1,35 @@
+.hero__btn {
+    display: inline-block;
+    padding: 1rem 2rem;
+    border-radius: 0.5rem;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 500;
+    font-size: 1rem;
+    text-align: center;
+    background-color: var(--color-accent-pink);
+    color: var(--color-text-primary);
+    
+    transition: 
+        background-color var(--transition-smooth),
+        transform var(--transition-smooth),
+        box-shadow var(--transition-smooth);
+    
+    &:hover {
+        background-color: #8c2753;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+    }
+    
+    &:active {
+        transform: translateY(0);
+    }
+    
+    &--secondary {
+        background-color: var(--color-accent-purple);
+        color: var(--color-dark);
+        
+        &:hover {
+            background-color: #A0A3FF;
+        }
+    }
+}

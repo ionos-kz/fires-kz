@@ -1,0 +1,87 @@
+.card {
+    padding: 2rem;
+    border-radius: 0.8rem;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    
+    &:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    }
+}
+
+// Variants
+.card--wide {
+    grid-column: span 2;
+    
+    @media (max-width: 1024px) {
+        grid-column: span 1;
+    }
+}
+
+.card--regular {
+    grid-column: span 1;
+}
+
+// Themes
+.card--light {
+    background-color: var(--color-text-primary);
+    color: var(--color-bg-primary);
+}
+
+.card--purple {
+    background-color: var(--color-accent-purple);
+    color: var(--color-bg-primary);
+}
+
+.card--pink {
+    background-color: var(--color-accent-pink);
+    color: var(--color-text-primary);
+}
+
+.card--coral {
+    background-color: #D56F5D;
+    color: var(--color-bg-primary);
+}
+
+.card__content {
+    margin-bottom: 2rem;
+}
+
+.card__title {
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: clamp(1.5rem, 3vw, 2rem);
+    font-weight: 600;
+    margin: 0 0 0.7rem 0;
+    color: inherit;
+}
+
+.card__description {
+    font-size: 1rem;
+    line-height: 1.6;
+    margin: 0 0 1.5rem 0;
+    color: inherit;
+    opacity: 0.9;
+}
+
+.card__image {
+    width: 100%;
+    overflow: hidden;
+    border-radius: 1rem;
+    
+    img {
+        width: 100%;
+        height: auto;
+        display: block;
+        transition: transform 0.3s ease;
+    }
+}
+
+.card:hover .card__image img {
+    transform: scale(1.05);
+}
+
+@media (max-width: 768px) {
+    .card {
+        padding: 1.5rem;
+    }
+}
