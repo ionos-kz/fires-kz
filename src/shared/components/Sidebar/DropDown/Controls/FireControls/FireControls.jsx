@@ -1,11 +1,11 @@
 import { useState, useCallback, useMemo } from 'react';
 import useFireStore from "src/app/store/fireStore";
-import { 
-  Flame, 
-  Calendar, 
-  Sliders, 
-  Eye, 
-  EyeOff, 
+import {
+  Flame,
+  Calendar,
+  Sliders,
+  Eye,
+  EyeOff,
   MapPin,
   Filter,
   RefreshCw,
@@ -37,15 +37,15 @@ const FireControls = () => {
   const handleShowTimeline = useCallback(() => {
     setShowTimeline(true);
   }, []);
-  
+
   const {
-    setFireLayerVisible,  
+    setFireLayerVisible,
     fireLayerVisible,
-    fireOpacity,     
-    setFireOpacity,  
-    fireIntensityFilter,   
-    fireStartDate,   
-    fireEndDate,     
+    fireOpacity,
+    setFireOpacity,
+    fireIntensityFilter,
+    fireStartDate,
+    fireEndDate,
     setFireStartDate,
     setFireEndDate,
     fireLength,
@@ -92,13 +92,13 @@ const FireControls = () => {
 
   const processRegionalFireData = (fireData) => {
     const regionalStats = {};
-    
+
     fireData.forEach(fire => {
       const region = fire.properties.region || 'Unknown';
       const confidence = fire.properties.confidence || 0;
       const satellite = fire.properties.satellite || 'Unknown';
       const technogenic = fire.properties.technogenic || false;
-      
+
       if (!regionalStats[region]) {
         regionalStats[region] = {
           totalFires: 0,
@@ -111,28 +111,28 @@ const FireControls = () => {
           emergencyDepartment: fire.properties.firedep || 'Unknown'
         };
       }
-      
+
       const stats = regionalStats[region];
       stats.totalFires++;
       stats.confidenceSum += confidence;
       stats.avgConfidence = stats.confidenceSum / stats.totalFires;
-      
+
       // Track satellites
       stats.satellites[satellite] = (stats.satellites[satellite] || 0) + 1;
-      
+
       // Track fire types
       if (technogenic) {
         stats.technogenic++;
       } else {
         stats.natural++;
       }
-      
+
       // Track localities
       if (fire.properties.locality) {
         stats.localities.add(fire.properties.locality);
       }
     });
-    
+
     return regionalStats;
   };
 
@@ -142,41 +142,41 @@ const FireControls = () => {
     peakIntensity: 0,
     affectedArea: 0,
     riskLevel: avgConfidence,
-    
+
     regionalData: processRegionalFireData(fireData || []),
-    
+
     satelliteDistribution: {
       'Terra': firesBySatellite['Terra'],
       'Aqua': firesBySatellite['Aqua'],
       'NOAA-20': firesBySatellite['NOAA-20'],
       'Suomi NPP': firesBySatellite['Suomi NPP'],
     },
-    
+
     fireTypes: {
       natural: totalNaturalFires,
       technogenic: totalTechnogenicFires
     },
-    
+
     confidenceDistribution: {
       high: firesByConfidence['High'],
       medium: firesByConfidence['Medium'],
       low: firesByConfidence['Low'],
     },
-    
+
     weatherConditions: {
       temperature: 34,
       humidity: 25,
       windSpeed: 18,
       windDirection: 'NE'
     },
-    
+
     intensityDistribution: {
       low: null,
       medium: null,
       high: null,
       extreme: null
     },
-    
+
     timeAnalysis: {
       newFires24h: newFiresSinceLastDay,
       extinguished24h: 8,
@@ -208,28 +208,14 @@ const FireControls = () => {
   };
 
   const handleStartDateChange = useCallback((e) => {
-    const newStartDate = e.target.value;
-    
-    if (fireEndDate && !isWithinRange(newStartDate, fireEndDate)) {
-      alert('Maximum difference between dates is 14 days.');
-      return;
-    }
-    
-    setFireStartDate(newStartDate);
+    setFireStartDate(e.target.value);
     setHasDateChanges(true);
-  }, [fireEndDate, setFireStartDate]);
+  }, [setFireStartDate]);
 
   const handleEndDateChange = useCallback((e) => {
-    const newEndDate = e.target.value;
-
-    if (fireStartDate && !isWithinRange(fireStartDate, newEndDate)) {
-      alert('Maximum difference between dates is 14 days.');
-      return;
-    }
-    
-    setFireEndDate(newEndDate);
+    setFireEndDate(e.target.value);
     setHasDateChanges(true);
-  }, [fireStartDate, setFireEndDate]);
+  }, [setFireEndDate]);
 
   const handleShowStats = useCallback(() => {
     setIsLoadingStats(true);
@@ -239,6 +225,31 @@ const FireControls = () => {
     }, 500);
   }, []);
 
+  const handleApplyDateRange = useCallback(() => {
+    if (!fireStartDate || !fireEndDate) {
+      alert('Выберите обе даты');
+      return;
+    }
+
+    const start = new Date(fireStartDate);
+    const end = new Date(fireEndDate);
+
+    const diffDays = Math.abs(end - start) / (1000 * 60 * 60 * 24);
+
+    if (diffDays > maxDaysDifference) {
+      alert('Максимальный диапазон — 14 дней');
+      return;
+    }
+
+    setDateHasChanged();
+    setHasDateChanges(false);
+  }, [
+    fireStartDate,
+    fireEndDate,
+    setDateHasChanged
+  ]);
+
+
   const handleExportData = useCallback(() => {
     const data = {
       fireData: fireStats,
@@ -246,17 +257,17 @@ const FireControls = () => {
       dateRange: { start: fireStartDate, end: fireEndDate },
       filters: { intensity: fireIntensityFilter }
     };
-    
+
     const dataStr = JSON.stringify(data, null, 2);
-    const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-    
+    const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
+
     const exportFileDefaultName = `fire_data_${new Date().toISOString().split('T')[0]}.json`;
-    
+
     const linkElement = document.createElement('a');
-      linkElement.setAttribute('href', dataUri);
-      linkElement.setAttribute('download', exportFileDefaultName);
-      linkElement.click();
-    }, [fireStats, fireStartDate, fireEndDate, fireIntensityFilter]);
+    linkElement.setAttribute('href', dataUri);
+    linkElement.setAttribute('download', exportFileDefaultName);
+    linkElement.click();
+  }, [fireStats, fireStartDate, fireEndDate, fireIntensityFilter]);
 
   const getMaxEndDate = useCallback(() => {
     if (!fireStartDate) return new Date().toISOString().split('T')[0];
@@ -280,7 +291,7 @@ const FireControls = () => {
   const lastWeek = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
 
   const getRiskColor = (level) => {
-    switch(level) {
+    switch (level) {
       case 'Low': return '#10b981';
       case 'Medium': return '#f59e0b';
       case 'High': return '#ef4444';
@@ -305,18 +316,16 @@ const FireControls = () => {
             <span className="fire-controls__toggle-label">
               Термоточки
             </span>
-            <Flame 
-              size={16} 
-              className={`fire-controls__flame-icon ${
-                fireLayerVisible ? 'fire-controls__flame-icon--active' : ''
-              }`}
+            <Flame
+              size={16}
+              className={`fire-controls__flame-icon ${fireLayerVisible ? 'fire-controls__flame-icon--active' : ''
+                }`}
             />
           </div>
-          
-          <button 
-            className={`fire-controls__expand-btn ${
-              isExpanded ? 'fire-controls__expand-btn--expanded' : ''
-            }`}
+
+          <button
+            className={`fire-controls__expand-btn ${isExpanded ? 'fire-controls__expand-btn--expanded' : ''
+              }`}
             onClick={() => setIsExpanded(!isExpanded)}
           >
             <Sliders size={14} />
@@ -326,7 +335,7 @@ const FireControls = () => {
         {/* Expanded Controls */}
         {isExpanded && (
           <div className="fire-controls__content">
-            
+
             {/* Date Range */}
             <div className="fire-controls__section">
               <label className="fire-controls__label">
@@ -339,8 +348,6 @@ const FireControls = () => {
                   lang='ru'
                   value={fireStartDate || lastWeek}
                   onChange={handleStartDateChange}
-                  max={getMaxEndDate()}
-                  min={getMinStartDate()}
                   className="fire-controls__date-input"
                   placeholder="Start Date"
                 />
@@ -350,21 +357,16 @@ const FireControls = () => {
                   lang='ru'
                   value={fireEndDate || today}
                   onChange={handleEndDateChange}
-                  max={today}
-                  min={fireStartDate || lastWeek}
                   className="fire-controls__date-input"
                   placeholder="End Date"
                 />
               </div>
               <div className="fire-controls__buttons">
                 <button
-                  onClick={setDateHasChanged}
+                  onClick={handleApplyDateRange}
                   disabled={!hasDateChanges}
-                  className={`fire-controls__update-btn ${
-                    hasDateChanges ? 'fire-controls__update-btn--active' : ''
-                  }`}
-                  title="Update fire data with new date range"
-                  style={{whiteSpace: 'nowrap'}}
+                  className={`fire-controls__update-btn ${hasDateChanges ? 'fire-controls__update-btn--active' : ''
+                    }`}
                 >
                   <RefreshCw size={14} />
                   Обновить дату
@@ -474,7 +476,7 @@ const FireControls = () => {
                   Сводка по пожарам
                 </h4>
               </div>
-              
+
               <div className="fire-controls__stat-grid">
                 <div className="fire-controls__stat-item">
                   <span className="fire-controls__stat-label">Активные точки</span>
@@ -482,7 +484,7 @@ const FireControls = () => {
                 </div>
                 <div className="fire-controls__stat-item">
                   <span className="fire-controls__stat-label">Уровень риска</span>
-                  <span 
+                  <span
                     className="fire-controls__stat-value fire-controls__stat-value--risk"
                     style={{ color: getRiskColor(fireStats.riskLevel) }}
                   >
@@ -502,9 +504,9 @@ const FireControls = () => {
                   <span className="fire-controls__stat-value">{fireStats.averageIntensity}</span>
                 </div>
               </div>
-              
+
               <div className="fire-controls__stat-actions">
-                <button 
+                <button
                   className="fire-controls__stat-btn fire-controls__stat-btn--primary"
                   onClick={handleShowStats}
                   disabled={isLoadingStats}
@@ -516,7 +518,7 @@ const FireControls = () => {
                   )}
                   {isLoadingStats ? 'Загрузка...' : 'Подробная статистика'}
                 </button>
-                <button 
+                <button
                   className="fire-controls__stat-btn"
                   onClick={handleExportData}
                   title="Экспорт данных о пожарах"
@@ -545,7 +547,7 @@ const FireControls = () => {
                 <Flame size={20} />
                 Статистика по пожарам
               </h2>
-              <button 
+              <button
                 className="fire-stats-modal__close"
                 onClick={() => setShowStats(false)}
               >
@@ -687,7 +689,7 @@ const FireControls = () => {
                 <br />
                 <div className="fire-stats-risk">
                   <div className="fire-stats-risk__level">
-                    <div 
+                    <div
                       className="fire-stats-risk__indicator"
                       style={{ backgroundColor: getRiskColor(fireStats.riskLevel) }}
                     >
@@ -766,7 +768,7 @@ const FireControls = () => {
                         <div className="fire-stats-types__value">{count || 0}</div>
                         <div className="fire-stats-types__label">{model}</div>
                         <div className="fire-stats-types__percentage">
-                          {fireStats.totalFires > 0 ? 
+                          {fireStats.totalFires > 0 ?
                             (((count || 0) / fireStats.totalFires) * 100).toFixed(1) : '0'}%
                         </div>
                       </div>
@@ -811,14 +813,14 @@ const FireControls = () => {
             </div>
 
             <div className="fire-stats-modal__footer">
-              <button 
+              <button
                 className="fire-stats-modal__btn fire-stats-modal__btn--secondary"
                 onClick={handleExportData}
               >
                 <Download size={16} />
                 Экспорт данных
               </button>
-              <button 
+              <button
                 className="fire-stats-modal__btn fire-stats-modal__btn--primary"
                 onClick={() => setShowStats(false)}
               >
