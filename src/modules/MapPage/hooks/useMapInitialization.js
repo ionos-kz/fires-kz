@@ -72,7 +72,16 @@ export const useMapInitialization = (mapRef, basemap, initialLayers = [], styles
       map.un('moveend', updatePermalink);
       setIsMapInitialized(false);
     };
-  }, [mapRef, basemap, styles]);
+  }, [mapRef, styles]);
+
+  // Swap only the basemap layer without recreating the map
+  useEffect(() => {
+    const map = mapInstance.current;
+    if (!map || !basemap) return;
+
+    const layers = map.getLayers();
+    layers.setAt(0, basemap);
+  }, [basemap]);
 
   return { mapInstance: mapInstance.current, isMapInitialized };
 };
