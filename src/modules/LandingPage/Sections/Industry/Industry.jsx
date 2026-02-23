@@ -42,7 +42,7 @@ const industryData = [
 
 const Industry = () => {
   return (
-    <section className={styles.industry}>
+    <section id="industries" className={styles.industry}>
       <div className={styles.industry__container}>
         <header className={styles.industry__header}>
             <h4 className={styles.industry__subtitle} aria-hidden="true">

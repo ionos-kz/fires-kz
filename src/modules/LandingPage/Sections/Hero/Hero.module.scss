@@ -2,12 +2,10 @@
     position: relative;
     width: 100%;
     min-height: 100vh;
-    
     background-image: url(/hero-bg.png);
     background-position: center;
     background-repeat: no-repeat;
     background-size: cover;
-    
     display: flex;
     align-items: center;
     justify-content: center;
@@ -16,7 +14,13 @@
 .hero__overlay {
     position: absolute;
     inset: 0;
-    background-color: rgba(0, 0, 0, 0.4);
+    background: linear-gradient(
+        180deg,
+        rgba(7, 8, 26, 0.6) 0%,
+        rgba(7, 8, 26, 0.35) 40%,
+        rgba(7, 8, 26, 0.5) 70%,
+        rgba(7, 8, 26, 0.85) 100%
+    );
     z-index: 1;
 }
 
@@ -37,16 +41,20 @@
     font-family: "IBM Plex Sans", sans-serif;
     font-weight: 400;
     font-size: clamp(2rem, 5vw, 3rem);
-    line-height: 1.2;
-    color: var(--color-text-primary);
-    margin-bottom: 2rem;
+    line-height: 1.25;
+    color: rgba(217, 218, 245, 0.9);
+    margin-bottom: 2.5rem;
+    letter-spacing: -0.01em;
 }
 
 .hero__highlight {
     display: inline-block;
-    color: var(--color-accent-blue);
-    font-weight: 600;
+    font-weight: 700;
     font-size: clamp(2.5rem, 6vw, 3.5rem);
+    background: linear-gradient(135deg, #4787E3 0%, #ec4899 60%, #f97316 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 0 30px rgba(236, 72, 153, 0.3));
 }
 
 .hero__actions {
@@ -58,23 +66,19 @@
 .hero__stats {
     position: absolute;
     bottom: 0;
-    // left: 50%;
-    // transform: translateX(-50%);
-    
+    right: 0;
     max-width: var(--container-max-width);
     width: 100%;
     padding: 0 var(--container-padding);
-    
     display: flex;
-    gap: 2rem;
+    gap: 1px;
     justify-content: flex-end;
     z-index: 3;
 }
 
-// Responsive
 @media (max-width: 1024px) {
     .hero__stats {
-        gap: 1rem;
+        gap: 1px;
     }
 }
 
@@ -82,15 +86,15 @@
     .hero {
         min-height: 100svh;
     }
-    
+
     .hero__stats {
         justify-content: center;
-        gap: 0.75rem;
+        gap: 1px;
     }
-    
+
     .hero__actions {
         flex-direction: column;
-        
+
         a {
             width: 100%;
         }

@@ -7,7 +7,7 @@ const productsData = [
     title: 'Архивные отчеты данных MODIS и VIIRS',
     description: 'Пространственно-временные связи пожарной активности в Казахстане с 2001 по 2024 годы с использованием спутниковых данных MODIS и VIIRS. С помощью ГИС-анализа оценивается влияние земельного покрова, инфраструктуры, изменений климата и рельефа на динамику пожаров.',
     image: '/report-img.png',
-    link: '#dashboard',
+    link: '/report',
     buttonText: 'Открыть дэшборд',
     variant: 'wide',
     theme: 'light'
@@ -30,7 +30,7 @@ const productsData = [
     link: '#map',
     buttonText: 'Открыть карту',
     variant: 'regular',
-    theme: 'pink'
+    theme: 'light'
   },
   {
     id: 4,
@@ -40,13 +40,13 @@ const productsData = [
     link: '#analytics',
     buttonText: 'Открыть дэшборд',
     variant: 'wide',
-    theme: 'coral'
+    theme: 'purple'
   }
 ];
 
 const Products = () => {
   return (
-    <section className={styles.products}>
+    <section id="products" className={styles.products}>
       <div className={styles.products__container}>
         <header className={styles.products__header}>
           <h4 className={styles.products__subtitle}>Продукты</h4>

@@ -97,7 +97,7 @@ const Contacts = () => {
   };
 
   return (
-    <section className={styles.contacts}>
+    <section id="contact" className={styles.contacts}>
       <div className={styles.contacts__container}>
         <header className={styles.contacts__header}>
           <h4 className={styles.contacts__subtitle} aria-hidden="true">
