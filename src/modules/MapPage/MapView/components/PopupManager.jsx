@@ -4,18 +4,19 @@ import * as turf from '@turf/turf';
 import useMapStore from "../../../../app/store/mapStore";
 import useFireModellingStore from 'src/app/store/fireModellingStore';
 
+/* ── Helpers ───────────────────────────────────────── */
+
 const formatDate = (dateStr) => {
   if (!dateStr) return "";
   try {
     const date = new Date(dateStr);
     if (isNaN(date)) return dateStr;
-    return date.toLocaleDateString("kz-KZ", {
+    return date.toLocaleString("ru-RU", {
       year: "numeric",
       month: "short",
       day: "numeric",
       hour: "2-digit",
       minute: "2-digit",
-      second: "2-digit",
     });
   } catch {
     return dateStr;
@@ -24,187 +25,152 @@ const formatDate = (dateStr) => {
 
 const getConfidenceLabel = (confidence) => {
   if (!confidence) return null;
-
   const confValue = parseFloat(confidence);
   if (isNaN(confValue)) {
     if (typeof confidence === "string") {
       const lower = confidence.toLowerCase();
-      if (lower.includes("high")) return ["high", "High"];
-      if (lower.includes("med")) return ["medium", "Medium"];
-      if (lower.includes("low")) return ["low", "Low"];
+      if (lower.includes("high")) return ["high", "Высокая"];
+      if (lower.includes("med"))  return ["medium", "Средняя"];
+      if (lower.includes("low"))  return ["low", "Низкая"];
     }
     return null;
   }
-
-  if (confValue >= 80) return ["high", "High"];
-  if (confValue >= 50) return ["medium", "Medium"];
-  return ["low", "Low"];
+  if (confValue >= 80) return ["high", "Высокая"];
+  if (confValue >= 50) return ["medium", "Средняя"];
+  return ["low", "Низкая"];
 };
 
-const callFireModelAPI = async (fireImageId) => {
-  if (!fireImageId) {
-    console.log("No fireimageid available for API call");
-    return;
-  }
+// Keys that are shown in dedicated fields → skip in "extra" section
+const SKIP_PROPS = new Set([
+  'name', 'date', 'datetime', 'acq_date', 'acq_time',
+  'confidence', 'power', 'brightness', 'frp',
+  'geometry', 'lat', 'lon', 'latitude', 'longitude',
+  'fireimageid', 'model', 'technogenic',
+]);
 
+const PROP_LABELS = {
+  satellite:    'Спутник',
+  satname:      'Спутник',
+  instrument:   'Инструмент',
+  scan:         'Скан',
+  track:        'Трек',
+  version:      'Версия',
+  type:         'Тип',
+  daynight:     'День/Ночь',
+};
+
+const formatPropValue = (key, value) => {
+  if (key === 'daynight') return value === 'D' ? 'День' : value === 'N' ? 'Ночь' : value;
+  return String(value);
+};
+
+/* ── API call ──────────────────────────────────────── */
+
+const callFireModelAPI = async (fireImageId) => {
+  if (!fireImageId) return;
   try {
     const response = await fetch(
       `https://api.igmass.kz/fire/firemodelbyid?id=${fireImageId}`
     );
     const data = await response.json();
-    const cleanedGeoJSON = {
+    return {
       ...data,
       features: data.features.map((feature) => {
-        const areaSqM = turf.area(feature); // Result in sq m
-
-        const newProps = {
-          ...feature.properties,
-          area_sqm: areaSqM,
-          area_ha: areaSqM / 10_000,  // ha
-          area_sqkm: areaSqM / 1_000_000, // sq km
-        };
-
+        const areaSqM = turf.area(feature);
         return {
           ...feature,
           type: "Feature",
-          properties: newProps,
+          properties: {
+            ...feature.properties,
+            area_sqm:  areaSqM,
+            area_ha:   areaSqM / 10_000,
+            area_sqkm: areaSqM / 1_000_000,
+          },
         };
       }),
     };
-    // const geojsonStr = JSON.stringify(data, null, 2);
-    // console.log('Fire Model API Response:', geojsonStr);
-    return cleanedGeoJSON;
   } catch (error) {
     console.error("Error calling Fire Model API:", error);
   }
 };
 
+/* ── Hook ──────────────────────────────────────────── */
+
 const usePopupManager = (map, fireLayer) => {
   const popupRef = useRef();
-  const [popupContent, setPopupContent] = useState("");
+  const [popupContent, setPopupContent] = useState(null);
   const overlayRef = useRef(null);
   const [isOverlayReady, setIsOverlayReady] = useState(false);
   const { setFireModelLayer } = useMapStore();
   const { setTotalArea } = useFireModellingStore();
 
-  const handleFireModelLayer = async (fireImageId) => {
+  const handleFireModelLayer = useCallback(async (fireImageId) => {
     const modelLayer = await callFireModelAPI(fireImageId);
-    if (modelLayer && modelLayer.features) {
-      // Calculate total area from all features
-      const totalAreaHa = modelLayer.features.reduce((sum, feature) => {
-        return sum + (feature.properties.area_ha || 0);
-      }, 0);
-      
-      // Store total area in the fire modelling store
+    if (modelLayer?.features) {
+      const totalAreaHa = modelLayer.features.reduce(
+        (sum, f) => sum + (f.properties.area_ha || 0), 0
+      );
       setTotalArea(totalAreaHa);
-      console.log('Total fire area calculated:', totalAreaHa, 'hectares');
     }
     setFireModelLayer(modelLayer);
-  };
+  }, [setFireModelLayer, setTotalArea]);
+
+  /* ── Overlay setup ── */
 
   useEffect(() => {
-    // console.log('usePopupManager useEffect - map:', !!map, 'popupRef.current:', !!popupRef.current);
-
-    if (!map || !popupRef.current) {
-      // console.log('Missing map or popupRef, skipping overlay creation');
-      return;
-    }
-
-    if (overlayRef.current) {
-      // console.log('Overlay already exists, skipping creation');
-      return;
-    }
+    if (!map || !popupRef.current || overlayRef.current) return;
 
     const overlay = new Overlay({
       element: popupRef.current,
-      autoPan: true,
-      autoPanAnimation: {
-        duration: 250,
-      },
+      autoPan: { animation: { duration: 250 }, margin: 80 },
     });
 
     overlayRef.current = overlay;
     map.addOverlay(overlay);
     setIsOverlayReady(true);
-    // console.log('Overlay created and added to map: ', overlay);
 
     return () => {
-      // console.log('Cleaning up overlay');
-      if (map && overlay) {
-        map.removeOverlay(overlay);
-      }
+      if (map && overlay) map.removeOverlay(overlay);
       overlayRef.current = null;
       setIsOverlayReady(false);
     };
   }, [map]);
 
-  useEffect(() => {
-    if (map && popupRef.current && !overlayRef.current) {
-      const overlay = new Overlay({
-        element: popupRef.current,
-        autoPan: true,
-        autoPanAnimation: {
-          duration: 250,
-        },
-      });
-
-      overlayRef.current = overlay;
-      map.addOverlay(overlay);
-      setIsOverlayReady(true);
-      console.log("Overlay created after popup element ready");
-    }
-  }, [map, popupRef.current]);
+  /* ── Popup actions ── */
 
   const closePopup = useCallback((e) => {
-    if (e) {
-      e.preventDefault();
-    }
-    if (overlayRef.current) {
-      overlayRef.current.setPosition(undefined);
-    }
+    e?.preventDefault();
+    overlayRef.current?.setPosition(undefined);
+    setPopupContent(null);
     return false;
   }, []);
 
   const showPopup = useCallback((coordinate, content) => {
-    // console.log('showPopup called with:', { coordinate, content, overlay: !!overlayRef.current });
     if (overlayRef.current && coordinate) {
       setPopupContent(content);
       overlayRef.current.setPosition(coordinate);
-      // console.log('Popup position set to:', coordinate);
-    } else {
-      console.warn(
-        "Cannot show popup - overlay not ready or invalid coordinate"
-      );
     }
   }, []);
 
-  const setupPopupInteractions = useCallback(() => {
-    if (!map || !fireLayer) {
-      console.log("Missing map or fireLayer for popup interactions");
-      return () => {};
-    }
+  /* ── Map interactions ── */
 
-    // console.log('Setting up popup interactions for fireLayer:', fireLayer);
+  const setupPopupInteractions = useCallback(() => {
+    if (!map || !fireLayer) return () => {};
 
     const handlePointerMove = (evt) => {
       if (evt.dragging) return;
-
       const pixel = map.getEventPixel(evt.originalEvent);
       const hit = map.hasFeatureAtPixel(pixel, {
-        layerFilter: (layer) => {
-          return fireLayer.containsLayer
+        layerFilter: (layer) =>
+          fireLayer.containsLayer
             ? fireLayer.containsLayer(layer)
-            : fireLayer.getLayers().includes(layer);
-        },
+            : fireLayer.getLayers().includes(layer),
       });
-
       map.getTargetElement().style.cursor = hit ? "pointer" : "";
     };
 
     const handleFirePopupClick = (evt) => {
       closePopup();
-
-      // Check if clicked on fire feature
       let foundFeature = false;
 
       map.forEachFeatureAtPixel(evt.pixel, (feature, layer) => {
@@ -213,189 +179,79 @@ const usePopupManager = (map, fireLayer) => {
           : fireLayer.getLayers().includes(layer);
 
         if (!foundFeature && isFireLayer) {
-          // console.log('Found fire feature:', feature, 'on layer:', layer);
-
+          /* ── Cluster ── */
           if (layer === fireLayer.clusterLayer) {
             const features = feature.get("features");
-            if (features && features.length > 0) {
-              if (features.length > 1) {
-                const coordinate = evt.coordinate;
-                const content = `
-                  <div class="fire-popup fire-cluster">
-                    <div class="fire-popup-header">
-                      <span class="fire-icon">🔥</span>
-                      Fire Cluster
-                      <span class="cluster-count">${features.length}</span>
-                    </div>
-                    <div class="fire-popup-content">
-                      <div class="fire-popup-row">
-                        <div class="fire-popup-label">Count:</div>
-                        <div class="fire-popup-value">${
-                          features.length
-                        } fire points</div>
-                      </div>
-                      <div class="fire-popup-row">
-                        <div class="fire-popup-label">Date Range:</div>
-                        <div class="fire-popup-value">
-                          ${formatDate(
-                            features[0].get("date") ||
-                              features[0].get("datetime")
-                          )} - 
-                          ${formatDate(
-                            features[features.length - 1].get("date") ||
-                              features[features.length - 1].get("datetime")
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                    <div class="fire-popup-footer">
-                      Zoom in to see individual fire points
-                    </div>
-                  </div>
-                `;
-                showPopup(coordinate, content);
-                foundFeature = true;
-                return true;
-              }
-              feature = features[0];
+            if (features?.length > 1) {
+              showPopup(evt.coordinate, {
+                type: 'fire-cluster',
+                coordinate: evt.coordinate,
+                count: features.length,
+                dateRange: {
+                  start: formatDate(features[0].get("date") || features[0].get("datetime")),
+                  end: formatDate(
+                    features[features.length - 1].get("date") ||
+                    features[features.length - 1].get("datetime")
+                  ),
+                },
+              });
+              foundFeature = true;
+              return true;
             }
+            if (features?.length === 1) feature = features[0];
           }
 
-          const coordinate = evt.coordinate;
+          /* ── Single fire point ── */
+          const props         = feature.getProperties();
+          const name          = props.name || 'Очаг возгорания';
+          const date          = formatDate(props.date || props.datetime || '');
+          const confidenceRaw = props.confidence || '';
+          const power         = props.power || props.brightness || props.frp || '';
+          const model         = props.model || '';
+          const fireImageId   = props.fireimageid || '';
 
-          const name = feature.get("name") || "Unnamed Fire";
-          const date = formatDate(
-            feature.get("date") || feature.get("datetime") || ""
-          );
-          const confidenceRaw = feature.get("confidence") || "";
-          const power = feature.get("power") || feature.get("brightness") || "";
-          const fireImageId = feature.get("fireimageid") || "";
-          const model = feature.get("model") || "";
-
-          const confidenceInfo = getConfidenceLabel(confidenceRaw);
-          const confidenceBadge = confidenceInfo
-            ? `<span class="confidence-badge confidence-${confidenceInfo[0]}">${confidenceInfo[1]}</span>`
-            : "";
-
-          let content = `
-            <div class="fire-popup">
-              <div class="fire-popup-header">
-                <span class="fire-icon">🔥</span>
-                ${name}
-                ${confidenceBadge}
-              </div>
-              <div class="fire-popup-content">
-          `;
-
-          if (date) {
-            content += `
-              <div class="fire-popup-row">
-                <div class="fire-popup-label">Date:</div>
-                <div class="fire-popup-value">${date}</div>
-              </div>
-            `;
-          }
-
-          if (confidenceRaw) {
-            content += `
-              <div class="fire-popup-row">
-                <div class="fire-popup-label">Confidence:</div>
-                <div class="fire-popup-value">${confidenceRaw}</div>
-              </div>
-            `;
-          }
-
-          if (power) {
-            content += `
-              <div class="fire-popup-row">
-                <div class="fire-popup-label">Power:</div>
-                <div class="fire-popup-value">${power}</div>
-              </div>
-            `;
-          }
-
-          const props = feature.getProperties();
-          Object.keys(props).forEach((key) => {
+          // Collect extra props (translated, de-duped)
+          const seenLabels = new Set();
+          const extra = [];
+          Object.entries(props).forEach(([key, value]) => {
             if (
-              ![
-                "name",
-                "date",
-                "datetime",
-                "confidence",
-                "power",
-                "brightness",
-                "geometry",
-              ].includes(key) &&
-              props[key] !== undefined &&
-              props[key] !== null &&
-              props[key] !== ""
-            ) {
-              content += `
-                <div class="fire-popup-row">
-                  <div class="fire-popup-label">${key}:</div>
-                  <div class="fire-popup-value">${props[key]}</div>
-                </div>
-              `;
-            }
+              SKIP_PROPS.has(key) ||
+              value === undefined || value === null || value === ''
+            ) return;
+            const label = PROP_LABELS[key] || key;
+            if (seenLabels.has(label)) return;
+            seenLabels.add(label);
+            extra.push({ key: label, value: formatPropValue(key, value) });
           });
 
-          content += `
-              </div>
-              <div class="fire-popup-footer">
-                Fire detection data
-                ${
-                  fireImageId && model
-                    ? `
-                  <button 
-                    onclick="window.handleFireModelLayer('${fireImageId}')" 
-                    style="
-                      margin-top: 10px;
-                      padding: 5px 10px;
-                      background-color: #007cba;
-                      color: white;
-                      border: none;
-                      border-radius: 3px;
-                      cursor: pointer;
-                      font-size: 12px;
-                    "
-                  >
-                    Get Fire Model Data
-                  </button>
-                `
-                    : ""
-                }
-              </div>
-            </div>
-          `;
+          showPopup(evt.coordinate, {
+            type:           'fire-point',
+            coordinate:     evt.coordinate,
+            name,
+            date,
+            confidence:     getConfidenceLabel(confidenceRaw)
+              ? { level: getConfidenceLabel(confidenceRaw)[0], label: getConfidenceLabel(confidenceRaw)[1], raw: confidenceRaw }
+              : null,
+            power:          power ? String(power) : '',
+            model,
+            fireImageId,
+            isTechnogenic:  props.technogenic === true,
+            extra,
+          });
 
-          // global for the onclick handler
-          window.handleFireModelLayer = handleFireModelLayer;
-
-          // console.log('Showing popup with content:', content);
-          showPopup(coordinate, content);
           foundFeature = true;
           return true;
         }
         return false;
       });
-
-      if (!foundFeature) {
-        // console.log('No fire feature found at click location');
-      }
     };
 
-    if (!isOverlayReady) {
-      // console.log('Overlay not ready, deferring popup interactions');
-      return () => {};
-    }
+    if (!isOverlayReady) return () => {};
 
     map.on("pointermove", handlePointerMove);
     map.on("click", handleFirePopupClick);
 
-    // console.log('Popup interactions attached to map');
-
     return () => {
-      // console.log('Cleaning up popup interactions');
       map.un("pointermove", handlePointerMove);
       map.un("click", handleFirePopupClick);
     };
@@ -408,6 +264,7 @@ const usePopupManager = (map, fireLayer) => {
     showPopup,
     setupPopupInteractions,
     isOverlayReady,
+    handleFireModelLayer,
   };
 };
 

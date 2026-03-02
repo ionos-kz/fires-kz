@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 
 import VectorLayer from 'ol/layer/Vector';
 import VectorSource from 'ol/source/Vector';
@@ -8,113 +8,97 @@ import Overlay from 'ol/Overlay';
 import { styleFireModelFunction } from "../utils/colorFireModel.js";
 
 export const useFireModelling = (fireModelLayer, mapInstance, isMapInitialized, addFireModellingLayer, setMapInstance) => {
+  const popupRef   = useRef(null);
+  const overlayRef = useRef(null);
+  const [popupContent, setPopupContent] = useState(null);
+
+  /* ── Overlay (one per map instance) ────────────────────────────── */
+
+  useEffect(() => {
+    if (!mapInstance || !popupRef.current || overlayRef.current) return;
+
+    const overlay = new Overlay({
+      element: popupRef.current,
+      autoPan: { animation: { duration: 250 }, margin: 80 },
+    });
+
+    overlayRef.current = overlay;
+    mapInstance.addOverlay(overlay);
+
+    return () => {
+      if (mapInstance && overlay) mapInstance.removeOverlay(overlay);
+      overlayRef.current = null;
+    };
+  }, [mapInstance]);
+
+  /* ── Close popup ────────────────────────────────────────────────── */
+
+  const closePopup = useCallback(() => {
+    overlayRef.current?.setPosition(undefined);
+    setPopupContent(null);
+  }, []);
+
+  /* ── Fire model layer ───────────────────────────────────────────── */
+
   useEffect(() => {
     if (!mapInstance || !fireModelLayer || !isMapInitialized) return;
 
+    let vectorLayer;
+
     try {
-      const vectorLayer = new VectorLayer({
+      vectorLayer = new VectorLayer({
         source: new VectorSource({
           features: new GeoJSON().readFeatures(fireModelLayer, {
             dataProjection: 'EPSG:4326',
-            featureProjection: 'EPSG:3857'
-          })
+            featureProjection: 'EPSG:3857',
+          }),
         }),
-        style: styleFireModelFunction
+        style: styleFireModelFunction,
       });
-
-      // Create popup overlay
-      const popupElement = document.createElement('div');
-      popupElement.className = 'ol-popup';
-      popupElement.innerHTML = `
-        <a href="#" class="ol-popup-closer"></a>
-        <div class="ol-popup-content"></div>
-      `;
-
-      const overlay = new Overlay({
-        element: popupElement,
-        autoPan: true,
-        autoPanAnimation: {
-          duration: 250,
-        },
-      });
-
-      mapInstance.addOverlay(overlay);
 
       const clickHandler = (evt) => {
-        const feature = mapInstance.forEachFeatureAtPixel(
-          evt.pixel,
-          (feature, layer) => {
-            // Only handle features from fire model layer
-            if (layer === vectorLayer) {
-              return feature;
-            }
-          }
-        );
+        const feature = mapInstance.forEachFeatureAtPixel(evt.pixel, (feat, layer) => {
+          if (layer === vectorLayer) return feat;
+        });
 
         if (feature) {
-          const coordinate = evt.coordinate;
-          const properties = feature.getProperties();
-          
-          const content = `
-            <div>
-              <h3>Fire Spread Model</h3>
-              <p><strong>Accuracy:</strong> ${fireModelLayer.accuracy || 'High'}</p>
-              <p><strong>Satellite:</strong> ${properties.satellite || 'System Generated'}</p>
-              ${properties.fireimageid ? `<p><strong>fireimageid:</strong> ${properties.fireimageid}</p>` : ''}
-              ${properties.dn ? `<p><strong>Order:</strong> ${properties.dn}</p>` : ''}
-              ${properties['locality'] ? `<p><strong>Locality:</strong> ${properties['locality_names']}</p>` : ''}
-              ${properties['area_ha'] ? `<p><strong>Area burned in ha:</strong> ${properties['area_ha']}</p>` : ''}
-            </div>
-          `;
-
-          popupElement.querySelector('.ol-popup-content').innerHTML = content;
-          overlay.setPosition(coordinate);
-
-          // Close button functionality
-          popupElement.querySelector('.ol-popup-closer').onclick = function() {
-            overlay.setPosition(undefined);
-            return false;
-          };
+          setPopupContent({
+            coordinate: evt.coordinate,
+            properties: feature.getProperties(),
+            accuracy:   fireModelLayer.accuracy || null,
+          });
+          overlayRef.current?.setPosition(evt.coordinate);
         } else {
-          // Hide popup if clicked outside features
-          overlay.setPosition(undefined);
+          closePopup();
         }
       };
 
       mapInstance.on('singleclick', clickHandler);
-
-      // Store references for cleanup
-      vectorLayer.clickHandler = clickHandler;
-      vectorLayer.overlay = overlay;
-
-      addFireModellingLayer({
-        id: Date.now(),
-        layer: vectorLayer,
-        opacity: 1,
-        visible: true,
-        name: fireModelLayer.name || 'Fire Spread Model',
-        type: fireModelLayer.type || 'Prediction Model',
-        color: '#ff6b6b',
-        metadata: {
-          source: fireModelLayer.source || 'System Generated',
-          accuracy: fireModelLayer.accuracy || 'High',
-          timestamp: new Date().toISOString(),
-        }
-      });
-
       mapInstance.addLayer(vectorLayer);
       setMapInstance(mapInstance);
 
-      // Cleanup function
-      return () => {
-        if (mapInstance && vectorLayer.clickHandler) {
-          mapInstance.un('singleclick', vectorLayer.clickHandler);
-          mapInstance.removeOverlay(vectorLayer.overlay);
-        }
-      };
+      addFireModellingLayer({
+        id:      Date.now(),
+        layer:   vectorLayer,
+        opacity: 1,
+        visible: true,
+        name:    fireModelLayer.name || 'Модель распространения',
+        type:    fireModelLayer.type || 'Прогнозная модель',
+        color:   '#ff6b6b',
+        metadata: {
+          source:    fireModelLayer.source || 'Автоматически',
+          accuracy:  fireModelLayer.accuracy || '—',
+          timestamp: new Date().toISOString(),
+        },
+      });
 
+      return () => {
+        mapInstance.un('singleclick', clickHandler);
+      };
     } catch (error) {
-      console.error('Error processing GeoJSON data:', error);
+      console.error('Error processing fire model GeoJSON:', error);
     }
-  }, [fireModelLayer, isMapInitialized, addFireModellingLayer, mapInstance, setMapInstance]);
+  }, [fireModelLayer, isMapInitialized, mapInstance, addFireModellingLayer, setMapInstance, closePopup]);
+
+  return { popupRef, popupContent, closePopup };
 };

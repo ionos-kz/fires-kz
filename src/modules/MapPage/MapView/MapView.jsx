@@ -5,6 +5,8 @@ import { Popover } from "antd";
 import BasemapSwitcher from "./components/BasemapSwitcher.jsx";
 import MeasurementTools from "./components/MeasurementTools.jsx";
 import FirePopup from "./components/FirePopup.jsx";
+import FireModelPopup from "./components/FireModelPopup.jsx";
+import EmergencyPopup from "./components/EmergencyPopup.jsx";
 import WeatherPopup from "./components/WeatherPopup.jsx";
 import usePopupManager from "./components/PopupManager.jsx";
 import HomeButton from "./components/HomeButton.jsx";
@@ -34,6 +36,7 @@ import { useSentinelLayers } from "../hooks/useSentinelLayers";
 import { useMethaneLayers } from "../hooks/useMethaneLayers";
 import { useRiskLayers } from "../hooks/useRiskLayers";
 import { useFireModelling } from "../hooks/useFireModelling.js";
+import { useEmergencyPopup } from "../hooks/useEmergencyPopup.js";
 
 import "ol/ol.css";
 import "ol-geocoder/dist/ol-geocoder.min.css";
@@ -129,13 +132,24 @@ const MapView = () => {
 
   // Initialize risk layers
   useRiskLayers(riskMapStore.riskDates, mapInstance, isMapInitialized);
-  useFireModelling(
+  const {
+    popupRef:    fireModelPopupRef,
+    popupContent: fireModelPopupContent,
+    closePopup:  closeFireModelPopup,
+  } = useFireModelling(
     mapStore.fireModelLayer,
     mapInstance,
     isMapInitialized,
     fireModellingStore.addFireModellingLayer,
     fireModellingStore.setMapInstance
   );
+
+  // Emergency layers popup
+  const {
+    popupRef:    emergencyPopupRef,
+    popupContent: emergencyPopupContent,
+    closePopup:  closeEmergencyPopup,
+  } = useEmergencyPopup(mapInstance, emergencyLayers);
 
   // Popup management
   const {
@@ -145,6 +159,7 @@ const MapView = () => {
     showPopup,
     setupPopupInteractions,
     isOverlayReady,
+    handleFireModelLayer,
   } = usePopupManager(mapInstance, fireLayer);
 
   // Set up popup interactions
@@ -324,6 +339,20 @@ const MapView = () => {
           popupRef={popupRef}
           content={popupContent}
           onClose={closePopup}
+          onWeather={(coord) => setWeatherCoordinate(coord)}
+          onFireModel={handleFireModelLayer}
+        />
+
+        <FireModelPopup
+          popupRef={fireModelPopupRef}
+          content={fireModelPopupContent}
+          onClose={closeFireModelPopup}
+        />
+
+        <EmergencyPopup
+          popupRef={emergencyPopupRef}
+          content={emergencyPopupContent}
+          onClose={closeEmergencyPopup}
         />
 
         {weatherCoordinate && (
