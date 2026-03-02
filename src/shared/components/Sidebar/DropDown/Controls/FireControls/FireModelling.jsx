@@ -1,18 +1,16 @@
 import { useState, useEffect, useRef } from 'react';
 import { Style } from 'ol/style';
-import { 
-  Layers, 
+import {
+  Layers,
   Eye,
   EyeOff,
   Sliders,
   Trash2,
   RotateCcw,
-  Settings,
   Info,
-  Play,        
-  Pause,       
-  SkipBack,    
-  ChevronRight 
+  Play,
+  Pause,
+  SkipBack,
 } from 'lucide-react';
 
 import './fireControls.scss';
@@ -24,7 +22,7 @@ const FireModelling = () => {
     const [animatingLayers, setAnimatingLayers] = useState({});
     const animationIntervals = useRef({});
 
-    const { 
+    const {
         fireModellingLayers,
         removeFireModellingLayer,
         updateFireModellingLayer,
@@ -32,7 +30,6 @@ const FireModelling = () => {
         total_area
     } = useFireModellingStore();
 
-    // Convert fireModellingLayers object to array for rendering
     const modellingLayers = Object.values(fireModellingLayers).map(layer => ({
         id: layer.id,
         name: layer.name || `Layer ${layer.id}`,
@@ -45,9 +42,9 @@ const FireModelling = () => {
     }));
 
     const formatTime = (date) => {
-        return date.toLocaleTimeString('en-US', { 
-            hour: '2-digit', 
-            minute: '2-digit' 
+        return date.toLocaleTimeString('en-US', {
+            hour: '2-digit',
+            minute: '2-digit'
         });
     };
 
@@ -95,47 +92,34 @@ const FireModelling = () => {
         }
         removeFireModellingLayer(id);
     };
+
     const startAnimation = (layerId) => {
         const layer = fireModellingLayers[layerId];
         if (!layer?.layer) return;
 
-        // Get all features and find max dn value
         const features = layer.layer.getSource().getFeatures();
         const maxDn = Math.max(...features.map(f => f.get('dn') || 0));
-        
+
         setAnimatingLayers(prev => ({
             ...prev,
-            [layerId]: {
-                isPlaying: true,
-                currentFrame: 0,
-                maxFrame: maxDn,
-                speed: 500 // ms
-            }
+            [layerId]: { isPlaying: true, currentFrame: 0, maxFrame: maxDn, speed: 500 }
         }));
 
-        // Start animation interval
         animationIntervals.current[layerId] = setInterval(() => {
             setAnimatingLayers(prev => {
-            const layerAnim = prev[layerId];
-            if (!layerAnim) return prev;
+                const layerAnim = prev[layerId];
+                if (!layerAnim) return prev;
 
-            const nextFrame = layerAnim.currentFrame >= layerAnim.maxFrame 
-                ? 0 
-                : layerAnim.currentFrame + 1;
+                const nextFrame = layerAnim.currentFrame >= layerAnim.maxFrame
+                    ? 0
+                    : layerAnim.currentFrame + 1;
 
-            // Update layer visibility based on dn value
-            features.forEach(feature => {
-                const dn = feature.get('dn') || 0;
-                feature.setStyle(dn <= nextFrame ? undefined : new Style({}));
-            });
+                features.forEach(feature => {
+                    const dn = feature.get('dn') || 0;
+                    feature.setStyle(dn <= nextFrame ? undefined : new Style({}));
+                });
 
-            return {
-                ...prev,
-                [layerId]: {
-                ...layerAnim,
-                currentFrame: nextFrame
-                }
-            };
+                return { ...prev, [layerId]: { ...layerAnim, currentFrame: nextFrame } };
             });
         }, 500);
     };
@@ -145,325 +129,259 @@ const FireModelling = () => {
             clearInterval(animationIntervals.current[layerId]);
             delete animationIntervals.current[layerId];
         }
-        
         setAnimatingLayers(prev => ({
             ...prev,
-            [layerId]: {
-                ...prev[layerId],
-                isPlaying: false
-            }
+            [layerId]: { ...prev[layerId], isPlaying: false }
         }));
     };
 
     const resetAnimation = (layerId) => {
         pauseAnimation(layerId);
-        
         const layer = fireModellingLayers[layerId];
         if (layer?.layer) {
-            // Show all features
             layer.layer.getSource().getFeatures().forEach(feature => {
                 feature.setStyle(undefined);
             });
         }
-        
         setAnimatingLayers(prev => {
             const updated = { ...prev };
             delete updated[layerId];
             return updated;
         });
-        };
+    };
 
-        const setAnimationFrame = (layerId, frame) => {
+    const setAnimationFrame = (layerId, frame) => {
         const layer = fireModellingLayers[layerId];
         if (!layer?.layer) return;
 
         const features = layer.layer.getSource().getFeatures();
         features.forEach(feature => {
             const dn = feature.get('dn') || 0;
-            feature.setStyle(dn <= frame ? undefined : new ol.style.Style({}));
+            feature.setStyle(dn <= frame ? undefined : new Style({}));
         });
 
         setAnimatingLayers(prev => ({
             ...prev,
-            [layerId]: {
-            ...prev[layerId],
-            currentFrame: frame
-            }
+            [layerId]: { ...prev[layerId], currentFrame: frame }
         }));
     };
 
-    // Cleanup intervals on unmount
     useEffect(() => {
-    return () => {
-        Object.keys(animationIntervals.current).forEach(layerId => {
-            clearInterval(animationIntervals.current[layerId]);
-        });
-    };
+        return () => {
+            Object.keys(animationIntervals.current).forEach(layerId => {
+                clearInterval(animationIntervals.current[layerId]);
+            });
+        };
     }, []);
 
-  return (
-    <div className="fire-controls">
-      {/* Main Layer Toggle */}
-      <div className="fire-controls__header">
-        <div className="fire-controls__toggle" onClick={handleToggleVisibility}>
-          <div className="fire-controls__toggle-icon">
-            {isVisible ? (
-              <Eye size={16} className="fire-controls__icon-active" />
-            ) : (
-              <EyeOff size={16} className="fire-controls__icon-inactive" />
-            )}
-          </div>
-          <span className="fire-controls__toggle-label">
-            Fire Modelling
-          </span>
-          <Layers 
-            size={16} 
-            className={`fire-controls__flame-icon ${
-              isVisible ? 'fire-controls__flame-icon--active' : ''
-            }`}
-          />
-        </div>
-        
-        <button 
-          className={`fire-controls__expand-btn ${
-            isExpanded ? 'fire-controls__expand-btn--expanded' : ''
-          }`}
-          onClick={() => setIsExpanded(!isExpanded)}
-        >
-          <Sliders size={14} />
-        </button>
-      </div>
+    const visibleCount = modellingLayers.filter(l => l.visible).length;
+    const hiddenCount = modellingLayers.length - visibleCount;
+    const avgOpacity = modellingLayers.length > 0
+        ? Math.round(modellingLayers.reduce((acc, l) => acc + l.opacity, 0) / modellingLayers.length * 100)
+        : 0;
 
-      {/* Expanded Controls */}
-      {isExpanded && (
-        <div className="fire-controls__content">
-          
-          {/* Layer Management */}
-          {modellingLayers.length > 0 && (
-            <div className="fire-controls__section">
-              <label className="fire-controls__label">
-                <Layers size={12} />
-                Modelling Layers ({modellingLayers.length})
-              </label>
-              
-              <div className="fire-controls__stats" style={{ maxHeight: '400px', overflowY: 'auto' }}>
-                {modellingLayers.map(layer => (
-                  <div key={layer.id} className="fire-modelling__layer-card">
-                    <div className="fire-modelling__layer-header">
-                      <div className="fire-modelling__layer-info">
-                        <div className="fire-modelling__layer-title">
-                          <span className="fire-modelling__layer-name">
-                            {layer.name} {total_area}
-                          </span>
-                          <div 
-                            className="fire-modelling__layer-indicator"
-                            style={{ backgroundColor: layer.color }}
-                          />
-                        </div>
-                        <div className="fire-modelling__layer-meta">
-                          Added: {formatTime(layer.addedAt)} • {layer.type}
-                        </div>
-                      </div>
-                      
-                    <div className="fire-modelling__layer-actions">
-                    {/* Animation controls */}
-                    {animatingLayers[layer.id] ? (
-                        <>
-                        <button
-                            onClick={() => resetAnimation(layer.id)}
-                            className="fire-controls__stat-btn"
-                            title="Reset animation"
-                        >
-                            <SkipBack size={12} />
-                        </button>
-                        <button
-                            onClick={() => 
-                            animatingLayers[layer.id]?.isPlaying 
-                                ? pauseAnimation(layer.id) 
-                                : startAnimation(layer.id)
-                            }
-                            className="fire-controls__stat-btn fire-modelling__btn--primary"
-                            title={animatingLayers[layer.id]?.isPlaying ? 'Pause' : 'Play'}
-                        >
-                            {animatingLayers[layer.id]?.isPlaying ? <Pause size={12} /> : <Play size={12} />}
-                        </button>
-                        </>
-                    ) : (
-                        <button
-                        onClick={() => startAnimation(layer.id)}
-                        className="fire-controls__stat-btn fire-modelling__btn--primary"
-                        title="Animate layer"
-                        >
-                        <Play size={12} />
-                        </button>
-                    )}
-                    
-                    <button
-                        onClick={() => handleLayerVisibilityToggle(layer.id)}
-                        className={`fire-controls__stat-btn ${
-                        layer.visible ? 'fire-modelling__btn--visible' : ''
-                        }`}
-                        title={layer.visible ? 'Hide layer' : 'Show layer'}
-                    >
-                        {layer.visible ? <Eye size={12} /> : <EyeOff size={12} />}
-                    </button>
-                    
-                    <button
-                        onClick={() => handleResetLayer(layer.id)}
-                        className="fire-controls__stat-btn"
-                        title="Reset layer settings"
-                    >
-                        <RotateCcw size={12} />
-                    </button>
-                    
-                    <button
-                        onClick={() => handleDeleteLayer(layer.id)}
-                        className="fire-controls__stat-btn fire-modelling__btn--danger"
-                        title="Delete layer"
-                    >
-                        <Trash2 size={12} />
-                    </button>
+    return (
+        <div className="fire-controls">
+            {/* Header */}
+            <div className="fire-controls__header">
+                <div className="fire-controls__toggle" onClick={handleToggleVisibility}>
+                    <div className="fire-controls__toggle-icon">
+                        {isVisible
+                            ? <Eye size={15} className="fire-controls__icon-active" />
+                            : <EyeOff size={15} className="fire-controls__icon-inactive" />
+                        }
                     </div>
-                    </div>
+                    <span className="fire-controls__toggle-label">Fire Modelling</span>
+                    <Layers
+                        size={15}
+                        className={`fire-controls__flame-icon${isVisible ? ' fire-controls__flame-icon--active' : ''}`}
+                    />
+                </div>
 
-                    {/* Opacity Control */}
-                    <div className="fire-modelling__layer-controls">
-                      <div className="fire-controls__section" style={{ marginBottom: '12px' }}>
-                        <label className="fire-controls__label" style={{ marginBottom: '6px' }}>
-                          <Settings size={10} />
-                          Opacity: {Math.round(layer.opacity * 100)}%
-                        </label>
-                        <div className="fire-controls__slider-container">
-                          <input
-                            type="range"
-                            min="0"
-                            max="100"
-                            value={Math.round(layer.opacity * 100)}
-                            onChange={(e) => handleOpacityChange(layer.id, e.target.value)}
-                            className="fire-controls__slider"
-                          />
-                            <div 
-                              className="fire-controls__slider-fill"
-                              style={{ width: `${layer.opacity * 100}%` }}
-                            />
-                        </div>
-                      </div>
+                <button
+                    className={`fire-controls__expand-btn${isExpanded ? ' fire-controls__expand-btn--expanded' : ''}`}
+                    onClick={() => setIsExpanded(!isExpanded)}
+                    title="Layer settings"
+                >
+                    <Sliders size={13} />
+                </button>
+            </div>
 
-                      {/* Animation Progress */}
-                        {animatingLayers[layer.id] && (
-                        <div className="fire-controls__section" style={{ marginBottom: '12px' }}>
-                            <label className="fire-controls__label" style={{ marginBottom: '6px' }}>
-                            <ChevronRight size={10} />
-                            Frame: {animatingLayers[layer.id].currentFrame} / {animatingLayers[layer.id].maxFrame}
-                            </label>
-                            <div className="fire-controls__slider-container">
-                            <input
-                                type="range"
-                                min="0"
-                                max={animatingLayers[layer.id].maxFrame}
-                                value={animatingLayers[layer.id].currentFrame}
-                                onChange={(e) => setAnimationFrame(layer.id, parseInt(e.target.value))}
-                                className="fire-controls__slider"
-                            />
-                            <div 
-                                className="fire-controls__slider-fill"
-                                style={{ 
-                                width: `${(animatingLayers[layer.id].currentFrame / animatingLayers[layer.id].maxFrame) * 100}%` 
-                                }}
-                            />
+            {/* Expanded panel */}
+            {isExpanded && (
+                <div className="fire-controls__content">
+
+                    {modellingLayers.length > 0 ? (
+                        <div className="fire-modelling__layers-container">
+                            <div className="fire-modelling__section-header">
+                                <Layers size={11} />
+                                <span>Modelling Layers ({modellingLayers.length})</span>
+                            </div>
+
+                            <div className="fire-modelling__layers">
+                                {modellingLayers.map(layer => {
+                                    const anim = animatingLayers[layer.id];
+                                    return (
+                                        <div key={layer.id} className="fire-modelling__layer-card">
+
+                                            {/* Row 1: dot + name + eye + delete */}
+                                            <div className="fire-modelling__card-header">
+                                                <div
+                                                    className="fire-modelling__layer-dot"
+                                                    style={{ backgroundColor: layer.color }}
+                                                />
+                                                <span className="fire-modelling__layer-name">{layer.name}</span>
+                                                <div className="fire-modelling__card-actions">
+                                                    <button
+                                                        onClick={() => handleLayerVisibilityToggle(layer.id)}
+                                                        className={`fire-modelling__icon-btn${layer.visible ? ' fire-modelling__icon-btn--eye-on' : ''}`}
+                                                        title={layer.visible ? 'Hide layer' : 'Show layer'}
+                                                    >
+                                                        {layer.visible ? <Eye size={13} /> : <EyeOff size={13} />}
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleDeleteLayer(layer.id)}
+                                                        className="fire-modelling__icon-btn fire-modelling__icon-btn--danger"
+                                                        title="Delete layer"
+                                                    >
+                                                        <Trash2 size={13} />
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            {/* Row 2: meta */}
+                                            <div className="fire-modelling__card-meta">
+                                                {formatTime(layer.addedAt)} · {layer.type}
+                                                {total_area ? ` · ${total_area}` : ''}
+                                            </div>
+
+                                            {/* Opacity slider */}
+                                            <div className="fire-modelling__control-row">
+                                                <span className="fire-modelling__control-label">
+                                                    Opacity: {Math.round(layer.opacity * 100)}%
+                                                </span>
+                                                <input
+                                                    type="range"
+                                                    min="0"
+                                                    max="100"
+                                                    value={Math.round(layer.opacity * 100)}
+                                                    onChange={(e) => handleOpacityChange(layer.id, e.target.value)}
+                                                    className="fire-modelling__slider"
+                                                />
+                                            </div>
+
+                                            {/* Animation controls */}
+                                            <div className="fire-modelling__anim-row">
+                                                {anim ? (
+                                                    <>
+                                                        <button
+                                                            onClick={() => resetAnimation(layer.id)}
+                                                            className="fire-modelling__anim-btn"
+                                                            title="Reset animation"
+                                                        >
+                                                            <SkipBack size={11} /> Reset
+                                                        </button>
+                                                        <button
+                                                            onClick={() => anim.isPlaying
+                                                                ? pauseAnimation(layer.id)
+                                                                : startAnimation(layer.id)
+                                                            }
+                                                            className="fire-modelling__anim-btn fire-modelling__anim-btn--primary"
+                                                            title={anim.isPlaying ? 'Pause' : 'Play'}
+                                                        >
+                                                            {anim.isPlaying
+                                                                ? <><Pause size={11} /> Pause</>
+                                                                : <><Play size={11} /> Play</>
+                                                            }
+                                                        </button>
+                                                    </>
+                                                ) : (
+                                                    <button
+                                                        onClick={() => startAnimation(layer.id)}
+                                                        className="fire-modelling__anim-btn fire-modelling__anim-btn--primary"
+                                                        title="Animate layer"
+                                                    >
+                                                        <Play size={11} /> Animate
+                                                    </button>
+                                                )}
+                                                <button
+                                                    onClick={() => handleResetLayer(layer.id)}
+                                                    className="fire-modelling__anim-btn fire-modelling__anim-btn--icon"
+                                                    title="Reset settings"
+                                                >
+                                                    <RotateCcw size={11} />
+                                                </button>
+                                            </div>
+
+                                            {/* Frame slider (visible during animation) */}
+                                            {anim && (
+                                                <div className="fire-modelling__control-row">
+                                                    <span className="fire-modelling__control-label">
+                                                        Frame: {anim.currentFrame} / {anim.maxFrame}
+                                                    </span>
+                                                    <input
+                                                        type="range"
+                                                        min="0"
+                                                        max={anim.maxFrame}
+                                                        value={anim.currentFrame}
+                                                        onChange={(e) => setAnimationFrame(layer.id, parseInt(e.target.value))}
+                                                        className="fire-modelling__slider"
+                                                    />
+                                                </div>
+                                            )}
+
+                                            {/* Metadata */}
+                                            {Object.keys(layer.metadata).length > 0 && (
+                                                <div className="fire-modelling__metadata">
+                                                    {Object.entries(layer.metadata).map(([key, value]) => (
+                                                        <div key={key} className="fire-modelling__meta-row">
+                                                            <span className="fire-modelling__meta-key">
+                                                                {key.charAt(0).toUpperCase() + key.slice(1)}
+                                                            </span>
+                                                            <span className="fire-modelling__meta-val">{value}</span>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+                                    );
+                                })}
+                            </div>
+
+                            {/* Summary bar */}
+                            <div className="fire-modelling__summary">
+                                <div className="fire-modelling__summary-item">
+                                    <span className="fire-modelling__summary-label">Total</span>
+                                    <span className="fire-modelling__summary-value">{modellingLayers.length}</span>
+                                </div>
+                                <div className="fire-modelling__summary-item">
+                                    <span className="fire-modelling__summary-label">Visible</span>
+                                    <span className="fire-modelling__summary-value fire-modelling__summary-value--green">{visibleCount}</span>
+                                </div>
+                                <div className="fire-modelling__summary-item">
+                                    <span className="fire-modelling__summary-label">Hidden</span>
+                                    <span className="fire-modelling__summary-value fire-modelling__summary-value--muted">{hiddenCount}</span>
+                                </div>
+                                <div className="fire-modelling__summary-item">
+                                    <span className="fire-modelling__summary-label">Opacity</span>
+                                    <span className="fire-modelling__summary-value">{avgOpacity}%</span>
+                                </div>
                             </div>
                         </div>
-                        )}
-
-                      {/* Layer Metadata */}
-                      {layer.metadata && (
-                        <div className="fire-modelling__layer-metadata">
-                          <div className="fire-controls__label" style={{ marginBottom: '6px' }}>
-                            <Info size={10} />
-                            Layer Details
-                          </div>
-                          <div className="fire-modelling__metadata-grid">
-                            {Object.entries(layer.metadata).map(([key, value]) => (
-                              <div key={key} className="fire-modelling__metadata-item">
-                                <span className="fire-modelling__metadata-key">
-                                  {key.charAt(0).toUpperCase() + key.slice(1)}:
-                                </span>
-                                <span className="fire-modelling__metadata-value">
-                                  {value}
-                                </span>
-                              </div>
-                            ))}
-                          </div>
+                    ) : (
+                        /* Empty state */
+                        <div className="fire-modelling__empty">
+                            <Layers size={28} className="fire-modelling__empty-icon" />
+                            <p className="fire-modelling__empty-title">No Modelling Layers</p>
+                            <p className="fire-modelling__empty-desc">
+                                Add fire spread models, evacuation zones, or weather analysis layers to get started.
+                            </p>
                         </div>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Empty State */}
-          {modellingLayers.length === 0 && (
-            <div className="fire-controls__section">
-              <div className="fire-modelling__empty-state">
-                <Layers size={32} className="fire-modelling__empty-icon" />
-                <h4 className="fire-modelling__empty-title">No Modelling Layers</h4>
-                <p className="fire-modelling__empty-description">
-                  Add fire spread models, evacuation zones, or weather analysis layers to get started.
-                </p>
-              </div>
-            </div>
-          )}
-
-          {/* Summary Stats */}
-          <div className="fire-controls__stats">
-            <div className="fire-controls__stat-header">
-              <h4 className="fire-controls__stat-title">
-                <Layers size={14} />
-                Layer Summary
-              </h4>
-            </div>
-            
-            <div className="fire-controls__stat-grid">
-              <div className="fire-controls__stat-item">
-                <span className="fire-controls__stat-label">Total Layers</span>
-                <span className="fire-controls__stat-value">
-                  {modellingLayers.length}
-                </span>
-              </div>
-              <div className="fire-controls__stat-item">
-                <span className="fire-controls__stat-label">Visible</span>
-                <span 
-                  className="fire-controls__stat-value"
-                  style={{ color: '#10b981' }}
-                >
-                  {modellingLayers.filter(layer => layer.visible).length}
-                </span>
-              </div>
-              <div className="fire-controls__stat-item">
-                <span className="fire-controls__stat-label">Hidden</span>
-                <span 
-                  className="fire-controls__stat-value"
-                  style={{ color: '#6b7280' }}
-                >
-                  {modellingLayers.filter(layer => !layer.visible).length}
-                </span>
-              </div>
-              <div className="fire-controls__stat-item">
-                <span className="fire-controls__stat-label">Avg Opacity</span>
-                <span className="fire-controls__stat-value">
-                  {modellingLayers.length > 0 
-                    ? Math.round(modellingLayers.reduce((acc, layer) => acc + layer.opacity, 0) / modellingLayers.length * 100)
-                    : 0}%
-                </span>
-              </div>
-            </div>
-          </div>
+                    )}
+                </div>
+            )}
         </div>
-      )}
-    </div>
-  );
+    );
 };
 
 export default FireModelling;

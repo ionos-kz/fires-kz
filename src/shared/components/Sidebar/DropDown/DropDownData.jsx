@@ -168,6 +168,18 @@ export const newDD = [
             "description": "Радарные спутниковые данные (SAR), позволяющие наблюдать землю и объекты в любых погодных условиях, днём и ночью."
           }
         ]
+      },
+      {
+        "id": "landsat_archive",
+        "label_ru": "Landsat Archive (HLS L30)",
+        "isExpanded": false,
+        "options": [
+          {
+            "id": "hls_landsat",
+            "label": "HLS L30 (Harmonized Landsat)",
+            "description": "Поиск архивных снимков Landsat 8/9 (30 м) через STAC API NASA LP DAAC и Planetary Computer. Ограничено территорией Казахстана."
+          }
+        ]
       }
     ]
   },

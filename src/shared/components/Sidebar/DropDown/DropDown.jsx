@@ -23,6 +23,7 @@ import SentinelControls from "./SentinelControls/SentinelControls";
 import SentinelControls3 from "./SentinelControls/SentinelControls3";
 import SentinelControls5 from "./SentinelControls/SentinelControls5";
 import SentinelControls1 from "./SentinelControls/SentinelControls1";
+import HLSControls from "./SentinelControls/HLSControls";
 import FireControls from "./Controls/FireControls/FireControls";
 import FireRisk from "./Controls/FireRisk";
 import FireModelling from "./Controls/FireControls/FireModelling";
@@ -217,6 +218,9 @@ const DropDown = memo(({ openTabIndex }) => {
 
         case "sentinel1":
           return <SentinelControls1 />;
+
+        case "hls_landsat":
+          return <HLSControls key={option.id} />;
 
         case "fire_pinpoints":
           return (

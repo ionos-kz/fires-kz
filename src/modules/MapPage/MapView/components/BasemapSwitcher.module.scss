@@ -1,237 +1,226 @@
 @use "src/shared/styles/variables" as *;
 
-/* Basemap Switcher */
 .basemapSwitcher {
-  position: absolute;
-  top: 12.5rem;
-  right: .5rem;
-  z-index: 100;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
+    position: absolute;
+    top: 12.5rem;
+    right: .5rem;
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
 }
 
 .basemapButton {
-  width: 2rem;
-  height: 2rem;
-  border-radius: .4rem;
-  border: none;
-  background: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.2);
-  transition: opacity 0.2s ease-in-out;
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 10px;
+    border: 1px solid rgba(136, 139, 224, 0.1);
+    background: rgba(9, 10, 36, 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+    transition: all 0.25s ease;
+    color: rgba(217, 218, 245, 0.7);
 
-  &:hover {
-    opacity: .8;
-  }
+    &:hover {
+        border-color: rgba(136, 139, 224, 0.25);
+        background: rgba(9, 10, 36, 0.95);
+        color: rgba(217, 218, 245, 0.95);
+    }
 
-  svg {
-    color: $icon-main-color-map;
-    width: $icon-main-size-map;
-    height: $icon-main-size-map;
-  }
+    &.active {
+        border-color: rgba(136, 139, 224, 0.3);
+        background: rgba(9, 10, 36, 0.95);
+    }
+
+    svg {
+        color: inherit;
+        width: $icon-main-size-map;
+        height: $icon-main-size-map;
+    }
 }
 
 .basemapOptions {
-  position: absolute;
-  right: 3rem;
-  top: 0;
-  background: rgba(255, 255, 255, 0.98);
-  backdrop-filter: blur(15px);
-  border-radius: 0.75rem;
-  padding: 0.75rem;
-  min-width: 200px;
-  max-width: 300px;
-  max-height: 350px;
-  overflow-y: auto;
-  box-shadow: 
-    0px 8px 30px rgba(0, 0, 0, 0.15),
-    0px 4px 15px rgba(0, 0, 0, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  transform: translateX(0) translateY(5px) scale(0.95);
-  opacity: 0;
-  animation: slideIn 0.2s ease-out forwards;
+    position: absolute;
+    right: 3rem;
+    top: 0;
+    background: rgba(9, 10, 36, 0.92);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border-radius: 14px;
+    padding: 0.75rem;
+    min-width: 210px;
+    max-width: 300px;
+    max-height: 350px;
+    overflow-y: auto;
+    box-shadow:
+        0 12px 40px rgba(0, 0, 0, 0.45),
+        inset 0 0 0 1px rgba(136, 139, 224, 0.06);
+    border: 1px solid rgba(136, 139, 224, 0.1);
+    transform: translateX(0) translateY(5px) scale(0.95);
+    opacity: 0;
+    animation: slideIn 0.2s ease-out forwards;
 
-  /* Custom scrollbar */
-  &::-webkit-scrollbar {
-    width: 6px;
-  }
-
-  &::-webkit-scrollbar-track {
-    background: rgba(0, 0, 0, 0.05);
-    border-radius: 3px;
-  }
-
-  &::-webkit-scrollbar-thumb {
-    background: rgba(0, 0, 0, 0.2);
-    border-radius: 3px;
-    
-    &:hover {
-      background: rgba(0, 0, 0, 0.3);
+    &::-webkit-scrollbar {
+        width: 5px;
     }
-  }
+
+    &::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background: rgba(136, 139, 224, 0.2);
+        border-radius: 3px;
+
+        &:hover {
+            background: rgba(136, 139, 224, 0.35);
+        }
+    }
 }
 
 @keyframes slideIn {
-  to {
-    transform: translateX(0) translateY(0) scale(1);
-    opacity: 1;
-  }
+    to {
+        transform: translateX(0) translateY(0) scale(1);
+        opacity: 1;
+    }
 }
 
 .categoryTitle {
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: #666;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin: 0.75rem 0 0.5rem 0;
-  padding: 0 0.5rem;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: rgba(217, 218, 245, 0.35);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin: 0.75rem 0 0.5rem 0;
+    padding: 0 0.5rem;
 
-  &:first-child {
-    margin-top: 0;
-  }
+    &:first-child {
+        margin-top: 0;
+    }
 }
 
 .basemapGroup {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-  margin-bottom: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin-bottom: 0.5rem;
 }
 
 .basemapOption {
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 0.75rem;
-  text-align: left;
-  font-size: 14px;
-  color: #333;
-  transition: all 0.2s ease-in-out;
-  border-radius: 0.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  position: relative;
-  overflow: hidden;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.65rem 0.75rem;
+    text-align: left;
+    font-size: 13px;
+    color: rgba(217, 218, 245, 0.65);
+    transition: all 0.2s ease;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+    overflow: hidden;
 
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
-    transform: translateX(-100%);
-    transition: transform 0.6s ease-in-out;
-  }
+    &:hover {
+        background: rgba(136, 139, 224, 0.08);
+        color: rgba(217, 218, 245, 0.95);
 
-  &:hover {
-    background: linear-gradient(135deg, #e8f4fd, #f0f8ff);
-    transform: translateX(2px);
-    
-    &::before {
-      transform: translateX(100%);
+        .basemapType {
+            opacity: 1;
+            transform: translateX(0);
+        }
     }
-    
-    .basemapType {
-      opacity: 1;
-      transform: translateX(0);
-    }
-  }
 
-  &:active {
-    transform: translateX(1px) scale(0.98);
-  }
+    &:active {
+        transform: scale(0.98);
+    }
 }
 
 .basemapOption.active {
-  background: linear-gradient(135deg, #4999E8, #3a7bd5);
-  color: white;
-  font-weight: 600;
-  box-shadow: 
-    0px 2px 8px rgba(73, 153, 232, 0.3),
-    inset 0px 1px 0px rgba(255, 255, 255, 0.2);
+    background: linear-gradient(135deg, rgba(136, 139, 224, 0.2), rgba(71, 135, 227, 0.15));
+    color: #fff;
+    font-weight: 600;
+    border: 1px solid rgba(136, 139, 224, 0.2);
 
-  .basemapType {
-    color: rgba(255, 255, 255, 0.8);
-  }
+    .basemapType {
+        color: rgba(136, 139, 224, 0.8);
+        background: rgba(136, 139, 224, 0.1);
+    }
 
-  &:hover {
-    background: linear-gradient(135deg, #5aa3eb, #4285d1);
-    transform: translateX(2px);
-  }
+    &:hover {
+        background: linear-gradient(135deg, rgba(136, 139, 224, 0.25), rgba(71, 135, 227, 0.2));
+    }
 }
 
 .basemapName {
-  font-weight: inherit;
-  flex-grow: 1;
+    font-weight: inherit;
+    flex-grow: 1;
 }
 
 .basemapType {
-  font-size: 0.75rem;
-  color: #999;
-  opacity: 0.7;
-  transition: all 0.2s ease-in-out;
-  transform: translateX(10px);
-  background: rgba(0, 0, 0, 0.05);
-  padding: 0.2rem 0.4rem;
-  border-radius: 0.25rem;
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+    font-size: 0.65rem;
+    color: rgba(217, 218, 245, 0.3);
+    opacity: 0.7;
+    transition: all 0.2s ease;
+    transform: translateX(8px);
+    background: rgba(136, 139, 224, 0.06);
+    padding: 0.15rem 0.4rem;
+    border-radius: 6px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
-/* Loading state */
 .loading {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 2rem;
-  color: #666;
-  font-size: 0.875rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    color: rgba(217, 218, 245, 0.5);
+    font-size: 0.85rem;
 
-  &::after {
-    content: '';
-    width: 1rem;
-    height: 1rem;
-    margin-left: 0.5rem;
-    border: 2px solid #e0e0e0;
-    border-top: 2px solid #4999E8;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-  }
+    &::after {
+        content: '';
+        width: 1rem;
+        height: 1rem;
+        margin-left: 0.5rem;
+        border: 2px solid rgba(136, 139, 224, 0.15);
+        border-top: 2px solid #888BE0;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
 }
 
 @media (max-width: 768px) {
-  .basemapSwitcher {
-    top: 11rem;
-    right: 0.25rem;
-  }
+    .basemapSwitcher {
+        top: 11rem;
+        right: 0.25rem;
+    }
 
-  .basemapOptions {
-    right: 0;
-    min-width: 180px;
-    max-height: 280px;
-    padding: 0.5rem;
-  }
+    .basemapOptions {
+        right: 0;
+        min-width: 180px;
+        max-height: 280px;
+        padding: 0.5rem;
+    }
 
-  .basemapOption {
-    padding: 0.625rem;
-    font-size: 13px;
-  }
+    .basemapOption {
+        padding: 0.55rem 0.65rem;
+        font-size: 12px;
+    }
 
-  .basemapType {
-    font-size: 0.7rem;
-  }
+    .basemapType {
+        font-size: 0.6rem;
+    }
 }

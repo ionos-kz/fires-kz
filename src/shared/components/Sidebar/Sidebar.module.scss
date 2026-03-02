@@ -7,7 +7,6 @@
   z-index: 20;
 
   height: calc(100vh - 8vh);
-  background-color: $bg-color;
 
   display: flex;
   align-items: flex-start;
@@ -15,41 +14,61 @@
   overflow: hidden;
 
   .menu {
-    // height: 100%;
     height: 92vh;
 
     display: flex;
     flex-direction: column;
-    gap: .5rem;
+    gap: 4px;
+
+    padding: 6px 5px;
+
+    background: rgba(9, 10, 36, 0.82);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
 
     &.open {
-      border-right: 1px solid #9e9e9e;
+      border-right: 1px solid rgba(136, 139, 224, 0.1);
     }
 
     .tab {
       width: 100%;
-      padding: .25rem;
+      padding: 2px;
       cursor: pointer;
+      border-radius: 10px;
+      transition: background 0.2s ease;
 
-      &.active {
-        background-color: $active-bg-color;
+      &:hover {
+        background: rgba(136, 139, 224, 0.08);
 
         svg {
-          color: $icon-main-color--active !important;
+          color: rgba(217, 218, 245, 0.85) !important;
+        }
+      }
+
+      &.active {
+        background: rgba(136, 139, 224, 0.15);
+        box-shadow: inset 0 0 0 1px rgba(136, 139, 224, 0.2);
+
+        svg {
+          color: rgba(136, 139, 224, 0.95) !important;
         }
       }
 
       .tab-inner {
-        padding: .5rem;
-        border-radius: .5rem;
+        padding: 8px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
 
         svg {
-          color: $icon-main-color;
+          color: rgba(217, 218, 245, 0.4);
           width: $icon-main-size;
           height: $icon-main-size;
+          transition: color 0.2s ease;
         }
       }
-  
+
       button {
         display: flex;
         justify-content: center;
