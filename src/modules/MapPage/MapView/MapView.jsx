@@ -5,6 +5,7 @@ import { Popover } from "antd";
 import BasemapSwitcher from "./components/BasemapSwitcher.jsx";
 import MeasurementTools from "./components/MeasurementTools.jsx";
 import FirePopup from "./components/FirePopup.jsx";
+import WeatherPopup from "./components/WeatherPopup.jsx";
 import usePopupManager from "./components/PopupManager.jsx";
 import HomeButton from "./components/HomeButton.jsx";
 
@@ -45,6 +46,7 @@ const MapView = () => {
   const [basemap, setBasemap] = useState(osmLayer);
   const [selectedFeature, setSelectedFeature] = useState(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const [weatherCoordinate, setWeatherCoordinate] = useState(null);
 
   // Store hooks
   const fireStore = useFireStore();
@@ -111,6 +113,13 @@ const MapView = () => {
       window.mapInstance = mapInstance;
     }
   }, [mapInstance]);
+
+  // Weather popup via context menu event
+  useEffect(() => {
+    const handler = (e) => setWeatherCoordinate(e.detail.coordinate);
+    window.addEventListener('cm:weather', handler);
+    return () => window.removeEventListener('cm:weather', handler);
+  }, []);
 
   // Initialize sentinel layers
   const sentinelLayers = useSentinelLayers("sentinel2", sentinelStore);
@@ -316,6 +325,13 @@ const MapView = () => {
           content={popupContent}
           onClose={closePopup}
         />
+
+        {weatherCoordinate && (
+          <WeatherPopup
+            coordinate={weatherCoordinate}
+            onClose={() => setWeatherCoordinate(null)}
+          />
+        )}
       </div>
     </div>
   );

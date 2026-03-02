@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from 'react';
 import { Ruler, SquareIcon, XCircle, Trash2, Download, Copy } from 'lucide-react';
 
 import { unByKey } from 'ol/Observable.js';
+import Feature from 'ol/Feature.js';
 import Overlay from 'ol/Overlay.js';
 import LineString from 'ol/geom/LineString.js';
 import Polygon from 'ol/geom/Polygon.js';
@@ -24,6 +25,7 @@ const MeasurementTools = ({ map }) => {
   const sourceRef = useRef(null);
   const vectorRef = useRef(null);
   const drawRef = useRef(null);
+  const measureStartCoordRef = useRef(null);
   const sketchRef = useRef(null);
   const helpTooltipRef = useRef(null);
   const helpTooltipElementRef = useRef(null);
@@ -112,7 +114,18 @@ const MeasurementTools = ({ map }) => {
     });
     
     map.addInteraction(drawRef.current);
-    
+
+    // If triggered from context menu, pre-plant the starting coordinate
+    const startCoord = measureStartCoordRef.current;
+    if (startCoord) {
+      measureStartCoordRef.current = null;
+      setTimeout(() => {
+        if (!drawRef.current) return;
+        const startFeature = new Feature(new LineString([startCoord, startCoord]));
+        drawRef.current.extend(startFeature);
+      }, 50);
+    }
+
     createMeasureTooltip();
     createHelpTooltip();
     
@@ -236,6 +249,17 @@ const MeasurementTools = ({ map }) => {
       map.getViewport().removeEventListener('mouseout', handleMouseOut);
     };
   }, [map]);
+
+  // Listen for measure-from-coordinate event dispatched by context menu
+  useEffect(() => {
+    const handler = (e) => {
+      measureStartCoordRef.current = e.detail.coordinate;
+      setShowToolOptions(true);
+      setType('LineString');
+    };
+    window.addEventListener('cm:measure', handler);
+    return () => window.removeEventListener('cm:measure', handler);
+  }, []);
 
   // Handle drawing interaction based on type change
   useEffect(() => {
