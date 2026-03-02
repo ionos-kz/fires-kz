@@ -7,8 +7,6 @@ import {
 import useHLSStore from 'src/app/store/hlsStore';
 import styles from './HLSControls.module.scss';
 
-// Kazakhstan bounding box (EPSG:4326)
-const KAZ_BBOX = [46.4664457538, 40.6623245306, 87.3599703308, 55.3852501491];
 
 const CMR_BASE = 'https://cmr.earthdata.nasa.gov/stac/LPCLOUD';
 

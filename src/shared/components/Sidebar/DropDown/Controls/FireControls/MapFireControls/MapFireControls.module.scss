@@ -1,371 +1,207 @@
 .mapFireWrapper {
-  background: white;
-  border-radius: 16px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
-  transition: all 0.3s ease;
   display: flex;
   flex-direction: column;
-  gap: 0;
+  height: 100%;
+  background: rgba(6, 7, 22, 0.98);
+  overflow: hidden;
 }
 
+/* ── Map section ───────────────────────────────────────── */
 .mapSection {
   position: relative;
-  height: 400px;
-  min-height: 300px;
+  height: 280px;
   flex-shrink: 0;
-}
-
-.legendSection {
-  background: #f8f9fa;
-  border-top: 1px solid #e9ecef;
-  padding: 1rem;
-}
-
-.fullscreen {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  z-index: 1000;
-  border-radius: 0;
-  
-  .mapSection {
-    height: calc(100vh - 200px);
-  }
-}
-
-.mapHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1.5rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  
-  h2 {
-    margin: 0;
-    font-size: 1.5rem;
-    font-weight: 600;
-  }
-}
-
-.mapStats {
-  display: flex;
-  gap: 1rem;
-  
-  span {
-    background: rgba(255, 255, 255, 0.2);
-    padding: 0.25rem 0.75rem;
-    border-radius: 20px;
-    font-size: 0.875rem;
-    backdrop-filter: blur(10px);
-    font-weight: 500;
-  }
+  background: #070a1e;
 }
 
 .mapFireControls {
   width: 100%;
   height: 100%;
-  min-height: 300px;
   position: relative;
 }
 
+/* Dim the OSM tiles to make the choropleth pop */
+.mapFireControls :global(.ol-layer) canvas {
+  filter: brightness(0.45) saturate(0.3);
+}
+
+/* ── Hover tooltip ─────────────────────────────────────── */
 .hoverBox {
   position: absolute;
-  top: 1rem;
-  left: 1rem;
-  background: white;
-  padding: 1rem;
+  top: 12px;
+  left: 12px;
+  background: rgba(9, 10, 36, 0.92);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(136, 139, 224, 0.2);
   border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  min-width: 200px;
-  z-index: 1000;
-  border: 1px solid #e9ecef;
-  
-  strong {
-    display: block;
-    margin-bottom: 0.5rem;
-    color: #2c3e50;
-    font-size: 1.1rem;
-  }
-  
-  p {
-    margin: 0;
-    color: #6c757d;
-    font-size: 0.9rem;
-  }
+  padding: 8px 12px;
+  z-index: 100;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  pointer-events: none;
 }
 
+.hoverBox__name {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(217, 218, 245, 0.9);
+}
+
+.hoverBox__count {
+  font-size: 15px;
+  font-weight: 700;
+  color: #fb923c;
+}
+
+.hoverBox__label {
+  font-size: 10px;
+  color: rgba(217, 218, 245, 0.35);
+  font-weight: 500;
+}
+
+/* ── Gradient legend on map ────────────────────────────── */
 .colorLegend {
   position: absolute;
-  bottom: 1rem;
-  right: 1rem;
-  background: white;
-  padding: 0.75rem;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  width: 120px;
-  z-index: 1000;
-  border: 1px solid #e9ecef;
-}
-
-.closeBtn {
-  position: absolute;
-  top: 0.5rem;
-  right: 0.5rem;
-  background: none;
-  border: none;
-  font-size: 1.5rem;
-  cursor: pointer;
-  color: #6c757d;
-  padding: 0;
-  line-height: 1;
-  
-  &:hover {
-    color: #495057;
-  }
-}
-
-.legend {
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  border: 1px solid #e9ecef;
-  padding: 1.25rem;
-  
-  h4 {
-    margin: 0 0 1rem 0;
-    color: #2c3e50;
-    font-size: 1.1rem;
-    font-weight: 600;
-    text-align: center;
-  }
-}
-
-.legendItems {
-  display: grid;
-  gap: 0.75rem;
-}
-
-.legendItem {
-  display: grid;
-  grid-template-columns: 20px 1fr auto;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.5rem;
-  border-radius: 6px;
-  transition: background-color 0.2s ease;
-  
-  &:hover {
-    background-color: #f8f9fa;
-  }
-}
-
-.legendColor {
-  width: 20px;
-  height: 20px;
-  border-radius: 4px;
-  border: 1px solid #dee2e6;
-  flex-shrink: 0;
-}
-
-.regionName {
-  color: #2c3e50;
-  font-weight: 500;
-  font-size: 0.9rem;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.fireCount {
-  font-weight: 700;
-  color: #dc3545;
-  font-size: 0.9rem;
-  background: #fff5f5;
-  padding: 0.25rem 0.5rem;
-  border-radius: 12px;
-  border: 1px solid #fed7d7;
-  min-width: fit-content;
-}
-
-.moreRegions {
-  font-size: 0.8rem;
-  color: #6c757d;
-  font-style: italic;
-  margin-top: 0.5rem;
-  padding-top: 0.75rem;
-  border-top: 1px solid #e9ecef;
-  text-align: center;
-  grid-column: 1 / -1;
+  bottom: 10px;
+  right: 10px;
+  background: rgba(9, 10, 36, 0.85);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(136, 139, 224, 0.15);
+  padding: 7px 10px;
+  border-radius: 7px;
+  width: 116px;
+  z-index: 100;
 }
 
 .gradientBar {
-  height: 12px;
+  height: 8px;
   background: linear-gradient(
     to right,
-    #ffffff 0%,
-    #ffd700 20%,
-    #ff8000 40%,
-    #ff4500 60%,
+    #0f1535 0%,
+    #1e3a6e 15%,
+    #f59e0b 35%,
+    #ef4444 60%,
     #cc0000 80%,
     #7a0000 100%
   );
-  border-radius: 6px;
-  margin-bottom: 0.5rem;
-  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  margin-bottom: 5px;
 }
 
 .gradientLabels {
   display: flex;
   justify-content: space-between;
-  font-size: 0.75rem;
-  color: #6c757d;
+  font-size: 9px;
+  color: rgba(217, 218, 245, 0.4);
   font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
 }
 
-// Responsive design
-@media (max-width: 768px) {
-  .mapFireWrapper {
-    border-radius: 12px;
+/* ── Legend / ranking section ──────────────────────────── */
+.legendSection {
+  flex: 1;
+  overflow: hidden;
+  border-top: 1px solid rgba(136, 139, 224, 0.08);
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.legend {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  flex: 1;
+}
+
+.legendTitle {
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(217, 218, 245, 0.45);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 0 0 10px 0;
+  flex-shrink: 0;
+}
+
+.legendItems {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  overflow-y: auto;
+  flex: 1;
+
+  &::-webkit-scrollbar {
+    width: 3px;
   }
-  
-  .mapSection {
-    height: 350px;
+  &::-webkit-scrollbar-track {
+    background: transparent;
   }
-  
-  .legendSection {
-    padding: 0.75rem;
-  }
-  
-  .mapHeader {
-    padding: 1rem;
-    flex-direction: column;
-    gap: 1rem;
-    text-align: center;
-    
-    h2 {
-      font-size: 1.25rem;
-    }
-  }
-  
-  .mapStats {
-    gap: 0.5rem;
-    flex-wrap: wrap;
-    justify-content: center;
-    
-    span {
-      font-size: 0.8rem;
-      padding: 0.2rem 0.6rem;
-    }
-  }
-  
-  .legend {
-    padding: 1rem;
-    
-    h4 {
-      font-size: 1rem;
-    }
-  }
-  
-  .legendItems {
-    gap: 0.5rem;
-  }
-  
-  .legendItem {
-    padding: 0.4rem;
-    gap: 0.5rem;
-    grid-template-columns: 18px 1fr auto;
-  }
-  
-  .legendColor {
-    width: 18px;
-    height: 18px;
-  }
-  
-  .regionName {
-    font-size: 0.85rem;
-  }
-  
-  .fireCount {
-    font-size: 0.8rem;
-    padding: 0.2rem 0.4rem;
-  }
-  
-  .hoverBox {
-    top: 0.5rem;
-    left: 0.5rem;
-    right: 0.5rem;
-    min-width: auto;
-    max-width: calc(100% - 1rem);
-  }
-  
-  .colorLegend {
-    bottom: 0.5rem;
-    right: 0.5rem;
-    width: 100px;
-    padding: 0.5rem;
+  &::-webkit-scrollbar-thumb {
+    background: rgba(136, 139, 224, 0.2);
+    border-radius: 2px;
   }
 }
 
-@media (max-width: 480px) {
-  .mapFireWrapper {
-    border-radius: 8px;
+.legendItem {
+  display: grid;
+  grid-template-columns: 18px 12px 1fr 60px 36px;
+  align-items: center;
+  gap: 7px;
+  padding: 4px 6px;
+  border-radius: 5px;
+  transition: background 0.15s ease;
+
+  &:hover {
+    background: rgba(136, 139, 224, 0.06);
   }
-  
-  .mapSection {
-    height: 300px;
-  }
-  
-  .legendSection {
-    padding: 0.5rem;
-  }
-  
-  .mapHeader {
-    padding: 0.75rem;
-    
-    h2 {
-      font-size: 1.1rem;
-    }
-  }
-  
-  .legend {
-    padding: 0.75rem;
-    
-    h4 {
-      font-size: 0.95rem;
-      margin-bottom: 0.75rem;
-    }
-  }
-  
-  .legendItem {
-    grid-template-columns: 16px 1fr auto;
-    gap: 0.4rem;
-    padding: 0.3rem;
-  }
-  
-  .legendColor {
-    width: 16px;
-    height: 16px;
-  }
-  
-  .regionName {
-    font-size: 0.8rem;
-  }
-  
-  .fireCount {
-    font-size: 0.75rem;
-    padding: 0.15rem 0.35rem;
-  }
-  
-  .colorLegend {
-    width: 90px;
-    padding: 0.4rem;
-  }
-  
-  .gradientBar {
-    height: 10px;
-  }
+}
+
+.legendRank {
+  font-size: 10px;
+  font-weight: 700;
+  color: rgba(217, 218, 245, 0.25);
+  text-align: right;
+}
+
+.legendColor {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  flex-shrink: 0;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.regionName {
+  font-size: 11px;
+  font-weight: 500;
+  color: rgba(217, 218, 245, 0.7);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.legendBarWrap {
+  height: 4px;
+  background: rgba(136, 139, 224, 0.08);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.legendBar {
+  height: 100%;
+  background: linear-gradient(to right, #f59e0b, #ef4444);
+  border-radius: 2px;
+  transition: width 0.4s ease;
+  min-width: 2px;
+}
+
+.fireCount {
+  font-size: 11px;
+  font-weight: 700;
+  color: rgba(217, 218, 245, 0.55);
+  text-align: right;
 }

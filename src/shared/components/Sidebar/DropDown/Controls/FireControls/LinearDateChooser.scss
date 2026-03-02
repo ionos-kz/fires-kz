@@ -310,6 +310,140 @@
   }
 }
 
+/* ── Calendar grid ───────────────────────────────────────── */
+.ldc-calendar {
+  padding: 12px 16px 16px;
+}
+
+.ldc-calendar__nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.ldc-calendar__nav-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  cursor: pointer;
+  color: #374151;
+  transition: all 0.15s ease;
+
+  &:hover:not(:disabled) {
+    background: #e5e7eb;
+    border-color: #d1d5db;
+  }
+
+  &:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+  }
+}
+
+.ldc-calendar__month-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1f2937;
+  text-align: center;
+}
+
+.ldc-calendar__weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+  margin-bottom: 4px;
+}
+
+.ldc-calendar__weekday {
+  text-align: center;
+  font-size: 10px;
+  font-weight: 600;
+  color: #9ca3af;
+  padding: 4px 0;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.ldc-calendar__grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 3px;
+}
+
+.ldc-calendar__day {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 36px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #374151;
+  background: transparent;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  position: relative;
+
+  &:hover:not(:disabled):not(.ldc-calendar__day--selected) {
+    background: #e0e7ff;
+    color: #4338ca;
+  }
+
+  &--empty {
+    background: transparent;
+    border: none;
+    cursor: default;
+    pointer-events: none;
+  }
+
+  &--future {
+    color: #d1d5db;
+    cursor: not-allowed;
+  }
+
+  &--selected {
+    background: #3b82f6;
+    color: white;
+    border-color: #2563eb;
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.35);
+    font-weight: 700;
+    z-index: 1;
+  }
+
+  &--in-range {
+    background: #dbeafe;
+    color: #1d4ed8;
+    border-radius: 0;
+    border-color: transparent;
+  }
+
+  &--today:not(.ldc-calendar__day--selected)::after {
+    content: '';
+    position: absolute;
+    bottom: 3px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 4px;
+    height: 4px;
+    background: #ef4444;
+    border-radius: 50%;
+  }
+
+  &--capped {
+    background: rgba(59, 130, 246, 0.5);
+    color: white;
+    border-color: #93c5fd;
+  }
+}
+
+/* ── Responsive ─────────────────────────────────────────── */
 @media (max-width: 768px) {
   .linear-date-chooser {
     width: 400px;

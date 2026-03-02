@@ -11,6 +11,15 @@ import { DEFAULT_POSITION } from '../../../../../../../modules/MapPage/utils/map
 
 import styles from './MapFireControls.module.scss';
 
+const hexToRgb = (hex) => {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  return result ? {
+    r: parseInt(result[1], 16),
+    g: parseInt(result[2], 16),
+    b: parseInt(result[3], 16),
+  } : null;
+};
+
 const MapFireControls = ({ firesByRegion }) => {
   const mapContainerRef = useRef(null);
   const mapRef = useRef(null);
@@ -19,61 +28,44 @@ const MapFireControls = ({ firesByRegion }) => {
   const fireData = firesByRegion;
 
   const getColorForValue = useCallback((value) => {
-    const maxValue = Math.max(...Object.values(fireData));
-    if (maxValue === 0) return 'rgba(200, 200, 200, 0.3)';
-    
+    const values = Object.values(fireData);
+    if (!values.length) return 'rgba(255,255,255,0.04)';
+    const maxValue = Math.max(...values);
+    if (maxValue === 0) return 'rgba(255,255,255,0.04)';
+
     const intensity = value / maxValue;
 
-    const colors = [
-      { threshold: 0, color: '#ffffff' },
-      { threshold: 0.2, color: '#ffd700' },
-      { threshold: 0.4, color: '#ff8000' },
-      { threshold: 0.6, color: '#ff4500' },
-      { threshold: 0.8, color: '#cc0000' },
-      { threshold: 1, color: '#7a0000' }
+    const ramp = [
+      { t: 0,    hex: '#0f1535' },
+      { t: 0.15, hex: '#1e3a6e' },
+      { t: 0.35, hex: '#f59e0b' },
+      { t: 0.6,  hex: '#ef4444' },
+      { t: 0.8,  hex: '#cc0000' },
+      { t: 1,    hex: '#7a0000' },
     ];
 
-    for (let i = 0; i < colors.length - 1; i++) {
-      if (intensity >= colors[i].threshold && intensity <= colors[i + 1].threshold) {
-        const start = colors[i];
-        const end = colors[i + 1];
-        
-        // Calculate interpolation factor within range
-        const rangeIntensity = (intensity - start.threshold) / (end.threshold - start.threshold);
-        
-        // Interpolate between colors
-        const startRgb = hexToRgb(start.color);
-        const endRgb = hexToRgb(end.color);
-        
-        const r = Math.floor(startRgb.r + (endRgb.r - startRgb.r) * rangeIntensity);
-        const g = Math.floor(startRgb.g + (endRgb.g - startRgb.g) * rangeIntensity);
-        const b = Math.floor(startRgb.b + (endRgb.b - startRgb.b) * rangeIntensity);
-        
-        return `rgb(${r}, ${g}, ${b})`;
+    for (let i = 0; i < ramp.length - 1; i++) {
+      const s = ramp[i];
+      const e = ramp[i + 1];
+      if (intensity >= s.t && intensity <= e.t) {
+        const f = (intensity - s.t) / (e.t - s.t);
+        const sr = hexToRgb(s.hex);
+        const er = hexToRgb(e.hex);
+        const r = Math.round(sr.r + (er.r - sr.r) * f);
+        const g = Math.round(sr.g + (er.g - sr.g) * f);
+        const b = Math.round(sr.b + (er.b - sr.b) * f);
+        return `rgba(${r},${g},${b},0.82)`;
       }
     }
-
-    return colors[colors.length - 1].color;
+    return `rgba(122,0,0,0.82)`;
   }, [fireData]);
 
-  // hex to RGB
-  const hexToRgb = (hex) => {
-    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-    return result ? {
-      r: parseInt(result[1], 16),
-      g: parseInt(result[2], 16),
-      b: parseInt(result[3], 16)
-    } : null;
-  };
-
   const styleFunction = useCallback((feature) => {
-    const regionName =
-      feature.get('name') || feature.get('name_igmass');
+    const regionName = feature.get('name') || feature.get('name_igmass');
     const fireCount = fireData[regionName] || 0;
-
     return new Style({
       fill: new Fill({ color: getColorForValue(fireCount) }),
-      stroke: new Stroke({ color: '#333', width: 1 }),
+      stroke: new Stroke({ color: 'rgba(136,139,224,0.25)', width: 0.8 }),
     });
   }, [fireData, getColorForValue]);
 
@@ -93,7 +85,10 @@ const MapFireControls = ({ firesByRegion }) => {
     const map = new Map({
       target: mapContainerRef.current,
       layers: [
-        new TileLayer({ source: new OSM() }),
+        new TileLayer({
+          source: new OSM(),
+          opacity: 0.12,
+        }),
         vectorLayer,
       ],
       view: new View({
@@ -108,82 +103,93 @@ const MapFireControls = ({ firesByRegion }) => {
 
     let lastFeature = null;
 
-    map.on('click', (evt) => {
-      if (lastFeature) lastFeature.setStyle(undefined);
-
+    map.on('pointermove', (evt) => {
       const feature = map.forEachFeatureAtPixel(evt.pixel, (feat) => feat);
-
       if (feature) {
+        map.getTargetElement().style.cursor = 'pointer';
         const regionName = feature.get('name') || feature.get('name_igmass');
-        const fireCount = fireData[regionName] || 'N/A';
-
+        const fireCount = fireData[regionName] || 0;
         setHoveredRegion({ name: regionName, count: fireCount });
-        feature.setStyle(new Style({
-          fill: new Fill({ color: getColorForValue(fireCount) }),
-          stroke: new Stroke({ color: '#fff', width: 2 }),
-        }));
-
-        lastFeature = feature;
       } else {
+        map.getTargetElement().style.cursor = '';
         setHoveredRegion(null);
       }
     });
 
-    return () => {
-      map.setTarget(null);
-    };
+    map.on('click', (evt) => {
+      if (lastFeature) lastFeature.setStyle(undefined);
+      const feature = map.forEachFeatureAtPixel(evt.pixel, (feat) => feat);
+      if (feature) {
+        feature.setStyle(new Style({
+          fill: new Fill({ color: getColorForValue(fireData[feature.get('name') || feature.get('name_igmass')] || 0) }),
+          stroke: new Stroke({ color: 'rgba(217,218,245,0.8)', width: 2 }),
+        }));
+        lastFeature = feature;
+      } else {
+        lastFeature = null;
+      }
+    });
+
+    return () => { map.setTarget(null); };
   }, [styleFunction, fireData, getColorForValue]);
 
-  // Show top 5 regions in legend
-  const sortedRegions = Object.entries(fireData)
-    .sort(([, a], [, b]) => b - a);
-
-  const maxLegendItems = 5;
+  const sortedRegions = Object.entries(fireData).sort(([, a], [, b]) => b - a);
+  const totalFires = sortedRegions.reduce((s, [, c]) => s + c, 0);
 
   return (
     <div className={styles.mapFireWrapper}>
+
+      {/* Map */}
       <div className={styles.mapSection}>
-        <div ref={mapContainerRef} className={styles.mapFireControls}></div>
+        <div ref={mapContainerRef} className={styles.mapFireControls} />
 
         {hoveredRegion && (
           <div className={styles.hoverBox}>
-            <strong>{hoveredRegion.name}</strong>
-            <p>{hoveredRegion.count} fires</p>
+            <span className={styles.hoverBox__name}>{hoveredRegion.name}</span>
+            <span className={styles.hoverBox__count}>{hoveredRegion.count}</span>
+            <span className={styles.hoverBox__label}>пожаров</span>
           </div>
         )}
 
-        {/* Color intensity legend on the map */}
+        {/* Gradient legend overlay */}
         <div className={styles.colorLegend}>
-          <div className={styles.gradientBar}></div>
+          <div className={styles.gradientBar} />
           <div className={styles.gradientLabels}>
-            <span>Low</span>
-            <span>High</span>
+            <span>Мало</span>
+            <span>Много</span>
           </div>
         </div>
       </div>
 
+      {/* Region ranking */}
       <div className={styles.legendSection}>
         <div className={styles.legend}>
-          <h4>Top Fire Regions</h4>
+          <h4 className={styles.legendTitle}>Регионы по количеству пожаров</h4>
           <div className={styles.legendItems}>
-            {sortedRegions.slice(0, maxLegendItems).map(([region, count]) => (
-              <div key={region} className={styles.legendItem}>
-                <div
-                  className={styles.legendColor}
-                  style={{ backgroundColor: getColorForValue(count) }}
-                ></div>
-                <span className={styles.regionName}>{region}</span>
-                <span className={styles.fireCount}>{count}</span>
-              </div>
-            ))}
-            {sortedRegions.length > maxLegendItems && (
-              <div className={styles.moreRegions}>
-                +{sortedRegions.length - maxLegendItems} more regions
-              </div>
-            )}
+            {sortedRegions.map(([region, count], idx) => {
+              const pct = totalFires > 0 ? (count / totalFires) * 100 : 0;
+              return (
+                <div key={region} className={styles.legendItem}>
+                  <span className={styles.legendRank}>{idx + 1}</span>
+                  <div
+                    className={styles.legendColor}
+                    style={{ backgroundColor: getColorForValue(count) }}
+                  />
+                  <span className={styles.regionName}>{region}</span>
+                  <div className={styles.legendBarWrap}>
+                    <div
+                      className={styles.legendBar}
+                      style={{ width: `${pct}%` }}
+                    />
+                  </div>
+                  <span className={styles.fireCount}>{count}</span>
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>
+
     </div>
   );
 };

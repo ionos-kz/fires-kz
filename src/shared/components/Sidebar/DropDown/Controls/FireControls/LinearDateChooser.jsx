@@ -1,76 +1,125 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState } from 'react';
 import { Calendar, ChevronLeft, ChevronRight, X } from 'lucide-react';
 
-import './LinearDateChooser.scss'
+import './LinearDateChooser.scss';
 
-const LinearDateChooser = ({ 
-  startDate, 
-  endDate, 
-  onDateRangeChange, 
-  onClose, 
-  maxDays = 14 
+const RU_MONTHS = [
+  'Январь','Февраль','Март','Апрель','Май','Июнь',
+  'Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'
+];
+const RU_DAYS = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
+
+const LinearDateChooser = ({
+  startDate,
+  endDate,
+  onDateRangeChange,
+  onClose,
+  maxDays = 31
 }) => {
-  const [selectedStart, setSelectedStart] = useState(null);
-  const [selectedEnd, setSelectedEnd] = useState(null);
-  const [isSelecting, setIsSelecting] = useState(false);
-  const [hoveredDate, setHoveredDate] = useState(null);
-  const scrollRef = useRef(null);
+  const todayDate = new Date();
+  todayDate.setHours(0, 0, 0, 0);
 
-  const generateDateRange = () => {
-    const dates = [];
-    const today = new Date();
-    const startRange = new Date(today);
-    startRange.setDate(today.getDate() - 30);
-
-    for (let i = 0; i <= 30; i++) {
-      const date = new Date(startRange);
-      date.setDate(startRange.getDate() + i);
-      dates.push(date);
-    }
-    return dates;
+  const initDate = (d) => {
+    if (!d) return null;
+    const date = new Date(d);
+    date.setHours(0, 0, 0, 0);
+    return date;
   };
 
-  const dateRange = generateDateRange();
+  const [selectedStart, setSelectedStart] = useState(() => initDate(startDate));
+  const [selectedEnd, setSelectedEnd] = useState(() => initDate(endDate));
+  const [isSelecting, setIsSelecting] = useState(false);
+  const [hoveredDate, setHoveredDate] = useState(null);
+  const [viewMonth, setViewMonth] = useState(() => {
+    const base = initDate(startDate) || todayDate;
+    return new Date(base.getFullYear(), base.getMonth(), 1);
+  });
 
-  useEffect(() => {
-    if (startDate) setSelectedStart(new Date(startDate));
-    if (endDate) setSelectedEnd(new Date(endDate));
-  }, [startDate, endDate]);
-
-  useEffect(() => {
-    if (scrollRef.current) {
-      const targetDate = selectedStart || new Date();
-      const dateIndex = dateRange.findIndex(date => 
-        date.toDateString() === targetDate.toDateString()
-      );
-      if (dateIndex !== -1) {
-        const scrollPosition = dateIndex * 60 - 200;
-        scrollRef.current.scrollTo({ left: scrollPosition, behavior: 'smooth' });
-      }
+  const generateGrid = (year, month) => {
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const startDow = (firstDay.getDay() + 6) % 7; // Mon = 0
+    const days = [];
+    for (let i = 0; i < startDow; i++) days.push(null);
+    for (let d = 1; d <= lastDay.getDate(); d++) {
+      days.push(new Date(year, month, d));
     }
-  }, [selectedStart, dateRange]);
+    return days;
+  };
+
+  const grid = generateGrid(viewMonth.getFullYear(), viewMonth.getMonth());
+
+  const prevMonth = () => {
+    setViewMonth(new Date(viewMonth.getFullYear(), viewMonth.getMonth() - 1, 1));
+  };
+
+  const nextMonth = () => {
+    const next = new Date(viewMonth.getFullYear(), viewMonth.getMonth() + 1, 1);
+    if (next <= todayDate) setViewMonth(next);
+  };
+
+  const isNextDisabled = () => {
+    const next = new Date(viewMonth.getFullYear(), viewMonth.getMonth() + 1, 1);
+    return next > todayDate;
+  };
+
+  const clampEnd = (start, end) => {
+    if (!start || !end) return end;
+    let s = start, e = end;
+    if (e < s) [s, e] = [e, s];
+    const diff = (e - s) / 864e5;
+    if (diff > maxDays) {
+      const capped = new Date(s);
+      capped.setDate(s.getDate() + maxDays);
+      return capped;
+    }
+    return e;
+  };
 
   const handleDateClick = (date) => {
+    if (!date || date > todayDate) return;
+
     if (!isSelecting) {
       setSelectedStart(date);
       setSelectedEnd(null);
       setIsSelecting(true);
     } else {
-      if (date < selectedStart) {
-        setSelectedStart(date);
-        setSelectedEnd(selectedStart);
-      } else {
-        const daysDiff = Math.ceil((date - selectedStart) / (1000 * 60 * 60 * 24));
-        if (daysDiff > maxDays) {
-          const maxEndDate = new Date(selectedStart);
-          maxEndDate.setDate(selectedStart.getDate() + maxDays);
-          setSelectedEnd(maxEndDate);
-        } else {
-          setSelectedEnd(date);
-        }
-      }
+      let start = selectedStart;
+      let end = date;
+      if (end < start) [start, end] = [end, start];
+      end = clampEnd(start, end);
+      setSelectedStart(start);
+      setSelectedEnd(end);
       setIsSelecting(false);
+      setHoveredDate(null);
     }
+  };
+
+  const effectiveHoverEnd = isSelecting && hoveredDate && selectedStart
+    ? clampEnd(selectedStart, hoveredDate)
+    : null;
+
+  const isInRange = (date) => {
+    if (!date) return false;
+    const s = selectedStart;
+    const e = isSelecting ? effectiveHoverEnd : selectedEnd;
+    if (!s || !e) return false;
+    const lo = s < e ? s : e;
+    const hi = s < e ? e : s;
+    return date > lo && date < hi;
+  };
+
+  const isEndpoint = (date) => {
+    if (!date) return false;
+    const s = selectedStart;
+    const e = isSelecting ? effectiveHoverEnd : selectedEnd;
+    return (s && date.getTime() === s.getTime()) || (e && date.getTime() === e.getTime());
+  };
+
+  const isCapped = (date) => {
+    if (!date || !isSelecting || !effectiveHoverEnd || !hoveredDate) return false;
+    return effectiveHoverEnd.getTime() !== hoveredDate.getTime() &&
+           date.getTime() === effectiveHoverEnd.getTime();
   };
 
   const handleApply = () => {
@@ -80,151 +129,125 @@ const LinearDateChooser = ({
     }
   };
 
-  const isDateInRange = (date) => {
-    if (!selectedStart || !selectedEnd) return false;
-    return date >= selectedStart && date <= selectedEnd;
-  };
+  const fmt = (date) =>
+    date
+      ? date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short', year: 'numeric' })
+      : '—';
 
-  const isDateHovered = (date) => {
-    if (!isSelecting || !selectedStart || !hoveredDate) return false;
-    const start = selectedStart;
-    const end = hoveredDate;
-    return date >= Math.min(start, end) && date <= Math.max(start, end);
-  };
-
-  const formatDate = (date) => {
-    return date.toLocaleDateString('en-US', { 
-      month: 'short', 
-      day: 'numeric' 
-    });
-  };
-
-  const formatFullDate = (date) => {
-    return date.toLocaleDateString('en-US', { 
-      weekday: 'short',
-      month: 'short', 
-      day: 'numeric',
-      year: 'numeric'
-    });
-  };
-
-  const scrollLeft = () => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollBy({ left: -300, behavior: 'smooth' });
-    }
-  };
-
-  const scrollRight = () => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollBy({ left: 300, behavior: 'smooth' });
-    }
-  };
+  const diffDays =
+    selectedStart && selectedEnd
+      ? Math.ceil((selectedEnd - selectedStart) / 864e5) + 1
+      : null;
 
   return (
     <div className="linear-date-chooser-overlay">
       <div className="linear-date-chooser">
+
+        {/* Header */}
         <div className="linear-date-chooser__header">
           <div className="linear-date-chooser__title">
             <Calendar size={16} />
-            Select Date Range (Max {maxDays} days)
+            Выберите диапазон дат (макс. {maxDays} дн.)
           </div>
           <button className="linear-date-chooser__close" onClick={onClose}>
             <X size={16} />
           </button>
         </div>
 
+        {/* Selection info + actions */}
         <div className="linear-date-chooser__info">
-          {selectedStart && selectedEnd ? (
-            <div className="linear-date-chooser__range">
-              <span className="linear-date-chooser__range-text">
-                {formatFullDate(selectedStart)} - {formatFullDate(selectedEnd)}
-              </span>
-              <span className="linear-date-chooser__range-days">
-                ({Math.ceil((selectedEnd - selectedStart) / (1000 * 60 * 60 * 24)) + 1} days)
-              </span>
-            </div>
-          ) : (
-            <div className="linear-date-chooser__instruction">
-              {isSelecting ? 'Select end date' : 'Select start date'}
-            </div>
-          )}
-
+          <div className="linear-date-chooser__range">
+            {isSelecting ? (
+              <span className="linear-date-chooser__instruction">Выберите дату окончания</span>
+            ) : selectedStart && selectedEnd ? (
+              <>
+                <span className="linear-date-chooser__range-text">
+                  {fmt(selectedStart)} — {fmt(selectedEnd)}
+                </span>
+                <span className="linear-date-chooser__range-days">{diffDays} дн.</span>
+              </>
+            ) : (
+              <span className="linear-date-chooser__instruction">Выберите дату начала</span>
+            )}
+          </div>
           <div className="linear-date-chooser__btns">
-            <button 
-                className="linear-date-chooser__btn linear-date-chooser__btn--secondary"
-                onClick={onClose}
+            <button
+              className="linear-date-chooser__btn linear-date-chooser__btn--secondary"
+              onClick={onClose}
             >
-                Cancel
+              Отмена
             </button>
-            <button 
-                className="linear-date-chooser__btn linear-date-chooser__btn--primary"
-                onClick={handleApply}
-                disabled={!selectedStart || !selectedEnd}
+            <button
+              className="linear-date-chooser__btn linear-date-chooser__btn--primary"
+              onClick={handleApply}
+              disabled={!selectedStart || !selectedEnd}
             >
-                Apply Range
+              Применить
             </button>
           </div>
         </div>
 
-        <div className="linear-date-chooser__container">
-          <button 
-            className="linear-date-chooser__nav linear-date-chooser__nav--left"
-            onClick={scrollLeft}
-          >
-            <ChevronLeft size={16} />
-          </button>
+        {/* Calendar */}
+        <div className="ldc-calendar">
+          {/* Month navigation */}
+          <div className="ldc-calendar__nav">
+            <button className="ldc-calendar__nav-btn" onClick={prevMonth}>
+              <ChevronLeft size={16} />
+            </button>
+            <span className="ldc-calendar__month-label">
+              {RU_MONTHS[viewMonth.getMonth()]} {viewMonth.getFullYear()}
+            </span>
+            <button
+              className="ldc-calendar__nav-btn"
+              onClick={nextMonth}
+              disabled={isNextDisabled()}
+            >
+              <ChevronRight size={16} />
+            </button>
+          </div>
 
-          <div 
-            className="linear-date-chooser__timeline"
-            ref={scrollRef}
-            onMouseLeave={() => setHoveredDate(null)}
-          >
-            {dateRange.map((date, index) => {
-              const isSelected = (selectedStart && date.toDateString() === selectedStart.toDateString()) ||
-                               (selectedEnd && date.toDateString() === selectedEnd.toDateString());
-              const isInRange = isDateInRange(date);
-              const isHovered = isDateHovered(date);
-              const isToday = date.toDateString() === new Date().toDateString();
-              
+          {/* Weekday headers */}
+          <div className="ldc-calendar__weekdays">
+            {RU_DAYS.map((d) => (
+              <span key={d} className="ldc-calendar__weekday">{d}</span>
+            ))}
+          </div>
+
+          {/* Days grid */}
+          <div className="ldc-calendar__grid">
+            {grid.map((date, i) => {
+              if (!date) {
+                return <span key={`e-${i}`} className="ldc-calendar__day ldc-calendar__day--empty" />;
+              }
+              const future = date > todayDate;
+              const selected = isEndpoint(date);
+              const inRange = isInRange(date);
+              const isToday = date.getTime() === todayDate.getTime();
+              const capped = isCapped(date);
+
               return (
-                <div
-                  key={index}
-                  className={`linear-date-chooser__date-item ${
-                    isSelected ? 'linear-date-chooser__date-item--selected' : ''
-                  } ${
-                    isInRange ? 'linear-date-chooser__date-item--in-range' : ''
-                  } ${
-                    isHovered ? 'linear-date-chooser__date-item--hovered' : ''
-                  } ${
-                    isToday ? 'linear-date-chooser__date-item--today' : ''
-                  }`}
+                <button
+                  key={date.toISOString()}
+                  className={[
+                    'ldc-calendar__day',
+                    future       ? 'ldc-calendar__day--future'   : '',
+                    selected     ? 'ldc-calendar__day--selected'  : '',
+                    inRange      ? 'ldc-calendar__day--in-range'  : '',
+                    isToday      ? 'ldc-calendar__day--today'     : '',
+                    capped       ? 'ldc-calendar__day--capped'    : '',
+                  ].filter(Boolean).join(' ')}
                   onClick={() => handleDateClick(date)}
                   onMouseEnter={() => isSelecting && setHoveredDate(date)}
+                  onMouseLeave={() => isSelecting && setHoveredDate(null)}
+                  disabled={future}
                 >
-                  <div className="linear-date-chooser__date-day">
-                    {date.getDate()}
-                  </div>
-                  <div className="linear-date-chooser__date-month">
-                    {formatDate(date)}
-                  </div>
-                  <div className="linear-date-chooser__date-weekday">
-                    {date.toLocaleDateString('en-US', { weekday: 'short' })}
-                  </div>
-                </div>
+                  {date.getDate()}
+                </button>
               );
             })}
           </div>
-
-          <button 
-            className="linear-date-chooser__nav linear-date-chooser__nav--right"
-            onClick={scrollRight}
-          >
-            <ChevronRight size={16} />
-          </button>
         </div>
 
-        {/* <div className="linear-date-chooser__footer">
-        </div> */}
       </div>
     </div>
   );
