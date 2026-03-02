@@ -55,6 +55,17 @@ export const newDD = [
         ]
       },
       {
+        "id": "land_cover",
+        "label_ru": "Землепользование",
+        "options": [
+          {
+            "id": "lulc",
+            "label": "ESRI Sentinel-2 Land Cover (10m)",
+            "description": "Глобальная карта использования и покрытия земель на основе данных Sentinel-2 с разрешением 10 м (ESRI / Impact Observatory). 9 классов покрытия."
+          }
+        ]
+      },
+      {
         "id": "kchs_objects",
         "label_ru": "Объекты КЧС",
         "options": [

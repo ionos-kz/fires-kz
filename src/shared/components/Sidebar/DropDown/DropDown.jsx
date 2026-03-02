@@ -27,6 +27,7 @@ import HLSControls from "./SentinelControls/HLSControls";
 import FireControls from "./Controls/FireControls/FireControls";
 import FireRisk from "./Controls/FireRisk";
 import FireModelling from "./Controls/FireControls/FireModelling";
+import LulcControls from "./Controls/LulcControls";
 import { useLayersStore } from "../../../../app/store/layersStore";
 
 const DropDown = memo(({ openTabIndex }) => {
@@ -258,6 +259,9 @@ const DropDown = memo(({ openTabIndex }) => {
               key={option.id}
             />
           );
+
+        case "lulc":
+          return <LulcControls key={option.id} />;
 
         default:
           return (
