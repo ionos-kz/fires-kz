@@ -6,8 +6,10 @@
     right: 0;
     width: 100%;
     height: 8vh;
-    background-color: $bg-color;
-    border-bottom: 1px solid #9e9e9e;
+    background: rgba(9, 10, 36, 0.85);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(136, 139, 224, 0.1);
 
     display: flex;
     align-items: center;
@@ -15,9 +17,10 @@
     z-index: 10;
 
     svg {
-        color: $icon-main-color;
+        color: rgba(217, 218, 245, 0.45);
         width: $icon-main-size;
         height: $icon-main-size;
+        transition: color 0.2s ease;
     }
 
     .header-inner {
@@ -33,27 +36,63 @@
             align-items: center;
 
             .header-menu-btn {
-                margin-right: 1rem;
                 width: 2rem;
                 height: 2rem;
                 cursor: pointer;
+                border-radius: 8px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition: background 0.2s ease;
+
+                &:hover {
+                    background: rgba(136, 139, 224, 0.08);
+
+                    svg {
+                        color: rgba(217, 218, 245, 0.85);
+                    }
+                }
+
+                svg {
+                    margin-left: .2rem;
+                }
             }
 
             .header-logo {
+                margin-left: 1rem;
                 width: 220px;
                 height: 100%;
-                
+
                 img {
                     width: 100%;
                     height: auto;
                 }
-    
             }
         }
 
         .header-info {
             padding-right: .25rem;
+            display: flex;
+            align-items: center;
+
+            .header-info-btn {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                width: 2rem;
+                height: 2rem;
+                border-radius: 8px;
+                cursor: pointer;
+                transition: background 0.2s ease;
+
+                &:hover {
+                    background: rgba(136, 139, 224, 0.08);
+
+                    svg {
+                        color: rgba(136, 139, 224, 0.9);
+                    }
+                }
+            }
         }
     }
 }
-

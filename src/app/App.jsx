@@ -8,6 +8,7 @@ const NotFoundPage = lazy(() => import("src/shared/errors/NotFoundPage"));
 
 import MainLayout from "src/shared/components/Layout/Layout";
 import LandingPage from "src/modules/LandingPage/LandingPage";
+import ReportPage from "../modules/ReportPage/ReportPage";
 
 function App() {
   return (
@@ -16,6 +17,7 @@ function App() {
         <Suspense fallback={<div className="loader">Loading...</div>}>
           <Routes>
             <Route path="/" element={<LandingPage />} />
+            <Route path="/report" element={<ReportPage />} />
             <Route path="/map" element={<MainLayout> <MapPage /> </MainLayout>} />
             <Route path="*" element={<NotFoundPage />} />
           </Routes>

@@ -27,7 +27,7 @@ const Header = memo(() => {
     <header className={styles.header}>
       <div className={styles['header-inner']}>
         <div className={styles['header-left']}>
-          {/* <button
+          <button
             className={`${styles['header-menu-btn']} header-tooltip`}
             onClick={toggleMenu}
             data-tippy-content={isMenuOpen ? "Collapse" : "Expand"}
@@ -54,7 +54,7 @@ const Header = memo(() => {
                 </motion.div>
               )}
             </AnimatePresence>
-          </button> */}
+          </button>
 
           <div className={styles['header-logo']}>
             <a href="/" aria-label="Homepage">
