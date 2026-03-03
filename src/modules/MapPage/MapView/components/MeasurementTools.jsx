@@ -176,14 +176,14 @@ const MeasurementTools = ({ map }) => {
   const handlePointerMove = (evt) => {
     if (evt.dragging || !helpTooltipElementRef.current) return;
     
-    let helpMsg = 'Click to start drawing';
-    
+    let helpMsg = 'Нажмите, чтобы начать';
+
     if (sketchRef.current) {
       const geom = sketchRef.current.getGeometry();
       if (geom instanceof Polygon) {
-        helpMsg = 'Click to continue drawing the polygon';
+        helpMsg = 'Нажмите, чтобы продолжить рисование';
       } else if (geom instanceof LineString) {
-        helpMsg = 'Click to continue drawing the line';
+        helpMsg = 'Нажмите, чтобы продолжить линию';
       }
     }
     helpTooltipElementRef.current.innerHTML = helpMsg;
@@ -335,12 +335,11 @@ const MeasurementTools = ({ map }) => {
 
   return (
     <div className={styles.measureTools}>
-      <button 
-        className={styles.measureButton}
-        onClick={() => !showToolOptions && setShowToolOptions(true)}
-        aria-label="Toggle measurement tools"
-        data-tippy-content="Measurement Tools"
-        data-tippy-placement="left"
+      <button
+        className={`${styles.measureButton} ${showToolOptions ? styles.active : ''}`}
+        onClick={() => setShowToolOptions(v => !v)}
+        aria-label="Инструменты измерений"
+        title="Инструменты измерений"
       >
         <Ruler size={16} />
       </button>
@@ -348,7 +347,7 @@ const MeasurementTools = ({ map }) => {
       {showToolOptions && (
         <div className={styles.measurePanel}>
           <div className={styles.measurePanelHeader}>
-            <h3>Measurement Tools</h3>
+            <h3>Инструменты измерений</h3>
             <button 
               className={styles.measurePanelClose}
               onClick={() => {
@@ -362,37 +361,33 @@ const MeasurementTools = ({ map }) => {
           </div>
           
           <div className={styles.measureButtonGroup}>
-            <button 
+            <button
               className={`${styles.measuringOptionButton} ${type === 'LineString' ? styles.active : ''}`}
-              aria-label="Measure distance"
+              aria-label="Измерить расстояние"
               onClick={() => type !== 'LineString' ? setType('LineString') : setType('')}
-              data-tippy-content="Measure Distance"
-              data-tippy-placement="left"
             >
               <Ruler size={18} />
-              <span>Distance</span>
+              <span>Расстояние</span>
             </button>
-            
-            <button 
+
+            <button
               className={`${styles.measuringOptionButton} ${type === 'Polygon' ? styles.active : ''}`}
-              aria-label="Measure area"
+              aria-label="Измерить площадь"
               onClick={() => type !== 'Polygon' ? setType('Polygon') : setType('')}
-              data-tippy-content="Measure Area"
-              data-tippy-placement="left" 
             >
               <SquareIcon size={18} />
-              <span>Area</span>
+              <span>Площадь</span>
             </button>
           </div>
           
           {measurementResults.length > 0 && (
             <div className={styles.measurementResults}>
-              <h4>Results</h4>
+              <h4>Результаты</h4>
               <ul>
                 {measurementResults.map((result, index) => (
                   <li key={index} className={styles.measurementResult}>
                     <span className={styles.measurementLabel}>
-                      {result.type === 'LineString' ? 'Distance' : 'Area'} {index + 1}:
+                      {result.type === 'LineString' ? 'Расстояние' : 'Площадь'} {index + 1}:
                     </span>
                     <span 
                       className={styles.measurementValue} 
@@ -405,35 +400,32 @@ const MeasurementTools = ({ map }) => {
           )}
           
           <div className={styles.measureActions}>
-            <button 
+            <button
               className={styles.measureActionButton}
-              aria-label="Clear all measurements"
+              aria-label="Очистить измерения"
+              title="Очистить"
               disabled={measurementResults.length === 0}
               onClick={clearAllMeasurements}
-              data-tippy-content="Clear All"
-              data-tippy-placement="top"
             >
               <Trash2 size={16} />
             </button>
-            
-            <button 
+
+            <button
               className={styles.measureActionButton}
-              aria-label="Copy measurements to clipboard"
+              aria-label="Скопировать в буфер"
+              title="Скопировать"
               disabled={measurementResults.length === 0}
               onClick={copyToClipboard}
-              data-tippy-content="Copy to Clipboard"
-              data-tippy-placement="top"
             >
               <Copy size={16} />
             </button>
-            
-            <button 
+
+            <button
               className={styles.measureActionButton}
-              aria-label="Save measurements"
+              aria-label="Сохранить как CSV"
+              title="Сохранить CSV"
               disabled={measurementResults.length === 0}
               onClick={saveAsCsv}
-              data-tippy-content="Save as CSV"
-              data-tippy-placement="top"
             >
               <Download size={16} />
             </button>

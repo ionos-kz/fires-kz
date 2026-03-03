@@ -96,7 +96,8 @@ const BasemapSwitcher = ({ currentBasemap, onBasemapChange }) => {
       <button
         className={`${styles.basemapButton} ${isOpen ? styles.active : ''}`}
         onClick={() => setIsOpen(!isOpen)}
-        aria-label={isOpen ? "Close Basemap Options" : "Open Basemap Options"}
+        aria-label={isOpen ? "Закрыть подложки" : "Открыть подложки"}
+        title="Подложка карты"
         aria-expanded={isOpen}
         aria-haspopup="menu"
         disabled={isLoading}
@@ -112,12 +113,12 @@ const BasemapSwitcher = ({ currentBasemap, onBasemapChange }) => {
         >
           {isLoading ? (
             <div className={styles.loading}>
-              Switching basemap...
+              Смена подложки...
             </div>
           ) : (
             <>
-              {renderBasemapGroup(rasterBasemaps, 'Raster Maps')}
-              {renderBasemapGroup(vectorBasemaps, 'Vector Maps')}
+              {renderBasemapGroup(rasterBasemaps, 'Растровые')}
+              {renderBasemapGroup(vectorBasemaps, 'Векторные')}
               
               {/* Fallback if no categorized basemaps */}
               {rasterBasemaps.length === 0 && vectorBasemaps.length === 0 && (

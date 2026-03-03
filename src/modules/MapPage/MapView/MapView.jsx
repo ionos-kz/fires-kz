@@ -2,15 +2,13 @@ import { useRef, useState, useMemo, useEffect } from "react";
 import { ToastContainer } from "react-toastify";
 import { Popover } from "antd";
 
-import BasemapSwitcher from "./components/BasemapSwitcher.jsx";
-import MeasurementTools from "./components/MeasurementTools.jsx";
+import MapToolbar from "./components/MapToolbar.jsx";
 import FirePopup from "./components/FirePopup.jsx";
 import FireModelPopup from "./components/FireModelPopup.jsx";
 import EmergencyPopup from "./components/EmergencyPopup.jsx";
 import SettlementsPopup from "./components/SettlementsPopup.jsx";
 import WeatherPopup from "./components/WeatherPopup.jsx";
 import usePopupManager from "./components/PopupManager.jsx";
-import HomeButton from "./components/HomeButton.jsx";
 
 import {
   createAdminBoundary,
@@ -279,14 +277,13 @@ const MapView = () => {
           pauseOnHover={false}
         />
 
-        <BasemapSwitcher
-          currentBasemap={basemap}
-          onBasemapChange={setBasemap}
-        />
-
-        <HomeButton view={mapInstance?.getView()} />
-
-        {isMapInitialized && <MeasurementTools map={mapInstance} />}
+        {isMapInitialized && (
+          <MapToolbar
+            map={mapInstance}
+            currentBasemap={basemap}
+            onBasemapChange={setBasemap}
+          />
+        )}
 
         {isModalVisible && selectedFeature && (
           <Popover
