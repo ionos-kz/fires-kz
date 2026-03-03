@@ -1,4 +1,4 @@
-import styles from "./DropDown.module.scss";
+import styles from "../../DropDown.module.scss";
 
 const MethaneLegend = ({ methaneLayerVisible, emitSn2LayerVisible, emmitLayerVisible }) => (
   <>

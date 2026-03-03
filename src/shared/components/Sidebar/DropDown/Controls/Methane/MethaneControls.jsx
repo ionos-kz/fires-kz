@@ -1,11 +1,8 @@
 import { useCallback } from "react";
-
 import { DatePicker } from "antd";
-
 import dayjs from "dayjs";
-import ToggleSwitch from "../ToggleSwitch/ToggleSwitch";
-
-import OpacityController from "./OpacityController";
+import ToggleSwitch from "../../../ToggleSwitch/ToggleSwitch";
+import OpacityController from "../../OpacityController";
 
 const MethaneControls = ({
   methaneLayerVisible,
@@ -20,7 +17,6 @@ const MethaneControls = ({
   }, []);
 
   const handleMethaneDateChange = useCallback((date, dateString) => {
-    console.log(dateString);
     setMethaneYear(dateString);
   }, [setMethaneYear]);
 

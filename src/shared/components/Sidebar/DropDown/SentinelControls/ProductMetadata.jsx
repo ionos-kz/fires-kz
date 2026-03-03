@@ -15,7 +15,7 @@ const ProductMetadata = ({ product }) => {
                     <Satellite size={16} />
                 </div>
                 <div className={styles.metadata__content}>
-                    <span className={styles.metadata__label}>Platform</span>
+                    <span className={styles.metadata__label}>Платформа</span>
                     <span className={styles.metadata__value}>
                         {product.Platform || "N/A"}
                     </span>
@@ -27,7 +27,7 @@ const ProductMetadata = ({ product }) => {
                 <Database size={16} />
                 </div>
                 <div className={styles.metadata__content}>
-                <span className={styles.metadata__label}>Product Type</span>
+                <span className={styles.metadata__label}>Тип продукта</span>
                 <span className={styles.metadata__value}>
                     {product.ProductType || "N/A"}
                 </span>
@@ -39,7 +39,7 @@ const ProductMetadata = ({ product }) => {
                 <Settings size={16} />
                 </div>
                 <div className={styles.metadata__content}>
-                <span className={styles.metadata__label}>Processing Level</span>
+                <span className={styles.metadata__label}>Уровень обработки</span>
                 <span className={styles.metadata__value}>
                     {product.ProcessingLevel || "N/A"}
                 </span>
@@ -51,7 +51,7 @@ const ProductMetadata = ({ product }) => {
                 <CalendarIcon size={16} />
                 </div>
                 <div className={styles.metadata__content}>
-                <span className={styles.metadata__label}>Ingestion Date</span>
+                <span className={styles.metadata__label}>Дата загрузки</span>
                 <span className={styles.metadata__value}>
                     {formatDate(product.IngestionDate)}
                 </span>
@@ -63,7 +63,7 @@ const ProductMetadata = ({ product }) => {
                 <span className={styles.metadata__orbitIcon}>🛰️</span>
                 </div>
                 <div className={styles.metadata__content}>
-                <span className={styles.metadata__label}>Orbit Number</span>
+                <span className={styles.metadata__label}>Номер орбиты</span>
                 <span className={styles.metadata__value}>
                     {product.OrbitNumber || "N/A"}
                 </span>
@@ -75,7 +75,7 @@ const ProductMetadata = ({ product }) => {
                 <span className={styles.metadata__tileIcon}>🗂️</span>
                 </div>
                 <div className={styles.metadata__content}>
-                <span className={styles.metadata__label}>Tile ID</span>
+                <span className={styles.metadata__label}>ID тайла</span>
                 <span className={styles.metadata__value}>
                     {product.TileId || "N/A"}
                 </span>
@@ -88,7 +88,7 @@ const ProductMetadata = ({ product }) => {
                     <span className={styles.metadata__sizeIcon}>💾</span>
                 </div>
                 <div className={styles.metadata__content}>
-                    <span className={styles.metadata__label}>File Size</span>
+                    <span className={styles.metadata__label}>Размер файла</span>
                     <span className={styles.metadata__value}>
                     {formatFileSize(product.Size)}
                     </span>
@@ -101,7 +101,7 @@ const ProductMetadata = ({ product }) => {
             <div className={styles.metadata__thumbnail}>
                 <div className={styles.metadata__thumbnailHeader}>
                 <Image size={16} />
-                <span>Preview</span>
+                <span>Превью</span>
                 </div>
                 <img
                 src={product.ThumbnailUrl}

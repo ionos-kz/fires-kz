@@ -1,121 +1,52 @@
-import { useEffect, useRef, memo } from "react";
-import {
-  Layers,
-  PencilRuler,
-  Filter,
-  ChartSpline,
-  MapPinned,
-  MessageSquareText,
-  GraduationCap,
-  Flame,
-  Waves,
-  Satellite
-  
-} from "lucide-react";
-// import Tippy from "tippy.js";
+import { useRef, memo } from "react";
+import { PencilRuler, Flame, Satellite } from "lucide-react";
 import useMenuStore from "src/app/store/store";
-import useFireStore from "src/app/store/fireStore";
 import DropDown from "./DropDown/DropDown.jsx";
-
-import "tippy.js/animations/scale.css";
-import "tippy.js/dist/tippy.css";
 import styles from "./Sidebar.module.scss";
 
-const sidebarElements = [
-  { id: 0, icon: Waves, tooltip: "Слой по выбросам метана"},
-  { id: 1, icon: PencilRuler, tooltip: "Инструменты"},
-  { id: 2, icon: Flame, tooltip: "Мониторинг пожаров"},
-  { id: 3, icon: Satellite, tooltip: "Космические снимки"},
-  // { id: 3, icon: Filter, tooltip: "Filters"},
-  // { id: 4, icon: MapPinned, tooltip: "Analysis", content: "Анализ" },
-  // { id: 5, icon: MessageSquareText, tooltip: "Feedback", content: "Обратная связь" },
-  // { id: 6, icon: GraduationCap, tooltip: "Education", content: "Обучение" },
+const TABS = [
+  { id: 1, icon: PencilRuler, tooltip: "Инструменты" },
+  { id: 2, icon: Flame,       tooltip: "Мониторинг пожаров" },
+  { id: 3, icon: Satellite,   tooltip: "Космические снимки" },
 ];
 
 const Sidebar = memo(() => {
   const { isMenuOpen, openTabIndex, toggleMenu, setTabIndex } = useMenuStore();
-  const { fireLayerVisible } = useFireStore();
   const sidebarRef = useRef(null);
 
-  const handleDDMenu = (e) => {
-    const clickedTab = e.currentTarget;
-    const clickedId = parseInt(clickedTab.id.replace("sidebar-tab-", ""), 10);
-
-    if (isMenuOpen) {
-      if (openTabIndex === clickedId) {
-        toggleMenu();
-        return;
-      }
-    } else {
+  const handleTabClick = (e) => {
+    const clickedId = parseInt(e.currentTarget.id.replace("sidebar-tab-", ""), 10);
+    if (isMenuOpen && openTabIndex === clickedId) {
       toggleMenu();
+    } else {
+      if (!isMenuOpen) toggleMenu();
+      setTabIndex(clickedId);
     }
-
-    setTabIndex(clickedId);
   };
 
-  // useEffect(() => {
-  //   const handleClickOutside = (event) => {
-  //     if (sidebarRef.current && !sidebarRef.current.contains(event.target)) {
-  //       toggleMenu();
-  //     }
-  //   };
-
-  //   if (isMenuOpen) {
-  //     document.addEventListener("mousedown", handleClickOutside);
-  //   } else {
-  //     document.removeEventListener("mousedown", handleClickOutside);
-  //   }
-
-  //   return () => document.removeEventListener("mousedown", handleClickOutside);
-  // }, [isMenuOpen, toggleMenu]);
-
-  // useEffect(() => {
-  //   let tippyInstances = [];
-
-  //   if (!isMenuOpen) {
-  //     tippyInstances = Tippy('.tippySidebar', {
-  //       placement: 'right',
-  //       theme: 'light-border',
-  //       animation: 'scale'
-  //     });
-  //   }
-
-  //   return () => {
-  //     tippyInstances.forEach(instance => instance.destroy());
-  //   };
-  // }, [isMenuOpen]);
-
   return (
-    <aside className={styles.sidebar}  ref={sidebarRef}>
-      <div className={`${styles.menu} ${isMenuOpen && styles.open}`} >
-        {sidebarElements.map((el, index) => {
-          const Icon = el.icon;
-          if (el.id === 0) return;
-
-          return (
-            <div
-              id={`sidebar-tab-` + index}
-              key={index}
-              className={`${styles.tab} ${openTabIndex === index && styles.active}`}
-              onClick={handleDDMenu}
-              data-tippy-content={el.tooltip}
-              role="button"
-            >
-              <div className={styles["tab-inner"]}>
-                <div className={styles["tab-icon"]}>
-                  <Icon />
-                </div>
+    <aside className={styles.sidebar} ref={sidebarRef}>
+      <div className={`${styles.menu} ${isMenuOpen ? styles.open : ""}`}>
+        {TABS.map(({ id, icon: Icon, tooltip }) => (
+          <div
+            key={id}
+            id={`sidebar-tab-${id}`}
+            className={`${styles.tab} ${openTabIndex === id ? styles.active : ""}`}
+            onClick={handleTabClick}
+            title={tooltip}
+            role="button"
+          >
+            <div className={styles["tab-inner"]}>
+              <div className={styles["tab-icon"]}>
+                <Icon />
               </div>
             </div>
-          );
-        })}
-
+          </div>
+        ))}
       </div>
+
       {isMenuOpen && (
-        <DropDown 
-          fireLayerVisible={fireLayerVisible} 
-          openTabIndex={openTabIndex}
-        />
+        <DropDown openTabIndex={openTabIndex} />
       )}
     </aside>
   );

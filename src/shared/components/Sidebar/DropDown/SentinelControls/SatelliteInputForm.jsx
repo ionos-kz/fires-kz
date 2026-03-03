@@ -6,19 +6,17 @@ import {
   Download,
   Loader,
 } from "lucide-react";
+import { ICON_SIZE, SATELLITE_COLLECTIONS } from "../DropDownConstants";
+import styles from "../DropDown.module.scss";
 
-import { ICON_SIZE, SATELLITE_COLLECTIONS } from "./DropDownConstants";
-
-import styles from "./DropDown.module.scss";
-
-const SatelliteInputForm = ({ 
-  satelliteInputs, 
-  handleInputChange, 
-  handleSearch, 
-  handleDownload, 
-  isLoading, 
-  searchResult, 
-  error 
+const SatelliteInputForm = ({
+  satelliteInputs,
+  handleInputChange,
+  handleSearch,
+  handleDownload,
+  isLoading,
+  searchResult,
+  error,
 }) => (
   <div className={styles.satellite__container}>
     <div className={styles.dropdown__input}>
@@ -108,11 +106,9 @@ const SatelliteInputForm = ({
         disabled={isLoading}
         title="Search for imagery"
       >
-        {isLoading ? (
-          <Loader size={ICON_SIZE} className={styles.spinner} />
-        ) : (
-          <Search size={ICON_SIZE} />
-        )}
+        {isLoading
+          ? <Loader size={ICON_SIZE} className={styles.spinner} />
+          : <Search size={ICON_SIZE} />}
         <span>{isLoading ? "Processing..." : "Search"}</span>
       </button>
       <button

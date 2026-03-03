@@ -1,28 +1,29 @@
 import { useState } from "react";
 import {
   Calendar, Eye, EyeOff, Layers, Search, MapPin, Info,
-  AlertCircle, Trash2, Cloud, Database,
+  AlertCircle, Trash2, Cloud, Database, Sliders, Satellite,
 } from "lucide-react";
 import ProductMetadata from './ProductMetadata';
 import LayerCard from "./LayerCard";
-import { 
+import {
     formatDate, getCloudCoverLabel, getCloudCoverColor, showProductDetails
  } from "src/utils/sentinelUtils";
 import styles from "./SentinelControls.module.scss";
+import '../Controls/FireControls/fireControls.scss';
 
 const SentinelControlsContainer = ({
       // Handlers
   handleSearchSentinelData,
   addToMap,
   setActiveSection,
-  
+
   // State
   error,
   activeSection,
-  
+
   // Configuration
   bandOptions,
-  
+
   // Store values
   sentinelVisible,
   setSentinelVisible,
@@ -40,8 +41,9 @@ const SentinelControlsContainer = ({
   activeLayers,
   clearActiveLayers,
   removeActiveLayer,
-}) => {    
+}) => {
     const [selectedProduct, setSelectedProduct] = useState(null);
+    const [isExpanded, setIsExpanded] = useState(false);
 
     const handleVisibilityToggle = () => {
         setSentinelVisible(!sentinelVisible);
@@ -55,26 +57,30 @@ const SentinelControlsContainer = ({
         setSelectedBands(e.target.value);
     };
 
-
     return (
-    <div className={styles.sentinelControls}>
-      <div className={styles.sentinelControls__header}>
-        <div className={styles.sentinelControls__visibility}>
-          <button
-            className={`${styles.sentinelControls__toggleBtn} ${
-              sentinelVisible
-                ? styles["sentinelControls__toggleBtn--active"]
-                : ""
-            }`}
-            onClick={handleVisibilityToggle}
-          >
-            {sentinelVisible ? <Eye size={18} /> : <EyeOff size={18} />}
-            <span>Sentinel-2 Layer</span>
-          </button>
+    <div className="fire-controls">
+      <div className="fire-controls__header">
+        <div className="fire-controls__toggle" onClick={handleVisibilityToggle}>
+          <div className="fire-controls__toggle-icon">
+            {sentinelVisible
+              ? <Eye size={16} className="fire-controls__icon-active" />
+              : <EyeOff size={16} className="fire-controls__icon-inactive" />}
+          </div>
+          <span className="fire-controls__toggle-label">Sentinel-2</span>
+          <Satellite
+            size={16}
+            className={`fire-controls__flame-icon ${sentinelVisible ? 'fire-controls__flame-icon--active' : ''}`}
+          />
         </div>
+        <button
+          className={`fire-controls__expand-btn ${isExpanded ? 'fire-controls__expand-btn--expanded' : ''}`}
+          onClick={() => setIsExpanded((v) => !v)}
+        >
+          <Sliders size={14} />
+        </button>
       </div>
 
-      {sentinelVisible && (
+      {isExpanded && (
         <div className={styles.sentinelControls__content}>
           {/* Navigation Tabs */}
           <div className={styles.sentinelControls__tabs}>
@@ -87,7 +93,7 @@ const SentinelControlsContainer = ({
               onClick={() => setActiveSection("search")}
             >
               <Search size={16} />
-              Search
+              Поиск
             </button>
             <button
               className={`${styles.sentinelControls__tab} ${
@@ -99,7 +105,7 @@ const SentinelControlsContainer = ({
               disabled={searchResults.length === 0}
             >
               <Database size={16} />
-              Results ({searchResults.length})
+              Результаты ({searchResults.length})
             </button>
             <button
               className={`${styles.sentinelControls__tab} ${
@@ -111,7 +117,7 @@ const SentinelControlsContainer = ({
               disabled={activeLayers.length === 0}
             >
               <Layers size={16} />
-              Layers ({activeLayers.length})
+              Слои ({activeLayers.length})
             </button>
           </div>
 
@@ -120,7 +126,7 @@ const SentinelControlsContainer = ({
             <div className={styles.sentinelControls__searchSection}>
               <div className={styles.sentinelControls__section}>
                 <label className={styles.sentinelControls__label}>
-                  Opacity: {sentinelOpacity}%
+                  Непрозрачность: {sentinelOpacity}%
                 </label>
                 <input
                   type="range"
@@ -134,7 +140,7 @@ const SentinelControlsContainer = ({
 
               <div className={styles.sentinelControls__section}>
                 <label className={styles.sentinelControls__label}>
-                  Band Combination
+                  Комбинация каналов
                 </label>
                 <select
                   value={selectedBands}
@@ -153,7 +159,7 @@ const SentinelControlsContainer = ({
                 <div className={styles.sentinelControls__dateGroup}>
                   <label className={styles.sentinelControls__label}>
                     <Calendar size={16} />
-                    Start Date
+                    Дата начала
                   </label>
                   <input
                     type="date"
@@ -167,7 +173,7 @@ const SentinelControlsContainer = ({
                 <div className={styles.sentinelControls__dateGroup}>
                   <label className={styles.sentinelControls__label}>
                     <Calendar size={16} />
-                    End Date
+                    Дата окончания
                   </label>
                   <input
                     type="date"
@@ -193,7 +199,7 @@ const SentinelControlsContainer = ({
                 disabled={isLoading || !startDate || !endDate}
               >
                 <Search size={16} />
-                {isLoading ? "Searching..." : "Search Sentinel-2 Data"}
+                {isLoading ? "Поиск..." : "Найти снимки Sentinel-2"}
               </button>
             </div>
           )}
@@ -236,17 +242,17 @@ const SentinelControlsContainer = ({
                         <button
                           className={styles.resultCard__infoBtn}
                           onClick={() => showProductDetails(setSelectedProduct, selectedProduct, result)}
-                          title="Show details"
+                          title="Подробности"
                         >
                           <Info size={14} />
                         </button>
                         <button
                           className={styles.resultCard__addBtn}
                           onClick={() => addToMap(result)}
-                          title="Add to map"
+                          title="На карту"
                         >
                           <MapPin size={14} />
-                          Add
+                          Добавить
                         </button>
                       </div>
                     </div>
@@ -270,12 +276,12 @@ const SentinelControlsContainer = ({
                   disabled={activeLayers.length === 0}
                 >
                   <Trash2 size={16} />
-                  Clear All ({activeLayers.length})
+                  Очистить все ({activeLayers.length})
                 </button>
               </div>
               <div className={styles.sentinelControls__layersList}>
                 {activeLayers.map((layer, index) => (
-                  <LayerCard key={layer.id} layer={layer} index={index} 
+                  <LayerCard key={layer.id} layer={layer} index={index}
                     bandOptions={bandOptions} toggleLayerVisibility={toggleLayerVisibility}
                     removeActiveLayer={removeActiveLayer}
                   />

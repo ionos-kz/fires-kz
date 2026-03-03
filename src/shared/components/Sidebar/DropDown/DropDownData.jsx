@@ -66,6 +66,17 @@ export const newDD = [
         ]
       },
       {
+        "id": "settlements",
+        "label_ru": "Населённые пункты",
+        "options": [
+          {
+            "id": "settlements_layer",
+            "label": "Населённые пункты Казахстана",
+            "description": "Точечный слой населённых пунктов Казахстана: столица, города, посёлки, сёла и пригороды. Источник: OpenStreetMap."
+          }
+        ]
+      },
+      {
         "id": "kchs_objects",
         "label_ru": "Объекты КЧС",
         "options": [

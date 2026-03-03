@@ -192,11 +192,11 @@ const HLSControls = () => {
 
   const handleSearch = useCallback(async () => {
     if (!startDate || !endDate) {
-      setError('Please select both start and end dates');
+      setError('Выберите начальную и конечную даты');
       return;
     }
     if (new Date(endDate) < new Date(startDate)) {
-      setError('End date must be after start date');
+      setError('Конечная дата должна быть позже начальной');
       return;
     }
 
@@ -212,7 +212,7 @@ const HLSControls = () => {
       setSearchResults(items);
       setSearchSource(source);
       if (items.length === 0) {
-        setError('No HLS L30 images found for the selected filters in Kazakhstan. Try widening the date range or cloud cover limit.');
+        setError('Снимки HLS L30 не найдены. Попробуйте расширить период или лимит облачности.');
       }
     } catch (err) {
       setError(err.message);
@@ -265,21 +265,21 @@ const HLSControls = () => {
           className={`${styles.tab} ${activeTab === 'search' ? styles['tab--active'] : ''}`}
           onClick={() => switchTab('search')}
         >
-          <Search size={14} /> Search
+          <Search size={14} /> Поиск
         </button>
         <button
           className={`${styles.tab} ${activeTab === 'results' ? styles['tab--active'] : ''}`}
           onClick={() => switchTab('results')}
           disabled={searchResults.length === 0 && !isLoading}
         >
-          <Database size={14} /> Results ({searchResults.length})
+          <Database size={14} /> Результаты ({searchResults.length})
         </button>
         <button
           className={`${styles.tab} ${activeTab === 'layers' ? styles['tab--active'] : ''}`}
           onClick={() => switchTab('layers')}
           disabled={activeLayers.length === 0}
         >
-          <Layers size={14} /> Layers ({activeLayers.length})
+          <Layers size={14} /> Слои ({activeLayers.length})
         </button>
       </div>
 
@@ -293,7 +293,7 @@ const HLSControls = () => {
             <div className={styles.dateRow}>
               <div className={styles.dateGroup}>
                 <label className={styles.label}>
-                  <Calendar size={13} /> Start
+                  <Calendar size={13} /> Начало
                 </label>
                 <input
                   type="date"
@@ -305,7 +305,7 @@ const HLSControls = () => {
               </div>
               <div className={styles.dateGroup}>
                 <label className={styles.label}>
-                  <Calendar size={13} /> End
+                  <Calendar size={13} /> Конец
                 </label>
                 <input
                   type="date"
@@ -321,7 +321,7 @@ const HLSControls = () => {
             {/* Cloud cover */}
             <div className={styles.field}>
               <label className={styles.label}>
-                <Cloud size={13} /> Cloud cover ≤ {cloudCover}%
+                <Cloud size={13} /> Облачность ≤ {cloudCover}%
               </label>
               <input
                 type="range"
@@ -335,13 +335,13 @@ const HLSControls = () => {
 
             {/* Platform */}
             <div className={styles.field}>
-              <label className={styles.label}>Platform</label>
+              <label className={styles.label}>Платформа</label>
               <select
                 value={platform}
                 onChange={(e) => setPlatform(e.target.value)}
                 className={styles.select}
               >
-                <option value="all">All (L8 + L9)</option>
+                <option value="all">Все (L8 + L9)</option>
                 <option value="landsat-8">Landsat 8</option>
                 <option value="landsat-9">Landsat 9</option>
               </select>
@@ -361,12 +361,11 @@ const HLSControls = () => {
               disabled={isLoading || !startDate || !endDate}
             >
               <Search size={15} />
-              {isLoading ? 'Searching…' : 'Search HLS L30'}
+              {isLoading ? 'Поиск…' : 'Найти HLS L30'}
             </button>
 
             <p className={styles.hint}>
-              Queries NASA CMR-STAC and Planetary Computer for Harmonized Landsat
-              L30 (30 m) scenes constrained to Kazakhstan.
+              Запрос NASA CMR-STAC для HLS L30 (30 м) снимков Казахстана.
             </p>
           </div>
         )}
@@ -375,12 +374,12 @@ const HLSControls = () => {
         {activeTab === 'results' && (
           <div className={styles.resultsSection}>
             {isLoading && (
-              <div className={styles.statusMsg}>Searching STAC…</div>
+              <div className={styles.statusMsg}>Поиск…</div>
             )}
 
             {!isLoading && searchResults.length === 0 && (
               <div className={styles.statusMsg}>
-                {error || 'No results yet. Run a search first.'}
+                {error || 'Нет результатов. Выполните поиск.'}
               </div>
             )}
 
@@ -451,16 +450,16 @@ const HLSControls = () => {
                           onClick={() =>
                             setExpandedId(isExpanded ? null : item.id)
                           }
-                          title="Details"
+                          title="Подробности"
                         >
                           {isExpanded ? <ChevronUp size={13} /> : <Info size={13} />}
                         </button>
                         <button
                           className={`${styles.iconBtn} ${styles['iconBtn--add']}`}
                           onClick={() => handleAddToMap(item)}
-                          title={thumb ? 'Add thumbnail overlay to map' : 'No thumbnail – add bbox marker'}
+                          title={thumb ? 'Добавить на карту' : 'Нет превью – добавить метку bbox'}
                         >
-                          <MapPin size={13} /> Add
+                          <MapPin size={13} /> Добавить
                         </button>
                       </div>
                     </div>
@@ -503,7 +502,7 @@ const HLSControls = () => {
                         </div>
                         {!thumb && (
                           <div className={styles.authNote}>
-                            No public thumbnail. Raw assets may require NASA Earthdata login.
+                            Нет публичного превью. RAW-данные могут требовать авторизацию NASA Earthdata.
                           </div>
                         )}
                       </div>
@@ -524,7 +523,7 @@ const HLSControls = () => {
                 onClick={clearActiveLayers}
                 disabled={activeLayers.length === 0}
               >
-                <Trash2 size={14} /> Clear All
+                <Trash2 size={14} /> Очистить все
               </button>
             </div>
 
@@ -544,21 +543,21 @@ const HLSControls = () => {
                         </span>
                       )}
                       {!layer.hasThumbnail && (
-                        <span className={styles.layerCard__noThumb}>No thumbnail</span>
+                        <span className={styles.layerCard__noThumb}>Нет превью</span>
                       )}
                     </div>
                     <div className={styles.layerCard__actions}>
                       <button
                         className={`${styles.iconBtn} ${layer.visible ? styles['iconBtn--active'] : ''}`}
                         onClick={() => toggleLayerVisibility(layer.id)}
-                        title={layer.visible ? 'Hide' : 'Show'}
+                        title={layer.visible ? 'Скрыть' : 'Показать'}
                       >
                         {layer.visible ? <Eye size={13} /> : <EyeOff size={13} />}
                       </button>
                       <button
                         className={`${styles.iconBtn} ${styles['iconBtn--danger']}`}
                         onClick={() => removeActiveLayer(layer.id)}
-                        title="Remove"
+                        title="Удалить"
                       >
                         <Trash2 size={13} />
                       </button>
@@ -568,7 +567,7 @@ const HLSControls = () => {
                   {/* Opacity slider */}
                   <div className={styles.layerCard__opacity}>
                     <span className={styles.opacityLabel}>
-                      Opacity {Math.round((layer.opacity ?? 0.85) * 100)}%
+                      Непрозрачность {Math.round((layer.opacity ?? 0.85) * 100)}%
                     </span>
                     <input
                       type="range"
@@ -586,8 +585,7 @@ const HLSControls = () => {
             </div>
 
             <p className={styles.hint}>
-              Layers are rendered as georeferenced thumbnail overlays. Raw COG assets
-              may require NASA Earthdata authentication.
+              Слои отображаются как геопривязанные превью. RAW-данные могут требовать авторизацию NASA Earthdata.
             </p>
           </div>
         )}

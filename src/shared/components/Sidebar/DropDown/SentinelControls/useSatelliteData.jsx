@@ -1,8 +1,6 @@
 import { useCallback, useState } from "react";
-
 import { OpenEO } from "@openeo/js-client";
-
-import { DEFAULT_SATELLITE_INPUTS } from "./DropDownConstants";
+import { DEFAULT_SATELLITE_INPUTS } from "../DropDownConstants";
 
 export const useSatelliteData = () => {
   const [satelliteInputs, setSatelliteInputs] = useState(DEFAULT_SATELLITE_INPUTS);
@@ -20,9 +18,9 @@ export const useSatelliteData = () => {
       await con.authenticateBasic("group1", "test123");
 
       const bbox = {
-        west: parseFloat(params.west),
+        west:  parseFloat(params.west),
         south: parseFloat(params.south),
-        east: parseFloat(params.east),
+        east:  parseFloat(params.east),
         north: parseFloat(params.north),
       };
 
@@ -37,7 +35,7 @@ export const useSatelliteData = () => {
         ]],
       };
 
-      const bands = params.bands.split(",").map(band => band.trim());
+      const bands = params.bands.split(",").map(b => b.trim());
       const builder = await con.buildProcess();
 
       let datacube = builder.load_collection(
@@ -47,21 +45,15 @@ export const useSatelliteData = () => {
         bands
       );
 
-      const reducer = function (data) {
-        return this.max(data);
-      };
+      const reducer = function (data) { return this.max(data); };
       datacube = builder.reduce_dimension(datacube, reducer, "t");
 
-      const scale = function (x) {
-        return this.linear_scale_range(x, 0, 3000, 0, 255);
-      };
+      const scale = function (x) { return this.linear_scale_range(x, 0, 3000, 0, 255); };
       datacube = builder.apply(datacube, scale);
       datacube = builder.save_result(datacube, "PNG");
 
       const capabilities = con.capabilities();
-      const syncSupport = capabilities.hasFeature("computeResult");
-
-      if (!syncSupport) {
+      if (!capabilities.hasFeature("computeResult")) {
         throw new Error("Synchronous preview not supported by this backend");
       }
 
@@ -73,19 +65,18 @@ export const useSatelliteData = () => {
         metadata: {
           collection: params.collection,
           dateRange: `${params.startDate} to ${params.endDate}`,
-          bands: params.bands,
+          bands:     params.bands,
         },
       };
-    } catch (error) {
-      console.error("OpenEO processing error:", error);
-      throw new Error("Failed to process satellite data: " + error.message);
+    } catch (err) {
+      console.error("OpenEO processing error:", err);
+      throw new Error("Failed to process satellite data: " + err.message);
     }
   }, []);
 
   const handleSearch = useCallback(async () => {
     setIsLoading(true);
     setError(null);
-
     try {
       const result = await fetchSatelliteData(satelliteInputs);
       setSearchResult(result);
@@ -99,7 +90,6 @@ export const useSatelliteData = () => {
 
   const handleDownload = useCallback(() => {
     if (!searchResult?.imagePath) return;
-
     const a = document.createElement("a");
     a.href = searchResult.imagePath;
     a.download = `satellite_${satelliteInputs.collection.replace("/", "_")}_${satelliteInputs.startDate}.png`;
@@ -108,13 +98,5 @@ export const useSatelliteData = () => {
     document.body.removeChild(a);
   }, [searchResult, satelliteInputs]);
 
-  return {
-    satelliteInputs,
-    isLoading,
-    searchResult,
-    error,
-    handleInputChange,
-    handleSearch,
-    handleDownload,
-  };
+  return { satelliteInputs, isLoading, searchResult, error, handleInputChange, handleSearch, handleDownload };
 };

@@ -1,5 +1,5 @@
-import OpacityController from "./OpacityController";
-import ToggleSwitch from "../ToggleSwitch/ToggleSwitch";
+import OpacityController from "../OpacityController";
+import ToggleSwitch from "../../ToggleSwitch/ToggleSwitch";
 
 const Sentinel2Controls = ({
   emitSn2LayerVisible,

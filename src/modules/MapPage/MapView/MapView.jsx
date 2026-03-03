@@ -7,6 +7,7 @@ import MeasurementTools from "./components/MeasurementTools.jsx";
 import FirePopup from "./components/FirePopup.jsx";
 import FireModelPopup from "./components/FireModelPopup.jsx";
 import EmergencyPopup from "./components/EmergencyPopup.jsx";
+import SettlementsPopup from "./components/SettlementsPopup.jsx";
 import WeatherPopup from "./components/WeatherPopup.jsx";
 import usePopupManager from "./components/PopupManager.jsx";
 import HomeButton from "./components/HomeButton.jsx";
@@ -36,6 +37,7 @@ import { useSentinelLayers } from "../hooks/useSentinelLayers";
 import { useMethaneLayers } from "../hooks/useMethaneLayers";
 import { useRiskLayers } from "../hooks/useRiskLayers";
 import { useLulcLayer } from "../hooks/useLulcLayer";
+import { useSettlementsLayer } from "../hooks/useSettlementsLayer";
 import { useFireModelling } from "../hooks/useFireModelling.js";
 import { useEmergencyPopup } from "../hooks/useEmergencyPopup.js";
 
@@ -134,6 +136,11 @@ const MapView = () => {
   // Initialize risk layers
   useRiskLayers(riskMapStore.riskDates, mapInstance, isMapInitialized);
   useLulcLayer(mapInstance, isMapInitialized);
+  const {
+    popupRef:     settlementsPopupRef,
+    popupContent: settlementsPopupContent,
+    closePopup:   closeSettlementsPopup,
+  } = useSettlementsLayer(mapInstance, isMapInitialized);
   const {
     popupRef:    fireModelPopupRef,
     popupContent: fireModelPopupContent,
@@ -355,6 +362,12 @@ const MapView = () => {
           popupRef={emergencyPopupRef}
           content={emergencyPopupContent}
           onClose={closeEmergencyPopup}
+        />
+
+        <SettlementsPopup
+          popupRef={settlementsPopupRef}
+          content={settlementsPopupContent}
+          onClose={closeSettlementsPopup}
         />
 
         {weatherCoordinate && (

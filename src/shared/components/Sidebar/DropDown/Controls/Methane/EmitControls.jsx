@@ -1,8 +1,8 @@
 import { useCallback } from "react";
-import { Card,DatePicker, List } from "antd";
+import { Card, DatePicker, List } from "antd";
 import dayjs from "dayjs";
 const { RangePicker } = DatePicker;
-import ToggleSwitch from "../ToggleSwitch/ToggleSwitch";
+import ToggleSwitch from "../../../ToggleSwitch/ToggleSwitch";
 
 const EmitControls = ({
   emmitLayerVisible,
@@ -31,7 +31,7 @@ const EmitControls = ({
       <RangePicker
         value={[
           dayjs(beginDateEmmit, 'YYYY-MM-DD'),
-          dayjs(endDateEmmit, 'YYYY-MM-DD')
+          dayjs(endDateEmmit, 'YYYY-MM-DD'),
         ]}
         format="YYYY-MM-DD"
         onChange={handleEmitDateChange}
@@ -39,11 +39,7 @@ const EmitControls = ({
       {emmitLayerVisible && (
         <List style={{ height: 300, overflowY: 'scroll' }}>
           {emmitLayerIds.map((emmit) => (
-            <Card
-              hoverable
-              key={emmit}
-              style={{ marginBottom: '1px #011' }}
-            >
+            <Card hoverable key={emmit} style={{ marginBottom: '1px #011' }}>
               <p>{emmit}</p>
             </Card>
           ))}

@@ -1,15 +1,16 @@
 import { useState } from "react";
 import {
   Calendar, Eye, EyeOff, Layers, Search, MapPin, Info,
-  AlertCircle, Trash2, Cloud, Database,
+  AlertCircle, Trash2, Cloud, Database, Sliders, Satellite,
 } from "lucide-react";
 import ProductMetadata from './ProductMetadata';
 import LayerCard from "./LayerCard";
 import useSentinel3Store from "../../../../../app/store/sentinel3Store";
-import { 
+import {
   searchSentinelData, formatDate, getCloudCoverLabel, getCloudCoverColor
  } from "src/utils/sentinelUtils";
 import styles from "./SentinelControls.module.scss";
+import '../Controls/FireControls/fireControls.scss';
 
 
 const SentinelControls3 = () => {
@@ -38,6 +39,7 @@ const SentinelControls3 = () => {
   const [error, setError] = useState(null);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [activeSection, setActiveSection] = useState("search");
+  const [isExpanded, setIsExpanded] = useState(false);
 
   const bandOptions = [
     {
@@ -62,7 +64,7 @@ const SentinelControls3 = () => {
 
   const handleSearchSentinelData = async () => {
     if (!startDate || !endDate) {
-      setError("Please select both start and end dates");
+      setError("Выберите начальную и конечную даты");
       return;
     }
 
@@ -71,12 +73,12 @@ const SentinelControls3 = () => {
     const daysDiff = (end - start) / (1000 * 60 * 60 * 24);
 
     if (daysDiff < 0) {
-      setError("End date must be after start date");
+      setError("Конечная дата должна быть позже начальной");
       return;
     }
 
     if (daysDiff > 365) {
-      setError("Date range cannot exceed 1 year");
+      setError("Диапазон дат не может превышать 1 год");
       return;
     }
 
@@ -91,11 +93,11 @@ const SentinelControls3 = () => {
       setSearchResults(data.value || []);
 
       if (data.value?.length === 0) {
-        setError("No Sentinel-3 images found for the specified criteria");
+        setError("Снимки Sentinel-3 не найдены для указанных критериев");
       }
     } catch (error) {
       console.error("Error searching Sentinel data:", error);
-      setError(`Search failed: ${error.message}`);
+      setError(`Ошибка поиска: ${error.message}`);
       setSearchResults([]);
     } finally {
       setIsLoading(false);
@@ -104,7 +106,7 @@ const SentinelControls3 = () => {
 
   const addToMap = (product) => {
     if (!startDate || !endDate) {
-      setError("Please set date range first");
+      setError("Сначала укажите диапазон дат");
       return;
     }
 
@@ -135,24 +137,29 @@ const SentinelControls3 = () => {
   };
 
   return (
-    <div className={styles.sentinelControls}>
-      <div className={styles.sentinelControls__header}>
-        <div className={styles.sentinelControls__visibility}>
-          <button
-            className={`${styles.sentinelControls__toggleBtn} ${
-              sentinel3Visible
-                ? styles["sentinelControls__toggleBtn--active"]
-                : ""
-            }`}
-            onClick={handleVisibilityToggle3}
-          >
-            {sentinel3Visible ? <Eye size={18} /> : <EyeOff size={18} />}
-            <span>Sentinel-1 Layer</span>
-          </button>
+    <div className="fire-controls">
+      <div className="fire-controls__header">
+        <div className="fire-controls__toggle" onClick={handleVisibilityToggle3}>
+          <div className="fire-controls__toggle-icon">
+            {sentinel3Visible
+              ? <Eye size={16} className="fire-controls__icon-active" />
+              : <EyeOff size={16} className="fire-controls__icon-inactive" />}
+          </div>
+          <span className="fire-controls__toggle-label">Sentinel-3</span>
+          <Satellite
+            size={16}
+            className={`fire-controls__flame-icon ${sentinel3Visible ? 'fire-controls__flame-icon--active' : ''}`}
+          />
         </div>
+        <button
+          className={`fire-controls__expand-btn ${isExpanded ? 'fire-controls__expand-btn--expanded' : ''}`}
+          onClick={() => setIsExpanded((v) => !v)}
+        >
+          <Sliders size={14} />
+        </button>
       </div>
 
-      {sentinel3Visible && (
+      {isExpanded && (
         <div className={styles.sentinelControls__content}>
           {/* Navigation Tabs */}
           <div className={styles.sentinelControls__tabs}>
@@ -165,7 +172,7 @@ const SentinelControls3 = () => {
               onClick={() => setActiveSection("search")}
             >
               <Search size={16} />
-              Search
+              Поиск
             </button>
             <button
               className={`${styles.sentinelControls__tab} ${
@@ -177,7 +184,7 @@ const SentinelControls3 = () => {
               disabled={searchResults.length === 0}
             >
               <Database size={16} />
-              Results ({searchResults.length})
+              Результаты ({searchResults.length})
             </button>
             <button
               className={`${styles.sentinelControls__tab} ${
@@ -189,7 +196,7 @@ const SentinelControls3 = () => {
               disabled={activeLayers3.length === 0}
             >
               <Layers size={16} />
-              Layers ({activeLayers3.length})
+              Слои ({activeLayers3.length})
             </button>
           </div>
 
@@ -198,7 +205,7 @@ const SentinelControls3 = () => {
             <div className={styles.sentinelControls__searchSection}>
               <div className={styles.sentinelControls__section}>
                 <label className={styles.sentinelControls__label}>
-                  Opacity: {sentinel3Opacity}%
+                  Непрозрачность: {sentinel3Opacity}%
                 </label>
                 <input
                   type="range"
@@ -212,7 +219,7 @@ const SentinelControls3 = () => {
 
               <div className={styles.sentinelControls__section}>
                 <label className={styles.sentinelControls__label}>
-                  Band Combination
+                  Комбинация каналов
                 </label>
                 <select
                   value={selectedBands3}
@@ -231,7 +238,7 @@ const SentinelControls3 = () => {
                 <div className={styles.sentinelControls__dateGroup}>
                   <label className={styles.sentinelControls__label}>
                     <Calendar size={16} />
-                    Start Date
+                    Дата начала
                   </label>
                   <input
                     type="date"
@@ -245,7 +252,7 @@ const SentinelControls3 = () => {
                 <div className={styles.sentinelControls__dateGroup}>
                   <label className={styles.sentinelControls__label}>
                     <Calendar size={16} />
-                    End Date
+                    Дата окончания
                   </label>
                   <input
                     type="date"
@@ -271,7 +278,7 @@ const SentinelControls3 = () => {
                 disabled={isLoading || !startDate || !endDate}
               >
                 <Search size={16} />
-                {isLoading ? "Searching..." : "Search Sentinel-3 Data"}
+                {isLoading ? "Поиск..." : "Найти снимки Sentinel-3"}
               </button>
             </div>
           )}
@@ -314,17 +321,17 @@ const SentinelControls3 = () => {
                         <button
                           className={styles.resultCard__infoBtn}
                           onClick={() => showProductDetails(result)}
-                          title="Show details"
+                          title="Подробности"
                         >
                           <Info size={14} />
                         </button>
                         <button
                           className={styles.resultCard__addBtn}
                           onClick={() => addToMap(result)}
-                          title="Add to map"
+                          title="На карту"
                         >
                           <MapPin size={14} />
-                          Add
+                          Добавить
                         </button>
                       </div>
                     </div>
@@ -348,12 +355,12 @@ const SentinelControls3 = () => {
                   disabled={activeLayers3.length === 0}
                 >
                   <Trash2 size={16} />
-                  Clear All ({activeLayers3.length})
+                  Очистить все ({activeLayers3.length})
                 </button>
               </div>
               <div className={styles.sentinelControls__layersList}>
                 {activeLayers3.map((layer, index) => (
-                  <LayerCard key={layer.id} layer={layer} index={index} 
+                  <LayerCard key={layer.id} layer={layer} index={index}
                     bandOptions={bandOptions} toggleLayerVisibility={toggleLayerVisibility}
                     removeActiveLayer={removeActiveLayer3}
                   />

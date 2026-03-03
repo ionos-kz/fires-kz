@@ -33,39 +33,39 @@ const SentinelControls = ({ productType }) => {
   const bandOptions = [
     {
       value: "true-color",
-      label: "True Color (RGB)",
+      label: "Натуральные цвета (RGB)",
       icon: "🌍",
-      description: "Natural color composite",
+      description: "Натуральный цветной композит",
     },
     {
       value: "false-color",
-      label: "False Color (NIR-R-G)",
+      label: "Ложный цвет (БИК-К-З)",
       icon: "🌿",
-      description: "Vegetation analysis",
+      description: "Анализ растительности",
     },
     {
       value: "ndvi",
-      label: "NDVI (Vegetation)",
+      label: "NDVI (Растительность)",
       icon: "🌱",
-      description: "Normalized Difference Vegetation Index",
+      description: "Нормализованный вегетационный индекс",
     },
     {
       value: "ndwi",
-      label: "NDWI (Water)",
+      label: "NDWI (Водные объекты)",
       icon: "💧",
-      description: "Water body detection",
+      description: "Обнаружение водных объектов",
     },
     {
       value: "ndbr",
-      label: "NDBR (Burn Ratio)",
+      label: "NDBR (Индекс выжженности)",
       icon: "🔥",
-      description: "Burn severity mapping",
+      description: "Картирование степени выгорания",
     },
   ];
 
   const handleSearchSentinelData = async () => {
     if (!startDate || !endDate) {
-      setError("Please select both start and end dates");
+      setError("Выберите начальную и конечную даты");
       return;
     }
 
@@ -74,12 +74,12 @@ const SentinelControls = ({ productType }) => {
     const daysDiff = (end - start) / (1000 * 60 * 60 * 24);
 
     if (daysDiff < 0) {
-      setError("End date must be after start date");
+      setError("Конечная дата должна быть позже начальной");
       return;
     }
 
     if (daysDiff > 365) {
-      setError("Date range cannot exceed 1 year");
+      setError("Диапазон дат не может превышать 1 год");
       return;
     }
 
@@ -103,11 +103,11 @@ const SentinelControls = ({ productType }) => {
       setSearchResults(data.value || []);
 
       if (data.value?.length === 0) {
-        setError("No Sentinel-2 images found for the specified criteria");
+        setError("Снимки Sentinel-2 не найдены для указанных критериев");
       }
     } catch (error) {
       console.error("Error searching Sentinel data:", error);
-      setError(`Search failed: ${error.message}`);
+      setError(`Ошибка поиска: ${error.message}`);
       setSearchResults([]);
     } finally {
       setIsLoading(false);
@@ -116,7 +116,7 @@ const SentinelControls = ({ productType }) => {
 
   const addToMap = (product) => {
     if (!startDate || !endDate) {
-      setError("Please set date range first");
+      setError("Сначала укажите диапазон дат");
       return;
     }
 

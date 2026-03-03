@@ -85,21 +85,21 @@ const LayerCard = ({
                 layer.visible ? styles["layerCard__actionBtn--active"] : ""
               }`}
               onClick={() => toggleLayerVisibilityHandler(layer.id)}
-              title={layer.visible ? "Hide layer" : "Show layer"}
+              title={layer.visible ? "Скрыть слой" : "Показать слой"}
             >
               {layer.visible ? <Eye size={14} /> : <EyeOff size={14} />}
             </button>
             <button
               className={styles.layerCard__actionBtn}
               onClick={() => toggleLayerExpansion(layer.id)}
-              title="Toggle details"
+              title="Подробности"
             >
               {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
             </button>
             <button
               className={`${styles.layerCard__actionBtn} ${styles.layerCard__actionBtn}--danger`}
               onClick={() => removeLayer(layer.id)}
-              title="Remove layer"
+              title="Удалить слой"
             >
               <Trash2 size={14} />
             </button>
@@ -111,7 +111,7 @@ const LayerCard = ({
             <div className={styles.layerCard__properties}>
               <div className={styles.layerCard__property}>
                 <span className={styles.layerCard__propertyLabel}>
-                  Date Range:
+                  Период:
                 </span>
                 <span className={styles.layerCard__propertyValue}>
                   {layer.startDate} → {layer.endDate}
@@ -119,7 +119,7 @@ const LayerCard = ({
               </div>
               <div className={styles.layerCard__property}>
                 <span className={styles.layerCard__propertyLabel}>
-                  Opacity:
+                  Непрозрачность:
                 </span>
                 <span className={styles.layerCard__propertyValue}>
                   {Math.round(layer.opacity * 100)}%
@@ -127,7 +127,7 @@ const LayerCard = ({
               </div>
               <div className={styles.layerCard__property}>
                 <span className={styles.layerCard__propertyLabel}>
-                  Product ID:
+                  ID продукта:
                 </span>
                 <span
                   className={styles.layerCard__propertyValue}
@@ -140,7 +140,7 @@ const LayerCard = ({
             {bandInfo.description && (
               <div className={styles.layerCard__description}>
                 <span className={styles.layerCard__descriptionLabel}>
-                  Band Info:
+                  Канал:
                 </span>
                 <span className={styles.layerCard__descriptionText}>
                   {bandInfo.description}
